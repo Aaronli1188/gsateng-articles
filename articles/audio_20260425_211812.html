@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (1 article)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">The Kalash People of Pakistan</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260425_211812_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>You might think that the remote mountain valleys of northern Pakistan are home to only one culture, shaped entirely by centuries of Islamic tradition. But tucked into three narrow valleys near the Afghan border lives a community that seems to belong to a completely different world. The Kalash people, numbering fewer than 4,000, practice a polytheistic religion, celebrate with music and dancing, and follow customs that set them apart from nearly every community around them. They are one of the smallest and most distinctive ethnic groups in all of Asia.</p>
+<p>The Kalash worship a pantheon of gods and spirits connected to nature, animals, and ancestors. Their calendar is filled with festivals, the most famous being Chilam Joshi in spring and Chaumos in winter. During these celebrations, women dress in elaborately decorated black robes and colorful beaded headdresses, singing and dancing openly — a striking contrast to the more conservative cultures of neighboring regions. Their villages, built from wood and stone high in the Hindu Kush mountains, have remained relatively isolated for centuries, which helped preserve their unique way of life.</p>
+<p>However, this isolation is fading. Younger Kalash members sometimes convert to Islam and leave their villages for broader Pakistani society. Outside tourism brings both economic opportunity and cultural pressure. Scholars debate the origins of the Kalash — some romantic theories claim descent from Alexander the Great&#x27;s soldiers, but most historians and geneticists point to much older, complex migrations across Central Asia. The truth of their origins remains partially unsolved.</p>
+<p>What makes the Kalash so compelling is not their mystery alone, but what they remind us about humanity. Every culture carries its own logic, its own beauty, its own way of answering life&#x27;s biggest questions. The Kalash simply answer those questions differently — and that difference is worth protecting.</p>
+  </div>
+  <div class="nav"><span></span><span></span></div>
+</div>
+
+<div class="indicator" id="indicator">1 / 1</div>
+
+<script>
+let current = 1;
+const total = 1;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('indicator').textContent = n + ' / ' + total;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
