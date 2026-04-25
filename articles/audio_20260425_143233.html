@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (2 articles)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">The Mpemba Effect (hot water freezing faster than cold water)</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260425_143233_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>It IS on the banned list. Let me select a different topic.</p>
+<p>TOPIC: Bioluminescence in Deep-Sea Creatures
+FRAMEWORK: B</p>
+<p>Imagine diving into the ocean, far below where sunlight can reach. Everything around you is completely dark — yet suddenly, flashes of blue and green light appear, as if the water itself is glowing. This is bioluminescence, the ability of living things to produce their own light. While many people have seen fireflies in the garden, few realize that deep in the ocean, bioluminescence is not rare at all. Scientists estimate that over 75% of deep-sea creatures can produce light, making it one of the most common abilities in the ocean.</p>
+<p>The chemistry behind bioluminescence involves a molecule called luciferin, which reacts with oxygen to release energy in the form of light. An enzyme called luciferase controls this reaction. The process is remarkably efficient — almost no energy is lost as heat, unlike a light bulb. Different species have evolved this ability independently, which means bioluminescence has appeared in nature not once, but at least 40 to 50 separate times across different groups of animals, bacteria, and fungi.</p>
+<p>However, scientists still debate why so many creatures developed this ability. Some use light to attract prey, like the anglerfish with its glowing lure. Others flash light to confuse predators or to communicate with potential mates. Some even release glowing clouds into the water to distract attackers, similar to how an octopus uses ink. But for many species, the exact purpose of their light remains unclear, leaving researchers with more questions than answers.</p>
+<p>What makes bioluminescence especially fascinating is how little we still know about the deep ocean. Less than 20% of it has been properly explored. Every new dive reveals creatures that science has never seen before. In a world where technology advances rapidly, the deep sea reminds us that nature still holds enormous secrets — quietly glowing in the dark, waiting to be discovered.</p>
+  </div>
+  <div class="nav"><span></span><button class="nav-btn" onclick="goTo(2)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-2" class="page">
+  <h2 class="article-title">The Voynich Manuscript</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260425_143233_2.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Wait — that topic is on the excluded list. Let me reselect.</p>
+<p>TOPIC: The Taos Hum (a mysterious low-frequency sound heard in New Mexico)
+FRAMEWORK: B</p>
+<p>---</p>
+<p>In the small town of Taos, New Mexico, something strange has been bothering residents for decades. Some people hear a low, constant humming sound — like a distant diesel engine that never turns off. It is maddening. It interrupts sleep, causes headaches, and makes some people feel anxious or disoriented. The puzzling part is this: only about two percent of the local population can hear it at all. No recording equipment has ever successfully captured it. Scientists call it the &quot;Taos Hum,&quot; and despite serious investigation, no one has fully explained it.</p>
+<p>Several theories have been proposed. One early explanation suggested that the sound comes from very low-frequency military communications, since the U.S. Navy uses such signals to contact submarines. Another theory points to industrial activity — pipes, machinery, or underground gas movement creating vibrations that travel through rock and soil. Some researchers believe the hum is actually generated inside the human ear itself, a condition called spontaneous otoacoustic emission, where the ear produces its own sounds without any external source. Each explanation seems reasonable, but none has been proven conclusively.</p>
+<p>What makes this phenomenon even stranger is that the Taos Hum is not unique to New Mexico. Similar hums have been reported in Bristol, England, in Largs, Scotland, and in Windsor, Canada. In some cases, local industrial sources were eventually identified. But in others, the mystery remained unsolved even after thorough investigation. The people who hear these sounds are often dismissed as overly sensitive or anxious, which adds a layer of social frustration to their physical discomfort.</p>
+<p>The Taos Hum reminds us that human perception is complex and that our environment is full of signals we do not fully understand. Science has mapped distant galaxies, yet a sound in an ordinary town continues to escape explanation. Perhaps the most honest answer is the simplest one: we do not know yet.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(1)">&larr; 上一篇</button><span></span></div>
+</div>
+
+<div class="indicator" id="indicator">1 / 2</div>
+
+<script>
+let current = 1;
+const total = 2;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('indicator').textContent = n + ' / ' + total;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
