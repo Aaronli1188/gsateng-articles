@@ -6,34 +6,76 @@
 <title>GSAT English Reading</title>
 <style>
   body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; background: #fafafa; }
-  h1 { font-size: 1.8rem; color: #222; border-bottom: 2px solid #222; padding-bottom: 12px; }
+  .title-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; padding-bottom: 12px; }
+  h1 { font-size: 1.8rem; color: #222; margin: 0; }
   .article-list { list-style: none; padding: 0; }
-  .article-list li { margin: 16px 0; }
+  .article-list li { margin: 16px 0; display: flex; align-items: flex-start; gap: 10px; }
   .article-list a { font-size: 1.1rem; color: #1a0dab; text-decoration: none; }
   .article-list a:hover { text-decoration: underline; }
   .meta { font-size: 0.85rem; color: #666; margin-top: 4px; }
   #loading { color: #888; font-size: 0.95rem; }
+  .select-btn { font-size: 0.85rem; color: #555; background: none; border: 1px solid #ccc; border-radius: 4px; padding: 5px 12px; cursor: pointer; }
+  .select-btn:hover { background: #f0f0f0; }
+  .action-bar { display: none; margin-top: 14px; padding-bottom: 14px; border-bottom: 1px solid #eee; align-items: center; gap: 12px; }
+  .action-bar.visible { display: flex; }
+  .del-btn { background: #c00; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+  .del-btn:hover { background: #a00; }
+  .cancel-btn { background: none; border: none; color: #888; font-size: 0.9rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .cb { cursor: pointer; accent-color: #c00; flex-shrink: 0; margin-top: 5px; display: none; }
+  .item-content { flex: 1; min-width: 0; }
 </style>
 </head>
 <body>
-<h1>GSAT English Reading</h1>
+<div class="title-row">
+  <h1>GSAT English Reading</h1>
+  <button class="select-btn" id="select-btn" onclick="toggleEdit()">選取</button>
+</div>
+<div class="action-bar" id="action-bar">
+  <button class="del-btn" onclick="deleteSelected()">刪除選取</button>
+  <button class="cancel-btn" onclick="toggleEdit()">取消</button>
+  <span id="sel-count" style="font-size:0.85rem;color:#888;"></span>
+</div>
 <p id="loading">Loading articles...</p>
 <ul class="article-list" id="list"></ul>
 <script>
+const HIDDEN_KEY = 'gsat_hidden';
+let editMode = false;
+
+function getHidden() { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); }
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.getElementById('select-btn').textContent = editMode ? '完成' : '選取';
+  document.getElementById('action-bar').classList.toggle('visible', editMode);
+  document.querySelectorAll('.cb').forEach(cb => { cb.style.display = editMode ? 'inline-block' : 'none'; cb.checked = false; });
+  updateCount();
+}
+
+function updateCount() {
+  const n = document.querySelectorAll('.cb:checked').length;
+  document.getElementById('sel-count').textContent = n > 0 ? n + ' 項已選取' : '';
+}
+
+function deleteSelected() {
+  const hidden = getHidden();
+  document.querySelectorAll('.cb:checked').forEach(cb => { hidden.push(cb.dataset.url); cb.closest('li').remove(); });
+  localStorage.setItem(HIDDEN_KEY, JSON.stringify([...new Set(hidden)]));
+  toggleEdit();
+}
+
 fetch('articles.json?v=' + Date.now())
   .then(r => r.json())
   .then(articles => {
     document.getElementById('loading').remove();
+    const hidden = getHidden();
     const list = document.getElementById('list');
-    articles.forEach(a => {
+    articles.filter(a => !hidden.includes(a.url)).forEach(a => {
       const li = document.createElement('li');
-      li.innerHTML = '<a href="' + a.url + '">' + a.title + '</a><div class="meta">' + a.date + '</div>';
+      li.innerHTML = '<input type="checkbox" class="cb" data-url="' + a.url + '" onchange="updateCount()"><div class="item-content"><a href="' + a.url + '">' + a.title + '</a><div class="meta">' + a.date + '</div></div>';
       list.appendChild(li);
     });
   })
-  .catch(() => {
-    document.getElementById('loading').textContent = 'Could not load articles.';
-  });
+  .catch(() => { document.getElementById('loading').textContent = 'Could not load articles.'; });
 </script>
 </body>
 </html>

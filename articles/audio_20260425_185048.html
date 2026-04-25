@@ -20,6 +20,8 @@
   .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
   .nav-btn:hover { background: #444; }
   .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 </style>
 </head>
 <body>
@@ -699,7 +701,7 @@ FRAMEWORK: B</p>
   <div class="nav"><button class="nav-btn" onclick="goTo(39)">&larr; 上一篇</button><span></span></div>
 </div>
 
-<div class="indicator" id="indicator">1 / 40</div>
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="40" value="1"> / 40 篇</div>
 
 <script>
 let current = 1;
@@ -708,9 +710,14 @@ function goTo(n) {
   document.getElementById('page-' + current).classList.remove('active');
   document.getElementById('page-' + n).classList.add('active');
   current = n;
-  document.getElementById('indicator').textContent = n + ' / ' + total;
+  document.getElementById('jump-input').value = n;
   window.scrollTo(0, 0);
 }
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
 </script>
 </body>
 </html>
