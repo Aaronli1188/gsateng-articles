@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (30 articles)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Caffeine Consumption and Its Effects on the Human Body</h2>
+  
+  <div class="article">
+<p>Many people start their day with a cup of coffee or tea without thinking twice. Caffeine is the world&#x27;s most widely consumed psychoactive substance, found in coffee, tea, energy drinks, and even chocolate. Most people see it as a harmless morning habit, a simple way to feel more awake and focused. But the full picture of caffeine&#x27;s relationship with the human body is more complicated than that.</p>
+<p>On the positive side, research shows that moderate caffeine intake can genuinely improve concentration, reaction time, and short-term memory. Athletes often use it to boost physical performance, and studies suggest it may reduce the risk of certain conditions like Parkinson&#x27;s disease and type 2 diabetes. For many people, a cup or two a day causes no noticeable problems and may even support a healthier, more productive lifestyle. These benefits help explain why caffeine has been part of human culture for centuries.</p>
+<p>However, the drawbacks are real and should not be ignored. Caffeine is mildly addictive, meaning regular users often experience headaches, irritability, and fatigue when they stop consuming it suddenly. High doses can raise heart rate, cause anxiety, and seriously disrupt sleep — even when consumed several hours before bedtime. Teenagers and young adults are particularly vulnerable because their brains are still developing. Energy drinks, which often contain far more caffeine than a standard coffee, have been linked to emergency room visits in some countries.</p>
+<p>So, is caffeine good or bad for you? The honest answer is: it depends. The key factors are how much you consume, when you consume it, and how sensitive your body is to its effects. Rather than labeling caffeine as either a wonder substance or a hidden danger, it may be wiser to treat it like most things in life — something best enjoyed with awareness and in moderation.</p>
+  </div>
+  <div class="nav"><span></span><button class="nav-btn" onclick="goTo(2)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-2" class="page">
+  <h2 class="article-title">Alice Ball (chemist who developed the first effective treatment for leprosy)</h2>
+  
+  <div class="article">
+<p>Alice Ball was only 23 years old when she solved a medical problem that had defeated scientists for decades. In 1915, she became the first person to create an injectable treatment for leprosy — a disease that had isolated millions of people in painful, lonely quarantine for centuries. Her achievement was remarkable. What makes it even more extraordinary is that almost nobody knew her name for nearly a hundred years.</p>
+<p>Ball was a young Black woman studying chemistry at the University of Hawaii at a time when both her race and her gender made every step forward harder than it needed to be. Working with chaulmoogra oil, a traditional remedy that doctors knew had some effect but could not make the body absorb properly, she found a way to extract the active compounds and turn them into a form that could be injected directly into patients. It worked. For the first time, people suffering from leprosy had real hope of recovery.</p>
+<p>Then tragedy struck. Ball died suddenly in 1916, before she could publish her research. A male colleague, Dr. Arthur Dean, continued her work and presented it publicly — without ever mentioning her name. He called the method the &quot;Dean Method.&quot; Ball&#x27;s contribution was quietly buried. It was not until 1922 that another researcher, Dr. Harry Hollmann, pushed back and gave Ball the credit she deserved. Even then, the wider world did not pay attention for decades.</p>
+<p>Today, Hawaii officially celebrates Alice Ball Day on February 28th, and her portrait hangs at the University of Hawaii. Her story is more than a correction of history. It is a reminder of how many breakthroughs may have been made by people whose names were never recorded — and why it matters that we keep looking.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(1)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(3)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-3" class="page">
+  <h2 class="article-title">The Roman Dodecahedron</h2>
+  
+  <div class="article">
+<p>You have probably assumed that archaeologists always know what ancient objects were used for. Find a Roman artifact, study its shape, read some old texts, and the answer appears. Simple enough. But there is one small bronze object, found in hundreds of locations across the former Roman Empire, that has completely defeated this assumption for nearly three centuries. Nobody knows what it was for. Not even close.</p>
+<p>The Roman dodecahedron is a hollow bronze object with twelve flat, pentagon-shaped sides. Each side has a circular hole in it, and the holes vary in size. Small knobs sit at each corner. They range from about 4 to 11 centimeters in size. Over 100 have been found, mostly in northern Europe — France, Germany, and Britain — dating from the 2nd to 4th century AD. Here is the strange part: not a single Roman text mentions them. No drawings, no instructions, no explanations. For an empire that documented almost everything, this silence is remarkable.</p>
+<p>Theories have piled up over the years. Some researchers suggest they were measuring tools for calculating distances or sizes of pipes. Others believe they were candleholders, dice, religious objects, or even tools for knitting gloves. Modern knitters have actually tried using them to knit on the varying holes, and it works surprisingly well. But no single theory has won general agreement among historians and archaeologists. Each explanation fits some evidence while failing to explain other details.</p>
+<p>This unsolved mystery forces us to rethink something important: the past is not a complete story waiting to be read. It has gaps, silences, and puzzles that resist easy answers. The Roman dodecahedron reminds us that even a highly organized, well-documented civilization could leave behind objects that future generations simply cannot explain. What else might we be misreading — or missing entirely?</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(2)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(4)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-4" class="page">
+  <h2 class="article-title">The Fibonacci Sequence in Nature</h2>
+  
+  <div class="article">
+<p>Most people meet the Fibonacci sequence in a math class and quickly forget it. Just add two numbers to get the next: 1, 1, 2, 3, 5, 8, 13, and so on forever. It sounds like a simple puzzle, nothing more. But this sequence, first written down by an Italian mathematician in 1202, turns out to be quietly hidden inside living things all around you.</p>
+<p>Leonardo of Pisa, nicknamed Fibonacci, introduced the sequence to Europe through a problem about breeding rabbits. However, the pattern itself is far older. Ancient Indian scholars had already noticed it while studying rhythms in poetry hundreds of years earlier. Fibonacci simply gave European readers a clear explanation. Over the following centuries, scientists began noticing the same numbers appearing in unexpected places — the spirals of a pinecone, the arrangement of seeds in a sunflower, the curl of a nautilus shell. It was not coincidence. Plants that grow following this pattern pack their seeds or petals most efficiently, wasting almost no space. Nature, it turns out, is very good at mathematics.</p>
+<p>The deeper reason involves a related concept called the Golden Ratio, approximately 1.618. When you divide a Fibonacci number by the one before it, the result gets closer and closer to this value. Artists and architects, from ancient Greece to the Renaissance, believed this ratio created the most beautiful and balanced proportions. Whether human eyes genuinely prefer it or whether that is an exaggerated claim remains a topic of debate among researchers today.</p>
+<p>What makes this story remarkable is the bridge it builds between abstract numbers and the physical world. A medieval rabbit problem connects to sunflower fields, ancient poetry, and architectural design. It suggests that mathematics is not something humans invented purely in their minds — perhaps it is something we discovered, already written into nature itself.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(3)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(5)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-5" class="page">
+  <h2 class="article-title">The Mapuche People of Chile and Their Resistance to Colonization</h2>
+  
+  <div class="article">
+<p>You might think that when European powers arrived in the Americas, indigenous peoples had little choice but to surrender or disappear. But the Mapuche people of southern Chile tell a very different story. For over three hundred years, they successfully resisted both the Inca Empire and later the Spanish colonizers — something almost no other group in the Americas managed to do. Today, around 1.8 million Mapuche people live in Chile and Argentina, making them one of the largest indigenous groups on the continent.</p>
+<p>The Mapuche, whose name means &quot;people of the land,&quot; built their resistance on a deep understanding of their environment. The dense forests and river valleys of southern Chile made large-scale Spanish military campaigns extremely difficult. But geography alone did not save them. The Mapuche were also skilled at adapting. They quickly learned to ride horses after the Spanish introduced them, turning a European advantage into their own weapon. Their political structure was flexible too — rather than one central leader, local chiefs called lonkos made decisions for their communities, which made the society harder to defeat all at once.</p>
+<p>The Spanish eventually signed a formal treaty with the Mapuche in 1641, officially recognizing the Bío-Bío River as a border. This was extraordinary. It was one of the very few times a European colonial power legally acknowledged an indigenous nation&#x27;s sovereignty. However, after Chilean independence in the 1800s, the new government pushed into Mapuche territory and took most of their land by force — a wound that has never fully healed.</p>
+<p>The Mapuche story forces us to rethink simple narratives about colonization. It is not just a history of loss. It is also a history of intelligence, endurance, and identity. Their ongoing struggle for land rights in modern Chile reminds us that history does not simply end — it continues living in people.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(4)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(6)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-6" class="page">
+  <h2 class="article-title">Ötzi the Iceman</h2>
+  
+  <div class="article">
+<p>Ötzi the Iceman was discovered in September 1991 by two German hikers walking along the Alps between Austria and Italy. At first, they thought they had found a recently dead mountaineer. What they had actually found was a 5,300-year-old man, one of the oldest and best-preserved natural human mummies ever recorded. That single discovery changed what scientists believed about prehistoric Europe forever.</p>
+<p>Tracing back through Ötzi&#x27;s life reveals a surprisingly complex story. Scientists analyzed his body, clothing, tools, and even the contents of his stomach. He wore layered clothing made from at least five different animal species, showing advanced knowledge of materials. His last meal, eaten roughly thirty minutes before he died, included deer meat, wild grains, and plants. He carried a copper axe, which was a rare and valuable object at the time. His equipment showed careful craftsmanship, suggesting he was not a simple wanderer but a man of some status or skill.</p>
+<p>However, Ötzi&#x27;s story has a darker and more complicated layer. Examination of his body revealed an arrowhead lodged in his left shoulder, which had cut a major blood vessel. He was murdered. Analysis of his hand showed cuts consistent with defensive wounds, meaning he likely fought someone shortly before his death. Who killed him and why remains unknown. Theories include a dispute over resources, a ritual killing, or an ambush by enemies. The mystery adds a deeply human quality to an otherwise ancient and distant figure.</p>
+<p>Ötzi matters because he is not just a mummy — he is a window into a world that left few written records. His DNA has revealed information about early European genetics, disease, and migration. He had a genetic predisposition to heart disease, making him feel surprisingly modern. In one frozen body, thousands of years of human history quietly waited to be read.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(5)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(7)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-7" class="page">
+  <h2 class="article-title">Intermittent Fasting</h2>
+  
+  <div class="article">
+<p>Many people believe that eating three meals a day is the only healthy way to live. But intermittent fasting — a pattern where people limit eating to specific windows of time — has become one of the most talked-about health trends in recent years. Some followers swear it changed their lives. Others warn it may do more harm than good. So which side is right?</p>
+<p>The potential benefits are real and supported by research. When the body goes without food for an extended period, it begins to burn stored fat for energy, which can help with weight loss. Studies also suggest that fasting may improve insulin sensitivity, reduce inflammation, and even support brain health. Some researchers believe it triggers a process called autophagy, where the body cleans out damaged cells — a kind of internal housekeeping. For many people, it also simplifies daily routines by removing the pressure of planning multiple meals.</p>
+<p>However, intermittent fasting is not without its drawbacks. Some people experience headaches, irritability, and difficulty concentrating, especially during the adjustment period. For teenagers and young adults who are still growing, skipping meals can interfere with proper nutrition and development. People with a history of eating disorders may find that restrictive eating patterns trigger unhealthy behaviors. Furthermore, some studies suggest that the benefits may come simply from eating less overall — not from the timing itself. The science is still evolving, and experts do not fully agree.</p>
+<p>Intermittent fasting is neither a miracle cure nor a dangerous habit for most healthy adults — it sits somewhere in between. Like many health choices, its effects depend heavily on the individual. Before trying any fasting routine, it is worth consulting a doctor or nutritionist. The best diet, after all, is one that supports both your body and your daily life without causing unnecessary stress.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(6)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(8)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-8" class="page">
+  <h2 class="article-title">The Coriolis Effect</h2>
+  
+  <div class="article">
+<p>Most people have heard that water drains clockwise in the Northern Hemisphere and counterclockwise in the Southern Hemisphere. It sounds like a satisfying fact — the kind you share at dinner to impress someone. The problem is, it is mostly a myth. The truth behind the Coriolis Effect is far more interesting, and far more surprising, than this popular claim suggests.</p>
+<p>The Coriolis Effect is a real phenomenon. Because the Earth rotates, moving objects — like wind or ocean currents — are gradually deflected to the right in the Northern Hemisphere and to the left in the Southern Hemisphere. This happens because different parts of the Earth spin at different speeds depending on their distance from the equator. The effect is powerful enough to shape the direction of massive weather systems. Hurricanes and typhoons spin the way they do precisely because of this force acting on enormous bodies of air over hundreds of kilometers.</p>
+<p>Here is the catch, though. The Coriolis Effect only works at large scales. A sink or a toilet is simply too small for the force to have any meaningful influence. What actually determines which way your water drains is the shape of the basin, tiny movements already present in the water, and the direction of the jets built into the bowl. In controlled laboratory experiments — where scientists carefully eliminate all other factors — the Coriolis Effect can be observed in draining water. But in everyday bathrooms? The effect is essentially invisible.</p>
+<p>This small correction matters more than it seems. It reminds us that even widely repeated &quot;facts&quot; deserve a second look. If something as simple as draining water can fool millions of people for generations, what other confident beliefs might quietly be wrong? Questioning what we think we already know is not doubt — it is the beginning of real understanding.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(7)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(9)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-9" class="page">
+  <h2 class="article-title">The Sourtoe Cocktail Tradition of Dawson City, Canada</h2>
+  
+  <div class="article">
+<p>You might think that a small, remote town in northern Canada would have little to offer the world besides cold weather and empty land. But Dawson City, a former gold rush town in the Yukon territory, is home to one of the strangest drinking traditions on the planet — a cocktail served with a real, preserved human toe floating inside it.</p>
+<p>The Sourtoe Cocktail began in 1973, when a local man named Dick Stevenson discovered a seventy-year-old amputated toe preserved in a jar of alcohol. Rather than ignoring this odd discovery, he created a ritual: anyone brave enough to let the toe touch their lips while drinking could join the &quot;Sourtoe Cocktail Club.&quot; The drink itself can be anything — beer, whiskey, even water — but the rule is simple and firm: &quot;You can drink it fast, you can drink it slow, but your lips must touch the toe.&quot; Over the decades, several toes have been donated by people who lost them to frostbite, accidents, or surgery, ensuring the tradition continues.</p>
+<p>What makes this tradition more than just a gross gimmick is the cultural logic behind it. Dawson City has always been a place where people tested their limits. During the gold rush of the 1890s, thousands of people crossed dangerous frozen mountains hoping to strike it rich. The town developed a proud, tough identity. The Sourtoe Cocktail, strange as it sounds, is a modern expression of that same spirit — a small, harmless dare that connects participants to a larger story of human endurance and frontier courage.</p>
+<p>Today, over one hundred thousand people have joined the club. It reminds us that even the most unusual traditions carry real meaning. Sometimes, the strangest customs are the ones that best capture who a community truly is.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(8)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(10)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-10" class="page">
+  <h2 class="article-title">The Bioluminescence of Dinoflagellates</h2>
+  
+  <div class="article">
+<p>On certain dark nights, the ocean glows electric blue. Waves crash and leave behind a trail of cold, ghostly light. Swimmers move through the water and find their arms and legs surrounded by tiny sparks. This magical sight is caused by dinoflagellates — microscopic, single-celled organisms that produce their own light. Today, this phenomenon attracts tourists, inspires scientists, and appears in some of the most famous photographs of the natural world. But the story of how we came to understand it is far from simple.</p>
+<p>For centuries, sailors recorded glowing seas in their logs but had no explanation for the light. Some thought it was a sign from the gods. Others believed the ocean itself was alive with fire. It was not until the 18th and 19th centuries that scientists began collecting samples and examining them under microscopes. They discovered that the light came from a chemical reaction inside living cells — a process called bioluminescence, where a molecule called luciferin reacts with oxygen to release energy as light rather than heat. It is efficient, cold, and extraordinarily beautiful.</p>
+<p>However, the purpose of this light is not beauty — at least not for the dinoflagellates themselves. Scientists believe the flash is a defense mechanism. When a predator disturbs the water, the sudden burst of light may startle it or attract a larger predator that will eat the attacker instead. This is sometimes called the &quot;burglar alarm&quot; effect. Interestingly, not all species produce light, and researchers are still working to understand exactly what triggers the reaction in different environments.</p>
+<p>What began as a sailor&#x27;s mystery is now a window into one of nature&#x27;s most clever survival strategies. Dinoflagellates remind us that the ocean holds solutions to problems we barely understand. As climate change alters ocean chemistry, studying these tiny light-makers may teach us something far bigger than we expect.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(9)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(11)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-11" class="page">
+  <h2 class="article-title">Forest Bathing (Shinrin-yoku)</h2>
+  
+  <div class="article">
+<p>Most people assume that spending time in nature is simply a pleasant way to relax — a nice walk in the park, nothing more. But in Japan, forest bathing, or *shinrin-yoku*, is treated as a serious health practice. Since the 1980s, the Japanese government has promoted it as a form of preventive medicine. The idea is straightforward: walk slowly through a forest, breathe deeply, and let your senses fully absorb the natural environment. No hiking goals, no fitness targets. Just being present among the trees.</p>
+<p>The science behind it is surprisingly solid. Researchers have found that spending time in forests can lower cortisol levels, reduce blood pressure, and strengthen the immune system. Trees release natural chemicals called phytoncides, and when humans inhale them, the body responds positively. Studies in Japan and South Korea show that even a two-hour forest walk can increase the activity of natural killer cells — immune cells that help fight illness. For supporters, this makes shinrin-yoku not just relaxing, but genuinely medicinal.</p>
+<p>However, critics urge caution. Many studies on forest bathing have small sample sizes or rely on self-reported feelings, which makes their conclusions less reliable. It is also difficult to separate the effects of the forest itself from the benefits of simply exercising outdoors or taking a break from screens and stress. Some scientists argue that nature is helpful, but calling it &quot;therapy&quot; without stricter evidence may be an overstatement. There is also a practical concern: not everyone has easy access to forests, making this a solution that works better for some people than others.</p>
+<p>Still, the growing popularity of shinrin-yoku around the world suggests it touches something real in people. Whether it is the phytoncides, the silence, or just the break from modern life, the forest seems to offer something that is hard to find elsewhere. Perhaps the more interesting question is not whether it works — but why we needed science to remind us to go outside.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(10)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(12)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-12" class="page">
+  <h2 class="article-title">The Antikythera Mechanism</h2>
+  
+  <div class="article">
+<p>Long before smartphones, laptops, or even basic calculators existed, ancient engineers had already built a device capable of predicting the movements of the sun, moon, and planets with remarkable accuracy. Discovered by sponge divers off the coast of a small Greek island in 1901, the Antikythera Mechanism looked, at first glance, like a lump of corroded bronze. Nobody suspected it would turn out to be one of the most astonishing objects ever found.</p>
+<p>The device dates back to around 100 BCE, during the height of ancient Greek civilization. Inside its wooden case sat a complex system of more than thirty interlocking gears — similar in concept to a modern clock. By turning a handle, a user could track the lunar calendar, predict solar and lunar eclipses, and even follow the four-year cycle of the Olympic Games. Researchers used X-ray technology and 3D scanning over many decades to slowly reveal these hidden details, since the original object had broken into fragments and was heavily damaged by the sea.</p>
+<p>What makes the Antikythera Mechanism truly puzzling is the gap it represents in history. No other device of similar complexity appears again in the historical record for nearly a thousand years. This raises uncomfortable questions. Did this level of mechanical knowledge simply disappear? Was it lost during periods of war, conquest, or the gradual collapse of ancient institutions? Scholars still debate how widely such technology was used and whether other similar machines once existed but were never preserved.</p>
+<p>Today, the Antikythera Mechanism sits in the National Archaeological Museum in Athens, drawing visitors from around the world. It serves as a powerful reminder that human ingenuity is not a straight line moving only forward. Sometimes, remarkable knowledge can vanish — and that possibility feels just as relevant in our modern world as it did two thousand years ago.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(11)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(13)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-13" class="page">
+  <h2 class="article-title">The Boiling River of the Amazon (Shanay-timpishka)</h2>
+  
+  <div class="article">
+<p>You have probably always assumed that boiling water requires fire, a stove, or some industrial heat source directly underneath it. Without that, a river simply cannot boil — or so common sense tells you. Yet deep in the heart of the Peruvian Amazon, there is a river nearly six kilometers long where the water reaches temperatures close to 100 degrees Celsius. You can cook food in it. Animals that fall in do not survive. And for a long time, the outside scientific world simply did not believe it was real.</p>
+<p>The river is called Shanay-timpishka, which roughly means &quot;boiled with the heat of the sun&quot; in the local language. For years, geologist Andrés Ruzo had heard his family mention it as a legend. When he finally found and studied it as an adult, he expected to discover a volcano nearby — the most logical explanation. But there is no volcano. Instead, the heat comes from deep geothermal faults, cracks in the Earth&#x27;s crust that allow heat from far below the surface to warm underground water, which then feeds into the river. The phenomenon exists, but not for the reason anyone expected.</p>
+<p>Here is where it gets more complicated. Geothermal rivers are not unusual around the world, but most appear near active volcanic zones. A boiling river this far from any volcano challenges what scientists thought they understood about how geothermal heat is distributed. Ruzo&#x27;s research, published in the 2010s, forced geologists to reconsider their assumptions about the Amazon&#x27;s underground geology, a region that remains largely unmapped and unstudied.</p>
+<p>So the next time you feel certain about how something must work, remember that a river in the jungle was quietly boiling for thousands of years before science came to explain it. Some of the most important discoveries begin not with a new question, but with someone finally taking an old legend seriously.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(12)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(14)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-14" class="page">
+  <h2 class="article-title">The Winchester Mystery House</h2>
+  
+  <div class="article">
+<p>You might think a house is just a place where people live — practical, organized, built with a clear purpose. But the Winchester Mystery House in San Jose, California, challenges that idea completely. It is a mansion with stairs that lead into ceilings, doors that open onto walls, and windows built into the floor. To an outsider, it looks like the work of a confused mind. In reality, it tells a deeply human story about grief, guilt, and the search for peace.</p>
+<p>The house was built by Sarah Winchester, widow of the man who manufactured the famous Winchester repeating rifle. After her husband and baby daughter died in the 1880s, Sarah reportedly consulted a medium — someone who claims to communicate with the dead. She was told that the spirits of people killed by Winchester rifles were haunting her family. The only way to protect herself, the story goes, was to keep building. So she did. Construction continued 24 hours a day, seven days a week, for 38 years, until her death in 1922. The result was a structure with around 160 rooms.</p>
+<p>However, historians debate whether the &quot;haunted&quot; story is fully accurate. Some researchers believe Sarah was simply a creative, grieving woman who used constant construction as a coping method — a way to stay busy and feel in control after tremendous loss. Others point out that many design choices, like extra staircases, may have been practical solutions for her arthritis. The true reasons may never be fully known.</p>
+<p>What makes the Winchester Mystery House so compelling is what it reveals about universal human emotions. People across all cultures find ways to manage grief, fear, and guilt. Sarah Winchester&#x27;s way just happened to involve hammers and nails. Her house is strange, yes — but the feelings behind it are ones everyone can understand.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(13)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(15)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-15" class="page">
+  <h2 class="article-title">Wim Hof and the Iceman Method of Cold Exposure</h2>
+  
+  <div class="article">
+<p>Most people assume that staying warm is always the safest and healthiest choice for the human body. Wearing extra layers, avoiding cold showers, and keeping away from icy temperatures seem like obvious common sense. But in recent years, a Dutch man named Wim Hof — nicknamed &quot;The Iceman&quot; — has challenged this idea dramatically. He has climbed Mount Everest in shorts, run a marathon barefoot in the Arctic, and set over twenty world records involving extreme cold. His method, which combines cold exposure and controlled breathing, now has millions of followers worldwide.</p>
+<p>Supporters of the Wim Hof Method point to genuine scientific findings. In a well-known study published in 2014, trained practitioners were able to influence their immune response — something scientists once believed was completely involuntary. Participants showed reduced symptoms after being injected with a bacterial substance that normally causes fever and nausea. Followers also report benefits such as reduced stress, better focus, lower inflammation, and increased energy. For many people, even a brief cold shower each morning feels like a meaningful improvement to their daily life.</p>
+<p>However, experts urge caution. Some researchers argue that the breathing techniques can cause dizziness or fainting, and practicing them in water has led to deaths by drowning. Cold water immersion carries real risks for people with heart conditions, and the science behind some claimed benefits is still limited and debated. Critics also note that Wim Hof himself may be physiologically unusual, meaning his personal results cannot be assumed to apply to everyone equally.</p>
+<p>So is the Iceman Method a genuine health breakthrough or an overhyped trend? The honest answer seems to be somewhere in between. There is enough evidence to take it seriously, but also enough risk to approach it carefully. Whether it is right for you depends on your health, your goals, and perhaps your willingness to embrace the cold.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(14)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(16)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-16" class="page">
+  <h2 class="article-title">Chien-Ming Wang and his rise to MLB stardom</h2>
+  
+  <div class="article">
+<p>By 2006, a quiet young man from Tainan, Taiwan had become one of the most dominant pitchers in Major League Baseball. Chien-Ming Wang won 19 games that season for the New York Yankees, finishing second in the voting for the American League Cy Young Award — the highest honor for a pitcher. Millions of fans in Taiwan stayed up past midnight to watch him play. But the path to that moment was anything but smooth.</p>
+<p>Wang&#x27;s weapon was the sinker, a pitch that drops sharply as it reaches home plate, causing batters to hit weak ground balls. He did not overpower hitters with blazing speed. Instead, he out-thought them, relying on precision and movement. This style was unusual for a young pitcher, and it took years of quiet, disciplined practice to master. The Yankees had signed him as a teenager, and he spent several seasons developing in the minor leagues, far from home, learning a foreign language, and adjusting to an entirely different culture.</p>
+<p>The harder part came later. In 2008, Wang suffered a serious foot injury while running the bases — an unusual accident for a pitcher. He then underwent shoulder surgery. For three years, he struggled to return to his previous form. Many people assumed his career was finished. He bounced between teams, fought through pain, and worked to rebuild his mechanics almost from scratch. The comeback was slow and uncertain, and the spotlight had long moved on.</p>
+<p>Wang&#x27;s story matters beyond baseball. He showed an entire generation of Taiwanese athletes that competing at the highest international level was genuinely possible — not just a dream. He also demonstrated something quieter: that resilience, not fame, is what defines an athlete&#x27;s true character. His career became a blueprint that others, in Taiwan and across Asia, continue to follow.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(15)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(17)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-17" class="page">
+  <h2 class="article-title">The Great Molasses Flood of 1919</h2>
+  
+  <div class="article">
+<p>On January 15, 1919, the streets of Boston were not covered in snow or rain — they were covered in molasses. A massive storage tank holding over two million gallons of thick, dark syrup suddenly burst open, sending a wave of molasses rushing through the city&#x27;s North End neighborhood at nearly 35 miles per hour. People, horses, and buildings were swept away. It sounds almost comical, but the disaster killed 21 people and injured 150 more. It remains one of the strangest industrial accidents in American history.</p>
+<p>The tank was owned by the Purity Distilling Company, which used molasses to produce industrial alcohol. The tank had actually been leaking for some time, and local residents had even been collecting the dripping syrup for their own use. Engineers later discovered that the tank was poorly constructed and had never been properly tested when it was first filled. On that unusually warm January day, the pressure inside the tank became too great, and the structure simply gave way. The resulting wave was reportedly two to three meters high.</p>
+<p>What followed the disaster was equally significant. Survivors and victims&#x27; families took the company to court in one of the first major cases where a corporation was held legally responsible for negligence. The legal process took six years, but in the end, the company was ordered to pay damages. This outcome helped shape the idea that businesses must be accountable for the safety of their products and infrastructure — a concept that feels completely normal today but was far less established in the early twentieth century.</p>
+<p>The Great Molasses Flood is easy to dismiss as a bizarre footnote in history. But it quietly helped push industrial safety standards and corporate accountability forward. Sometimes, the events that seem the most absurd turn out to leave the most serious marks on society.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(16)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(18)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-18" class="page">
+  <h2 class="article-title">The Pistol Star (one of the most luminous stars in the Milky Way)</h2>
+  
+  <div class="article">
+<p>You probably think the Sun is a pretty impressive star. It lights up our entire solar system, powers all life on Earth, and feels overwhelmingly powerful on a hot summer afternoon. But compared to some stars in our own galaxy, the Sun is almost embarrassingly small — more like a candle next to a bonfire the size of a city.</p>
+<p>Near the center of the Milky Way, hidden behind thick clouds of gas and dust, sits the Pistol Star. It cannot be seen with the naked eye, and for most of human history, nobody even knew it existed. When astronomers finally detected it using the Hubble Space Telescope in the 1990s, they were stunned. The Pistol Star releases as much energy in six seconds as our Sun produces in an entire year. It is roughly 100 times more massive than the Sun and, at its peak, was estimated to be around 10 million times more luminous. These numbers are so extreme that scientists initially struggled to believe their own measurements.</p>
+<p>What makes this even more complicated is that the Pistol Star is not stable. It belongs to a rare group called luminous blue variables — stars so enormous that they are essentially tearing themselves apart. They periodically blast huge amounts of material into space, forming glowing clouds called nebulae around them. The Pistol Star has already expelled enough gas to form several new stars. Scientists debate how long it can survive. Stars this massive burn so intensely that they live fast and die violently, often ending in a massive explosion called a supernova or something even more dramatic.</p>
+<p>So the next time you feel impressed by the Sun, remember: the universe has a habit of making our assumptions look very small. The Pistol Star reminds us that nature&#x27;s extremes are often far beyond what we think is possible.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(17)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(19)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-19" class="page">
+  <h2 class="article-title">The Fairy Circle Phenomenon of the Namib Desert</h2>
+  
+  <div class="article">
+<p>Scattered across the dry grasslands of Namibia, thousands of perfectly round bare patches sit among the grass like crop circles made by nature itself. These &quot;fairy circles&quot; — each one between two and fifteen meters wide — appear in remarkably regular patterns, almost as if someone planned them. Local communities once explained them through folklore: they were footprints of the gods, or spots where dragons breathed fire underground. Scientists, however, have been arguing about the real explanation for decades.</p>
+<p>Two main theories compete for acceptance. The first suggests that termites are responsible. Underground termite colonies eat plant roots in circular areas, creating patches of dead soil. Because the bare ground holds rainwater better than the surrounding grass, the termites secure a reliable water source. The second theory points to the grass itself. Plants in dry environments compete fiercely for water, and some researchers believe the circular patterns emerge naturally from this competition — the grass essentially organizes itself to share limited resources. Both theories have strong evidence behind them, which makes the debate even harder to settle.</p>
+<p>What makes fairy circles more puzzling is that similar patterns have been discovered in Australia, far from any African termites. This discovery weakened the termite theory but also raised new questions. If competing plants create these shapes, why do they form such perfect circles and not irregular patches? Some scientists now believe both processes — termites and plant competition — may work together, or that different causes produce similar results in different places.</p>
+<p>The fairy circle mystery reminds us that nature sometimes follows rules we have not fully written down yet. Even in an age of satellites and advanced biology, a simple circle of bare ground in the desert can still divide the scientific community. The answer, when it finally comes, may turn out to be more complicated — and more interesting — than anyone expected.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(18)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(20)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-20" class="page">
+  <h2 class="article-title">The Dymaxion Sleep Schedule (Buckminster Fuller&#x27;s Polyphasic Sleep Experiment)</h2>
+  
+  <div class="article">
+<p>Most people believe that sleeping eight hours every night is the only healthy way to rest. It feels like common sense — skip your sleep, and you suffer. But what if that assumption is only one version of the story? For a period of two years in the 1940s, the American inventor and designer Buckminster Fuller replaced his nightly sleep with short naps spread throughout the day. He called his system the Dymaxion Sleep Schedule, and he claimed it made him feel more energetic and productive than ever before.</p>
+<p>The schedule was extreme by any measure. Fuller slept for just 30 minutes every six hours, totaling only two hours of sleep per day. He believed that humans could train their bodies to enter deep, restorative sleep almost immediately, skipping the lighter stages that he considered wasted time. During this period, Fuller reportedly worked with remarkable focus and completed significant creative projects. His personal logs described the experience as genuinely refreshing, not exhausting.</p>
+<p>However, the full picture is more complicated. Fuller eventually stopped the schedule — not because his body failed, but because his colleagues and business partners kept normal hours, making it impossible to maintain regular meetings and social life. Beyond that practical problem, modern sleep scientists raise serious concerns. Research consistently shows that most people who dramatically reduce sleep suffer damage to memory, emotional balance, and physical health over time. Fuller may have been an unusual exception, or he may simply not have recognized the long-term costs during those two years.</p>
+<p>This story invites a real question: how much of what we accept as biological necessity is actually shaped by habit and social structure? Sleep science is still evolving, and individual differences are real. Whether Fuller was a visionary or simply lucky, his experiment reminds us that even the most ordinary parts of human life are worth questioning.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(19)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(21)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-21" class="page">
+  <h2 class="article-title">The Gombe Chimpanzee War (1974–1978)</h2>
+  
+  <div class="article">
+<p>You might think that war is something only humans do — a product of politics, greed, or ideology. But in the forests of Gombe, Tanzania, between 1974 and 1978, a group of chimpanzees fought what scientists now call the first observed war among non-human animals. It changed everything we thought we knew about violence, community, and what it means to be human.</p>
+<p>The story began when a single chimpanzee community in Gombe Stream National Park split into two groups: the Kasekela in the north and the Kasakela — later called the Kahama — in the south. Researcher Jane Goodall and her team watched in shock as the northern group began making organized raids into southern territory. Over four years, they systematically attacked and killed every adult male in the southern group, one by one. These were not random acts. The attacks were coordinated, deliberate, and brutal. By 1978, the southern community had been completely destroyed.</p>
+<p>What makes this so unsettling is how familiar it looks. The chimpanzees showed behaviors long considered uniquely human: territory defense, strategic planning, and what appeared to be intentional elimination of rivals. Goodall herself admitted feeling deeply disturbed. She had spent years observing these animals and believed them to be gentler than humans. The war forced her — and the scientific world — to reconsider. Some researchers argue the presence of human observers may have influenced the chimps&#x27; behavior by creating unusual food competition. The debate continues today.</p>
+<p>The Gombe Chimpanzee War connects to a question that never gets old: are humans naturally violent, or do we choose to be? The fact that our closest genetic relatives can wage war does not mean conflict is unavoidable for us. But it does suggest that the roots of aggression run deeper — and older — than we once wanted to believe.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(20)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(22)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-22" class="page">
+  <h2 class="article-title">Maud Stevens Wagner (first known female tattoo artist in the United States)</h2>
+  
+  <div class="article">
+<p>Maud Stevens Wagner died in 1961 covered in tattoos, having spent decades turning her body into a living canvas. Today, she is remembered as the first known female tattoo artist in the United States. But her path to that achievement was anything but straightforward — it began not with ink and needles, but with acrobatics, circus tents, and a deal she made with a stranger.</p>
+<p>In 1904, Maud was a circus performer in St. Louis when she met Gus Wagner, a well-traveled tattoo artist. She agreed to go on a date with him only if he taught her how to tattoo. He kept his promise. They married soon after and worked together on the carnival circuit, where Maud displayed her tattooed body as a kind of attraction, drawing in curious crowds. What made her unusual was not just that she was a woman in a male-dominated craft, but that she used the old-fashioned hand-poke method — pressing ink directly into skin with a sharp tool — rather than the electric tattoo machines that were already becoming popular at the time.</p>
+<p>Her choice to stick with the hand-poke technique was both artistic and personal. It was slower and more painful, but many argue it gave the artist a more intimate connection to the work. She later passed her skills to her daughter, Lovetta, continuing a tradition that most people in her era would have found shocking for a woman to practice at all.</p>
+<p>Maud&#x27;s story matters beyond the history of tattooing. She quietly challenged what women were expected to do and look like in the early 1900s, without writing any manifestos or giving any speeches. Sometimes, the most powerful statements are made through how a person simply chooses to live.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(21)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(23)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-23" class="page">
+  <h2 class="article-title">The Grandfather Paradox in Time Travel</h2>
+  
+  <div class="article">
+<p>The idea of traveling through time is not new. But here is something surprising: the most serious problem with time travel was not invented by scientists — it was invented by science fiction writers. The &quot;grandfather paradox&quot; asks a simple but mind-bending question: if you traveled back in time and accidentally prevented your grandparents from meeting, you would never be born. But if you were never born, you could not travel back in time in the first place. So how did the problem ever happen?</p>
+<p>The paradox became widely discussed after H.G. Wells published *The Time Machine* in 1895, which made time travel a popular topic. However, physicists eventually took the question seriously. Albert Einstein&#x27;s theories of relativity showed that time is not fixed — it can bend and stretch depending on speed and gravity. This opened a door: if time is flexible, could a loop in time actually be possible? By the mid-20th century, physicists like Kurt Gödel had found mathematical solutions to Einstein&#x27;s equations that technically allowed circular time travel. The paradox was no longer just a story problem.</p>
+<p>The challenge deepened when scientists began proposing solutions. Some suggested that a time traveler would simply create a parallel universe, branching off from the original timeline. Others argued that the universe naturally prevents paradoxes — perhaps you would always fail to stop your grandparents from meeting, no matter how hard you tried. This second idea, known as the Novikov self-consistency principle, suggests that history protects itself.</p>
+<p>Today, physicists still debate whether time travel is truly possible. The paradox remains unsolved. But its value goes beyond science fiction — it forces us to think carefully about cause and effect, free will, and the nature of time itself. Some questions matter not because we can answer them, but because asking them changes how we see the world.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(22)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(24)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-24" class="page">
+  <h2 class="article-title">The Castrato Singers of Baroque Europe</h2>
+  
+  <div class="article">
+<p>You probably think that the greatest opera singers in history were women with powerful, high voices. But for nearly two centuries, the most celebrated voices in European concert halls and churches belonged to men — men who had been surgically altered as boys to preserve the high pitch of their childhood voices. These were the castrati, and their story is far stranger and more complicated than most people expect.</p>
+<p>The operation was performed on young boys, usually between the ages of seven and twelve, before their voices could deepen. By removing certain glands, surgeons prevented the hormonal changes of puberty from occurring. As a result, the boys grew into men with unusually large chests and lung capacity, but kept voices that could reach extraordinary high notes. The combination produced a sound that audiences described as almost supernatural — something no natural adult voice could replicate. Singers like Farinelli became the pop stars of the eighteenth century, drawing massive crowds and earning enormous wealth.</p>
+<p>However, the reality behind the glamour was deeply troubling. Most boys who underwent the operation were from poor families who hoped the surgery would bring their son fame and a better life. In truth, only a small number ever became successful performers. The vast majority suffered physically and socially, left in a difficult position between two worlds — no longer quite a child, but changed in ways that set them apart from other men. The Church officially condemned the practice while quietly continuing to employ castrati in its own choirs for generations.</p>
+<p>The last known castrato, Alessandro Moreschi, died in 1922, and a few recordings of his voice still exist. Listening to them today feels like touching something from another world. They remind us that beauty in human history has often come at a price that others were forced to pay.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(23)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(25)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-25" class="page">
+  <h2 class="article-title">The Sailing Stones of Death Valley</h2>
+  
+  <div class="article">
+<p>You are walking across a flat, dry lakebed in California&#x27;s Death Valley. There are no people around, no animals, no wind strong enough to move anything heavy. And yet, scattered across the cracked mud, are large rocks — some weighing over 300 kilograms — that have clearly moved. Long trails stretch behind them, carved into the earth like something dragged the stones across the ground. Nobody has ever seen it happen. For decades, nobody could explain it.</p>
+<p>The sailing stones of Racetrack Playa have puzzled scientists since the early 20th century. Several explanations were proposed over the years. Some researchers suggested that strong winds were responsible. Others believed a thin layer of ice might form under the rocks during cold desert nights, reducing friction and allowing movement. Another theory involved algae making the surface slippery after rare rainfall. Each idea had some logic behind it, but none was fully proven — until 2014, when a team of scientists finally witnessed the movement firsthand and captured it on camera.</p>
+<p>What they discovered was stranger than most people expected. During winter, thin sheets of ice form on the lakebed after rain. When the morning sun melts this ice, it breaks into large floating panels. Wind then pushes these ice sheets, which press against the rocks and slowly drag them across the wet mud — sometimes just a few meters, sometimes over 200 meters. The rocks move so slowly, perhaps just a few centimeters per minute, that no one had ever noticed it happening with their own eyes before.</p>
+<p>Even with this explanation, mysteries remain. The exact conditions needed are rare and difficult to predict. Not every rock moves. Some trails curve, others run parallel, and a few stones seem to have stopped for no clear reason. The sailing stones remind us that even in a world full of scientific knowledge, nature still holds quiet surprises waiting to be understood.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(24)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(26)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-26" class="page">
+  <h2 class="article-title">The Stonefish and Its Camouflage Defense</h2>
+  
+  <div class="article">
+<p>Most people imagine dangerous ocean creatures as fast, aggressive, and easy to spot — think sharks or barracudas. But the stonefish challenges that idea completely. It is considered the most venomous fish in the world, yet it wins no prizes for speed or sharp teeth. Instead, it simply sits still and looks exactly like a rock. That disguise, combined with its deadly venom, makes it one of the ocean&#x27;s most surprising threats.</p>
+<p>The stonefish lives in shallow coastal waters across the Indo-Pacific region, including parts of Australia, the Red Sea, and Southeast Asia. Its skin is rough, lumpy, and brownish-grey, making it almost impossible to distinguish from coral or stone. Along its back, it carries thirteen sharp spines. When a person accidentally steps on one, the pressure causes venom to be released instantly. The pain is said to be among the worst a human being can experience, and without treatment, the venom can be fatal.</p>
+<p>On one hand, the stonefish&#x27;s camouflage is a masterpiece of natural design. It protects the fish from predators and allows it to ambush small prey without effort. On the other hand, this same ability creates a serious danger for coastal communities and tourists who walk in shallow water. Unlike a warning-colored animal, the stonefish gives no visual signal to stay away. Antivenom exists today and has saved many lives, but access to it is not equal everywhere, especially in remote areas.</p>
+<p>The stonefish forces us to rethink a simple assumption: that dangerous things always look dangerous. Nature does not always follow our expectations. Sometimes the most harmless-looking object in your path is the one you should fear most — a reminder that appearances, in life and in nature, can be deeply misleading.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(25)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(27)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-27" class="page">
+  <h2 class="article-title">The Longyearbyen Burial Ban (no one is allowed to die or be buried in Longyearbyen, Norway)</h2>
+  
+  <div class="article">
+<p>You might think that a town&#x27;s most unusual rule would involve noise levels or parking. But in Longyearbyen, the world&#x27;s northernmost permanent settlement, located on a Norwegian Arctic island called Svalbard, the strangest regulation is this: you are not allowed to die there. More precisely, no one has been buried in Longyearbyen since 1950, and if a resident is close to death, they are flown to the Norwegian mainland. This sounds like something from a strange novel, but it is completely real.</p>
+<p>The reason is surprisingly practical. Longyearbyen sits deep inside the Arctic, where the ground is permanently frozen — a condition called permafrost. When researchers examined the town&#x27;s old graveyard in the late 20th century, they made an unsettling discovery: the bodies buried there had barely decomposed. The frozen ground had preserved them almost perfectly, including the influenza virus that killed some of them during the deadly 1918 flu pandemic. Scientists worried that thawing permafrost, caused by climate change, could potentially release dangerous pathogens back into the environment. The cold that preserves also protects — and threatens.</p>
+<p>There is also a practical side beyond disease. The town has no facilities for elderly care or serious medical treatment. People who become too ill or too old to care for themselves are gently encouraged to relocate south. As a result, Longyearbyen has an unusually young and healthy population. It is a community shaped not just by choice, but by the strict logic of survival in an extreme place.</p>
+<p>Longyearbyen reminds us that human settlements are never just about where people live — they are about what people must give up to live there. Every community has invisible rules written by geography, climate, and history. Longyearbyen&#x27;s rules are simply more visible, and more final, than most.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(26)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(28)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-28" class="page">
+  <h2 class="article-title">Claudette Colvin (the teenager who refused to give up her bus seat before Rosa Parks)</h2>
+  
+  <div class="article">
+<p>Claudette Colvin was only fifteen years old when she changed history — though most people have never heard her name. On March 2, 1955, nine months before Rosa Parks made her famous stand, this young Black girl in Montgomery, Alabama refused to give up her seat on a city bus to a white passenger. She was arrested, handcuffed, and dragged off the bus. She did not move because, as she later said, she felt the weight of history pressing her down into that seat.</p>
+<p>Claudette had not planned a protest. She was a studious teenager who had been learning about the injustice of racial segregation in school. When the bus driver ordered her to move, something inside her said no. She knew the law was wrong. Civil rights leaders, including the NAACP, took notice immediately. They were looking for a strong legal case to challenge the segregation laws, and Claudette&#x27;s arrest seemed like the perfect opportunity to fight back in court.</p>
+<p>However, civil rights leaders eventually decided not to make Claudette the face of the movement. She was young, outspoken, and had recently become pregnant — factors they worried the public might use to dismiss the cause. So the spotlight shifted. When Rosa Parks, a trained civil rights activist, made the same brave choice later that year, the Montgomery Bus Boycott began. Claudette did contribute legally, though. She became one of four plaintiffs in the landmark court case that officially ended bus segregation in Alabama in 1956.</p>
+<p>Claudette&#x27;s story reminds us that history is often shaped by people who are quietly erased from it. Her courage came first. Her sacrifice helped build the foundation for one of the most important civil rights victories in American history — even if her name rarely appears in textbooks.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(27)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(29)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-29" class="page">
+  <h2 class="article-title">The Resurrection Plant (Selaginella lepidophylla)</h2>
+  
+  <div class="article">
+<p>Long before scientists had words like &quot;desiccation tolerance&quot; or &quot;cellular protection,&quot; desert travelers in Mexico and the American Southwest were picking up what looked like dead, brown balls of dry plant matter from the sand. They seemed lifeless — and yet, when dropped into water, they slowly unrolled and turned green within hours. The resurrection plant had been quietly performing this trick for millions of years before anyone thought to study why.</p>
+<p>Selaginella lepidophylla is a small, fern-like plant native to the Chihuahuan Desert. When water disappears, it curls its stems inward, forming a tight ball to reduce moisture loss. It can lose up to 95% of its water content and survive in this dried state for years — even decades. Once it finds water again, it reopens and resumes growing as if nothing happened. Indigenous communities in the region noticed this behavior long ago and gave it spiritual meaning, associating it with themes of rebirth and survival.</p>
+<p>What changed over time was our scientific understanding of how the plant actually does this. For most living things, losing that much water causes irreversible damage to cells. But the resurrection plant produces special sugars and protective proteins that essentially &quot;freeze&quot; the cell structure in place while it dries. It also repairs its own DNA damage once rehydration begins. Scientists only began seriously studying this mechanism in the late 20th century, and what they found surprised even experienced plant biologists.</p>
+<p>Today, researchers are looking at the resurrection plant&#x27;s survival strategies for very practical reasons. Drought is becoming more severe worldwide due to climate change, and food crops are extremely vulnerable to dry conditions. If scientists can transfer similar protective traits into wheat or rice, they may be able to grow food in places that are far too dry today. A dusty desert ball might quietly hold the answer to one of agriculture&#x27;s biggest coming challenges.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(28)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(30)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-30" class="page">
+  <h2 class="article-title">The Monarch Butterfly Migration</h2>
+  
+  <div class="article">
+<p>Every autumn, millions of orange-and-black butterflies fill the skies of North America. They travel up to 4,500 kilometers from Canada and the United States to the mountain forests of central Mexico. What makes this so extraordinary is not just the distance — it is the fact that no single butterfly has ever made the trip before. Each migrating butterfly is several generations removed from the last group that flew south. So how does a creature with a brain the size of a pinhead know exactly where to go?</p>
+<p>Scientists have discovered that monarch butterflies use a kind of internal compass built from two sources of information: the position of the sun and a biological clock inside their brains. By combining these two signals, they can always tell which direction is southwest, even as the sun moves across the sky throughout the day. Researchers have also found that monarchs can detect Earth&#x27;s magnetic field, which may serve as a backup navigation system on cloudy days when the sun is hidden.</p>
+<p>However, many questions remain unanswered. Scientists still do not fully understand how the information from the sun, the clock, and the magnetic field all work together inside the butterfly&#x27;s nervous system. It is also unclear how this knowledge is passed down without being taught. No parent butterfly guides the young. The route seems to be stored somehow in their genes, inherited like eye color or wing pattern. Some researchers believe there may even be additional sensory systems we have not yet discovered.</p>
+<p>The monarch migration is a reminder that nature can solve problems in ways that human engineering has not yet matched. As climate change shifts temperatures and disrupts milkweed plants that monarchs depend on, their populations have dropped sharply. Understanding how their navigation works may be the key to protecting one of the natural world&#x27;s most remarkable journeys.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(29)">&larr; 上一篇</button><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="30" value="1"> / 30 篇</div>
+
+<script>
+let current = 1;
+const total = 30;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
