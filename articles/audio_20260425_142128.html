@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (2 articles)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Lise Meitner and the Discovery of Nuclear Fission</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260425_142128_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>In December 1938, a quiet letter written from Stockholm changed the course of human history. It described the theoretical explanation for nuclear fission — the splitting of an atom&#x27;s nucleus that releases enormous energy. The woman who wrote it, Lise Meitner, never received a Nobel Prize for this discovery, even though her male colleague Otto Hahn did. Yet many scientists today consider her one of the most important physicists of the twentieth century.</p>
+<p>Meitner was born in Vienna in 1878 at a time when women were not allowed to attend university in Austria. Her father paid for private tutoring so she could continue learning. She eventually studied in Berlin under the great physicist Max Planck, who initially doubted that women could truly understand physics. For thirty years, she worked alongside Hahn, conducting careful experiments on radioactive elements. She contributed the essential theoretical framework that explained what was happening inside the nucleus when uranium was bombarded with neutrons.</p>
+<p>Then history took a cruel turn. In 1938, as a Jewish woman living in Nazi Germany, Meitner was forced to flee to Sweden with almost nothing. She continued her work from exile, and it was in letters exchanged with Hahn that she worked out the mathematics of fission. When the discovery was published, Hahn took most of the credit. The 1944 Nobel Prize in Chemistry went to him alone. Many historians now regard this as one of science&#x27;s greatest injustices.</p>
+<p>Meitner&#x27;s story raises questions that still matter today: Who gets credit for scientific discovery? How much talent goes unrecognized because of gender, race, or politics? Element 109, meitnerium, was named after her in 1997 — a small but meaningful acknowledgment. Her journey reminds us that progress in science is rarely as clean or fair as the textbooks suggest.</p>
+  </div>
+  <div class="nav"><span></span><button class="nav-btn" onclick="goTo(2)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-2" class="page">
+  <h2 class="article-title">Gamification in Education</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260425_142128_2.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Many teachers and parents believe that adding game elements to classroom learning is a guaranteed way to improve students&#x27; performance. This idea, called gamification, involves using points, badges, leaderboards, and rewards to make lessons feel more like games. Apps like Duolingo and classroom platforms like Kahoot! have made this approach extremely popular around the world. It is easy to understand why: if students are having fun, surely they must be learning more effectively, right?</p>
+<p>There is real evidence supporting gamification&#x27;s benefits. Studies show that game-like feedback — such as earning points for correct answers — can boost motivation and encourage students to keep trying after failure. The immediate reward system appeals to the brain&#x27;s pleasure centers, making repetitive tasks like vocabulary memorization feel less tedious. For students who struggle with traditional teaching methods, gamification can lower anxiety and increase participation in class.</p>
+<p>However, the picture is not entirely positive. Some researchers warn that when students focus too much on earning rewards, they lose interest in the subject itself. This is called the &quot;overjustification effect&quot; — once the rewards disappear, motivation drops sharply. Competitive leaderboards can also discourage weaker students, making them feel embarrassed rather than inspired. Not every subject adapts well to game mechanics either; complex topics like history or literature may suffer when reduced to simple point-scoring activities.</p>
+<p>Gamification, then, is a tool with real potential but also genuine risks. Its success depends heavily on how thoughtfully it is designed and used. A badge for finishing a chapter may delight one student and frustrate another. As education technology continues to evolve, the deeper question remains: are we helping students love learning, or simply training them to chase rewards? That distinction may matter more than any leaderboard score.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(1)">&larr; 上一篇</button><span></span></div>
+</div>
+
+<div class="indicator" id="indicator">1 / 2</div>
+
+<script>
+let current = 1;
+const total = 2;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('indicator').textContent = n + ' / ' + total;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
