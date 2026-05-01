@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (1 article)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">The Ainu People of Japan and Their Iomante Bear Ceremony</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260501_230454_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>You may think Japan is a completely uniform culture with one people and one language, but that assumption overlooks the Ainu — an indigenous group who have lived on the northern island of Hokkaido, as well as parts of Sakhalin and the Kuril Islands, for thousands of years. The Ainu have their own language, their own spiritual beliefs, and a rich oral tradition entirely distinct from mainstream Japanese culture. For most of Japanese history, however, they were pushed aside, their land taken, and their customs suppressed. Only in 2019 did Japan officially recognize the Ainu as an indigenous people.</p>
+<p>At the heart of Ainu spiritual life is the belief that everything in nature contains a &quot;kamuy&quot; — a divine spirit. Animals, plants, fire, and water are all considered sacred beings temporarily visiting the human world. The most important ritual built on this belief is called &quot;Iomante,&quot; often translated as the &quot;bear-sending ceremony.&quot; In this ritual, a bear cub is raised by the community for one to two years, treated almost like a child, then ceremonially sacrificed. The Ainu believe this act releases the bear&#x27;s spirit, sending it back to the world of the gods richly honored and rewarded.</p>
+<p>To outsiders, this practice can seem shocking or even cruel. But within Ainu logic, it represents deep respect. The bear is not killed as an enemy — it is treated as a sacred guest being returned home. This same thinking runs through many Ainu practices: taking only what nature offers, always expressing gratitude, and maintaining careful balance between humans and the living world around them.</p>
+<p>What makes the Ainu story so compelling today is its universality. Every culture eventually wrestles with the question of how humans should relate to nature. The Ainu built their entire civilization around a clear answer — one that modern environmentalists and ecologists are only beginning to rediscover.</p>
+  </div>
+  <div class="nav"><span></span><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="1" value="1"> / 1 篇</div>
+
+<script>
+let current = 1;
+const total = 1;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
