@@ -20,6 +20,9 @@
   .action-bar.visible { display: flex; }
   .del-btn { background: #c00; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
   .del-btn:hover { background: #a00; }
+  .rename-btn { background: #555; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+  .rename-btn:hover:not(:disabled) { background: #333; }
+  .rename-btn:disabled { background: #aaa; cursor: default; }
   .cancel-btn { background: none; border: none; color: #888; font-size: 0.9rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
   .cb { cursor: pointer; accent-color: #c00; flex-shrink: 0; margin-top: 5px; display: none; }
   .item-content { flex: 1; min-width: 0; }
@@ -32,6 +35,7 @@
 </div>
 <div class="action-bar" id="action-bar">
   <button class="del-btn" onclick="deleteSelected()">刪除選取</button>
+  <button class="rename-btn" id="rename-btn" onclick="renameSelected()" disabled>重新命名</button>
   <button class="cancel-btn" onclick="toggleEdit()">取消</button>
   <span id="sel-count" style="font-size:0.85rem;color:#888;"></span>
 </div>
@@ -39,9 +43,11 @@
 <ul class="article-list" id="list"></ul>
 <script>
 const HIDDEN_KEY = 'gsat_hidden';
+const RENAMED_KEY = 'gsat_renamed';
 let editMode = false;
 
 function getHidden() { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); }
+function getRenamed() { return JSON.parse(localStorage.getItem(RENAMED_KEY) || '{}'); }
 
 function toggleEdit() {
   editMode = !editMode;
@@ -54,6 +60,7 @@ function toggleEdit() {
 function updateCount() {
   const n = document.querySelectorAll('.cb:checked').length;
   document.getElementById('sel-count').textContent = n > 0 ? n + ' 項已選取' : '';
+  document.getElementById('rename-btn').disabled = (n !== 1);
 }
 
 function deleteSelected() {
@@ -63,15 +70,32 @@ function deleteSelected() {
   toggleEdit();
 }
 
+function renameSelected() {
+  const checked = document.querySelectorAll('.cb:checked');
+  if (checked.length !== 1) return;
+  const cb = checked[0];
+  const url = cb.dataset.url;
+  const currentTitle = cb.closest('li').querySelector('a').textContent;
+  const newName = prompt('請輸入新名稱：', currentTitle);
+  if (newName === null || newName.trim() === '') return;
+  const renamed = getRenamed();
+  renamed[url] = newName.trim();
+  localStorage.setItem(RENAMED_KEY, JSON.stringify(renamed));
+  cb.closest('li').querySelector('a').textContent = newName.trim();
+  toggleEdit();
+}
+
 fetch('articles.json?v=' + Date.now())
   .then(r => r.json())
   .then(articles => {
     document.getElementById('loading').remove();
     const hidden = getHidden();
     const list = document.getElementById('list');
+    const renamed = getRenamed();
     articles.filter(a => !hidden.includes(a.url)).forEach(a => {
+      const displayTitle = renamed[a.url] || a.title;
       const li = document.createElement('li');
-      li.innerHTML = '<input type="checkbox" class="cb" data-url="' + a.url + '" onchange="updateCount()"><div class="item-content"><a href="' + a.url + '">' + a.title + '</a><div class="meta">' + a.date + '</div></div>';
+      li.innerHTML = '<input type="checkbox" class="cb" data-url="' + a.url + '" onchange="updateCount()"><div class="item-content"><a href="' + a.url + '">' + displayTitle + '</a><div class="meta">' + a.date + '</div></div>';
       list.appendChild(li);
     });
   })
