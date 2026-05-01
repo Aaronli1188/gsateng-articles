@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (1 article)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Junko Tabei, the first woman to summit Mount Everest</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260501_231411_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>On May 16, 1975, a 35-year-old Japanese woman stood at the highest point on Earth. Junko Tabei had just become the first woman in history to reach the summit of Mount Everest. For many people around the world, this was front-page news. But for Tabei herself, it was simply the outcome of a lifetime spent refusing to accept the limits others set for her.</p>
+<p>Tabei grew up in a modest family in Fukushima, Japan. She discovered her love of hiking at age ten, but as she grew older, she was repeatedly told that mountains were a man&#x27;s world. Climbing clubs often rejected her applications. Sponsors were difficult to find. When she finally formed an all-female climbing club in 1969, some critics laughed at the idea. She raised money slowly, teaching piano lessons and collecting small donations, until enough funds were gathered to plan a serious Everest expedition.</p>
+<p>The 1975 climb nearly ended in disaster. Twelve days before the summit attempt, an avalanche swept through the camp at night and buried several members of the team, including Tabei. She was unconscious for a short time. When she woke up, she was shaken but determined. Just twelve days later, despite injuries and exhaustion, she pushed through the final stretch to the top. Her Sherpa guide reportedly had to pull her upward for the last section, yet she made it.</p>
+<p>Tabei later went on to complete the Seven Summits — the highest peak on every continent. She also became a strong voice for environmental protection in the mountains. Her story is not just about one woman climbing one mountain. It is about what becomes possible when a person refuses to stop moving forward, even when the world — or a wall of snow — tries to push them back.</p>
+  </div>
+  <div class="nav"><span></span><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="1" value="1"> / 1 篇</div>
+
+<script>
+let current = 1;
+const total = 1;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
