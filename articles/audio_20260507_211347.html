@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (1 article)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Hedy Lamarr, actress and inventor of frequency-hopping spread spectrum</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260507_211347_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>By the 1940s, Hedy Lamarr was one of the most famous faces in Hollywood. Millions of people knew her from the big screen. Almost none of them knew that she was quietly working on an invention that would one day become the foundation of modern Wi-Fi and Bluetooth technology. The woman the world saw as a movie star was also a self-taught engineer solving one of World War II&#x27;s most urgent military problems.</p>
+<p>Lamarr was born in Vienna in 1914 and showed a sharp, curious mind from childhood. After escaping a controlling first marriage to an Austrian arms dealer, she had gained unexpected knowledge of weapons and military communication systems simply by listening at dinner parties. When she moved to America and entered Hollywood, she never stopped thinking about science. Working alongside composer George Antheil, she developed a system that rapidly switched radio signals across different frequencies, making torpedo guidance signals nearly impossible for enemies to detect or jam. She and Antheil patented the idea in 1942 and offered it to the U.S. Navy. The Navy rejected it.</p>
+<p>For decades, Lamarr received no credit and no money for her invention. Her patent expired before the technology was actually used. It was not until the 1990s, when wireless communication was becoming essential, that engineers realized her frequency-hopping idea was already embedded in the systems they were building. She finally received the Electronic Frontier Foundation Pioneer Award in 1997, when she was in her eighties. The recognition came late, but it came.</p>
+<p>Lamarr&#x27;s story raises an uncomfortable question: how many brilliant contributions have been ignored simply because of who the person was? Her life is a reminder that genius rarely arrives in the shape people expect, and that the world is sometimes very slow to look carefully.</p>
+  </div>
+  <div class="nav"><span></span><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="1" value="1"> / 1 篇</div>
+
+<script>
+let current = 1;
+const total = 1;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
