@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (2 articles)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Multitasking</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260510_213147_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Most people believe that doing several things at once makes them more productive. Students listen to music while studying, check their phones during meals, and browse social media while watching videos. The idea seems logical: if you can handle two tasks simultaneously, you finish more in less time. Multitasking feels like a superpower — a skill that modern life almost demands you develop.</p>
+<p>There are situations where multitasking genuinely works. Routine physical tasks, like folding laundry while listening to a podcast, require little mental focus, so your brain handles both without much trouble. For people in certain jobs — air traffic controllers, for instance — monitoring multiple screens at once is essential. Some research also suggests that background music at a moderate volume can improve mood and, in turn, slightly boost performance on simple, repetitive tasks.</p>
+<p>However, when the tasks require real thinking, multitasking often backfires. Neuroscientists have found that the human brain does not truly run two demanding tasks at the same time. Instead, it rapidly switches between them, and each switch carries a small mental cost — a brief moment of confusion and lost focus. Over time, these costs add up. Studies show that students who used social media while studying retained significantly less information than those who focused on one thing. Heavy multitaskers also tend to struggle more with filtering out irrelevant information, even when they are not multitasking at all.</p>
+<p>So is multitasking a useful skill or a damaging habit? The honest answer depends on what you are doing. For low-effort tasks, combining activities is perfectly fine. But for learning, creative thinking, or complex problem-solving, focused single-tasking almost always produces better results. Before you open that second tab or pick up your phone, it may be worth asking: is this switch actually saving time — or quietly costing it?</p>
+  </div>
+  <div class="nav"><span></span><button class="nav-btn" onclick="goTo(2)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-2" class="page">
+  <h2 class="article-title">The QWERTY Keyboard Layout</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260510_213147_2.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>The keyboard you use every day — on your phone, laptop, or school computer — was not designed to help you type faster. In fact, it was designed to do the opposite. The QWERTY layout, named after the first six letters on the top row, was created in the 1870s for a very specific and now-outdated reason. Its origin is far stranger than most people realize.</p>
+<p>In 1873, American inventor Christopher Latham Sholes was trying to sell his new typewriter to a telegraph company. The mechanical typewriters of that era had a serious problem: if a typist pressed keys too quickly, the metal arms inside the machine would jam together. Sholes rearranged the letters so that commonly paired letters — like &quot;th&quot; or &quot;st&quot; — were placed far apart on the keyboard. This forced typists to slow down slightly, which prevented jams. It was a clever engineering solution for a clunky machine.</p>
+<p>By the early 1900s, typewriter technology had improved dramatically, and jamming was no longer a real problem. Researchers later developed alternative layouts, such as the Dvorak keyboard in 1936, which placed the most common letters in the easiest positions. Studies showed that Dvorak users could type faster and with less strain. Yet QWERTY did not disappear. Millions of people had already learned it, businesses had invested in QWERTY machines, and schools were teaching it. Switching felt too costly and disruptive. This pattern — where an inferior standard survives simply because too many people use it — is called &quot;path dependency&quot; in economics.</p>
+<p>Today, QWERTY remains the global standard, found on keyboards in over 100 countries. It is a quiet reminder that technology does not always win based on quality alone. Sometimes history, habit, and network effects matter more than logic. The next time your fingers find those keys, you are touching a design shaped by a problem that no longer exists.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(1)">&larr; 上一篇</button><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="2" value="1"> / 2 篇</div>
+
+<script>
+let current = 1;
+const total = 2;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
