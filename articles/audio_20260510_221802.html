@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (3 articles)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">The Placebo Effect</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260510_221802_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Most people believe that if a medicine has no real active ingredient, it simply cannot work. A sugar pill is just sugar, after all. If you know you are taking a fake treatment, nothing should happen. This seems like basic logic. But decades of medical research have quietly dismantled this assumption, and the results are genuinely surprising.</p>
+<p>The placebo effect is the measurable, documented improvement that patients experience after receiving a treatment with no active medical ingredient. In clinical trials, patients given sugar pills regularly report reduced pain, lower anxiety, and even improved physical symptoms. Brain scans support these reports. When someone believes they are receiving real medicine, their brain can actually release natural painkillers called endorphins. The body responds to expectation in ways that produce real, physical change. This is not imagination. It is biology.</p>
+<p>Here is where things become even stranger. Researchers at Harvard Medical School conducted a study in which patients were told clearly that they were receiving a placebo. They were informed the pill contained no medicine at all. Remarkably, a significant number of these patients still reported improvement. This finding challenges a second assumption — that the placebo effect requires deception to function. Somehow, even conscious knowledge of the fake treatment did not completely cancel out the benefit. Scientists are still debating why this happens. The relationship between belief, expectation, and physical health appears to be far more complex than previously thought.</p>
+<p>This raises a question that extends beyond medicine. If the mind can influence the body so powerfully, even when we are fully aware of the process, what does that tell us about how much control we actually have over our own health? The placebo effect is not a trick or a failure of science. It may instead be a doorway into understanding just how deeply connected our thoughts and bodies truly are.</p>
+  </div>
+  <div class="nav"><span></span><button class="nav-btn" onclick="goTo(2)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-2" class="page">
+  <h2 class="article-title">Tardigrades</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260510_221802_2.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Tardigrades, also called &quot;water bears,&quot; are tiny animals no bigger than a grain of sand. They live in moss, soil, and even the deep ocean. That much sounds ordinary. But here is the surprising part: tardigrades can survive in conditions that would instantly kill almost any other living thing. Boiling water, the frozen vacuum of outer space, intense radiation — tardigrades have endured all of it. Scientists are still trying to fully explain how.</p>
+<p>The leading explanation involves a process called cryptobiosis. When conditions become dangerous, a tardigrade curls into a tiny, dry barrel shape called a &quot;tun.&quot; In this state, its body loses almost all water, and its metabolism nearly stops completely. It is not quite dead, but it is not really alive in the usual sense either. Some tardigrades have been revived after staying in this state for decades. Researchers believe special proteins, called Dsup proteins, protect the animal&#x27;s DNA from breaking apart under extreme stress. This gives scientists hope for understanding biological resilience at a deeper level.</p>
+<p>However, not everything is settled. Scientists debate whether tardigrades truly &quot;survive&quot; space exposure or simply endure it in ways that cause hidden long-term damage. Some experiments showed that while tardigrades returned to life after space travel, their reproduction rates dropped noticeably afterward. This raises questions about what survival actually means. Is an organism truly fine if it lives but cannot reproduce well? The line between surviving and thriving turns out to be more complicated than it first appears.</p>
+<p>Tardigrades matter beyond their own strange lives. Studying them may help scientists develop better ways to preserve human organs for transplant, protect astronauts from radiation on long space missions, or even store vaccines in difficult environments. A creature barely visible to the naked eye might quietly hold some of the most important biological secrets we have yet to uncover.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(1)">&larr; 上一篇</button><button class="nav-btn" onclick="goTo(3)">下一篇 &rarr;</button></div>
+</div>
+
+<div id="page-3" class="page">
+  <h2 class="article-title">Nikola Tesla</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260510_221802_3.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Nikola Tesla died alone in a New York hotel room in 1943, nearly broke and largely forgotten. Yet today, his name appears on electric cars, scientific units, and countless technology documentaries. The man who struggled his entire life to gain recognition is now celebrated as one of history&#x27;s greatest inventors. How did someone so overlooked become such a legendary figure?</p>
+<p>Tesla was born in 1856 in what is now Serbia. He showed an extraordinary talent for mathematics and engineering from a young age. After moving to the United States, he worked briefly for Thomas Edison, but the two men clashed badly over ideas and money. Tesla then developed his system of alternating current, or AC electricity, which is the type of electricity that powers homes and buildings around the world today. He also worked on wireless communication, X-ray experiments, and remote-controlled machines — ideas that were far ahead of his time. Despite these achievements, his business partner George Westinghouse faced fierce competition from Edison, and Tesla often struggled to fund his research.</p>
+<p>The deeper tragedy is that Tesla&#x27;s most ambitious dream — transmitting electricity wirelessly across long distances — was never completed. His Wardenclyffe Tower project ran out of money and was eventually torn down. Investors did not believe in it, and Tesla&#x27;s reputation suffered. He spent his later years in poverty, even though the world around him was increasingly running on his inventions. Many of his ideas, dismissed as impossible in his lifetime, form the basis of modern wireless technology.</p>
+<p>Tesla&#x27;s story is more than just one man&#x27;s rise and fall. It raises important questions about how society values innovation. Brilliant ideas do not always bring immediate reward. Recognition can come too late, or not at all. Tesla reminds us that history does not always treat its greatest contributors fairly — at least not while they are still alive.</p>
+  </div>
+  <div class="nav"><button class="nav-btn" onclick="goTo(2)">&larr; 上一篇</button><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="3" value="1"> / 3 篇</div>
+
+<script>
+let current = 1;
+const total = 3;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
