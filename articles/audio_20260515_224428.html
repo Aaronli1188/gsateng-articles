@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Pack (1 article)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #fafafa; color: #222; line-height: 1.9; }
+  .back { font-size: 0.9rem; margin-bottom: 24px; }
+  .back a { color: #1a0dab; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .article-title { font-size: 1.15rem; color: #333; margin: 0 0 24px 0; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+  .player { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .player audio { width: 100%; }
+  .article { font-size: 1.05rem; }
+  .article p { margin: 0 0 1.4em 0; }
+  .q-divider { border: none; border-top: 1px solid #ddd; margin: 1.2em 0; }
+  .quiz-q { font-size: 1rem; margin: 0.4em 0 0.8em 0; color: #444; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+  .nav-btn { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  .nav-btn:hover { background: #444; }
+  .indicator { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+  .indicator input[type=number] { width: 2.8em; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 1px 3px; font-size: 0.85rem; color: #555; font-family: inherit; -moz-appearance: textfield; }
+  .indicator input[type=number]::-webkit-outer-spin-button, .indicator input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="../index.html">&larr; Back to all articles</a></div>
+
+<div id="page-1" class="page active">
+  <h2 class="article-title">Homework and Academic Performance</h2>
+  <div class="player">
+  <audio controls>
+    <source src="audio_20260515_224428_1.mp3" type="audio/mpeg">
+  </audio>
+</div>
+  <div class="article">
+<p>Most students, parents, and teachers share a common assumption: homework is essential for real learning. The logic seems simple — the more practice students do at home, the better they will perform at school. This belief is so widespread that many schools assign hours of homework each night without questioning whether it actually works. But research on homework tells a more complicated story than most people expect.</p>
+<p>There are real benefits to homework when it is done well. Short, focused assignments can help students review what they learned in class and strengthen their memory over time. For older students, especially in high school, homework can also build important habits like planning, self-discipline, and working independently. Some studies suggest that students who complete regular homework tend to score higher on standardized tests, particularly in mathematics and language learning.</p>
+<p>However, the picture changes when homework becomes excessive. Research by education professor Harris Cooper found that beyond a certain point, more homework does not improve grades — and may actually cause harm. Students who spend several hours on homework each night often experience higher levels of stress and anxiety. They have less time for sleep, physical activity, and social connection, all of which are critical for healthy development. In countries like Finland, where students receive very little homework, academic performance still remains among the highest in the world.</p>
+<p>So is homework truly beneficial or harmful? The honest answer is: it depends. The quality, amount, and purpose of homework all matter greatly. A short assignment that connects to meaningful learning can be genuinely valuable. But homework given simply to fill time, or so much that it overwhelms students, may do more damage than good. Rather than asking &quot;how much homework should students have,&quot; perhaps the better question is &quot;what kind of homework actually helps students learn?&quot; That shift in thinking could change classrooms in meaningful ways.</p>
+  </div>
+  <div class="nav"><span></span><span></span></div>
+</div>
+
+<div class="indicator">第 <input type="number" id="jump-input" min="1" max="1" value="1"> / 1 篇</div>
+
+<script>
+let current = 1;
+const total = 1;
+function goTo(n) {
+  document.getElementById('page-' + current).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  current = n;
+  document.getElementById('jump-input').value = n;
+  window.scrollTo(0, 0);
+}
+document.getElementById('jump-input').addEventListener('change', function() {
+  const n = Math.max(1, Math.min(total, parseInt(this.value) || 1));
+  this.value = n;
+  goTo(n);
+});
+</script>
+</body>
+</html>
