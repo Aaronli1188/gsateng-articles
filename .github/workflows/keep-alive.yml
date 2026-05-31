@@ -20,3 +20,4 @@ name: Keep Supabase Alive
               echo "Warning: Supabase returned $STATUS"
               exit 1
             fi
+
