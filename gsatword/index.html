@@ -275,7 +275,7 @@ async function init(){
   }
 }
 
-function show(id){ document.getElementById(id).style.display=''; }
+function show(id,d){ document.getElementById(id).style.display=d||'block'; }
 function hide(id){ document.getElementById(id).style.display='none'; }
 function showError(title, msg){
   document.getElementById('err-title').textContent=title;
