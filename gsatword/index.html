@@ -471,7 +471,7 @@ async function init(){
   try{
     const cfgRows=await sbGet('app_config','key=in.(anthropic_key,review_intervals)&select=key,value');
     for(const r of cfgRows){
-      if(r.key==='anthropic_key') ANT_KEY=r.value;
+      if(r.key==='anthropic_key') ANT_KEY=(r.value||'').trim();
       if(r.key==='review_intervals') try{const p=JSON.parse(r.value);GLOBAL_INTERVALS={...GLOBAL_INTERVALS,...p};INTERVALS={...GLOBAL_INTERVALS};}catch(e){}
     }
   }catch(e){}
@@ -837,21 +837,17 @@ function toggleExp(span){
 }
 
 async function generateExplanation(vid){
-  const e=vocab.find(v=>v.id===vid); if(!e) return;
-  if(!ANT_KEY){alert('尚未設定 Anthropic API Key（請到 Supabase app_config 設定）');return;}
+  const sidStr=String(vid);
+  const e=vocab.find(v=>String(v.id)===sidStr); if(!e) return;
+  const key=(ANT_KEY||'').trim();
+  if(!key){alert('尚未設定 Anthropic API Key（請到 Supabase app_config 設定）');return;}
   const btn=document.getElementById('aibtn-'+esc(vid));
   if(btn){btn.textContent='…';btn.disabled=true;}
-  const prompt=`Word: "${e.word}"
-Context: "${e.context||''}"
-
-Reply in exactly 3 lines, nothing else:
-ZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]
-CTX: [one sentence Traditional Chinese explaining the word in the given context]
-USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+  const prompt=`Word: "${e.word}"\nContext: "${(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')}"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'x-api-key':ANT_KEY,'anthropic-version':'2023-06-01',
+      headers:{'x-api-key':key,'anthropic-version':'2023-06-01',
         'content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:256,
         messages:[{role:'user',content:prompt}]})
@@ -866,13 +862,14 @@ USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
     }
     if(!zh){throw new Error('解析失敗：'+text);}
     const ctxFull=ctx+(use?'\n用法：'+use:'');
-    await sbPatch('vocabulary',`id=eq.${vid}`,{zh_meaning:zh,context_zh:ctxFull});
-    const vi=vocab.findIndex(v=>v.id===vid);
+    await sbPatch('vocabulary',`id=eq.${sidStr}`,{zh_meaning:zh,context_zh:ctxFull});
+    const vi=vocab.findIndex(v=>String(v.id)===sidStr);
     if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
+    if(btn){btn.textContent='✨';btn.disabled=false;}
     updateList();
   }catch(err){
-    alert('生成失敗：'+err.message);
     if(btn){btn.textContent='✨';btn.disabled=false;}
+    throw err; // re-throw so doBulkExplain can catch
   }
 }
 
@@ -946,12 +943,14 @@ async function doBulkExplain(){
   if(!ANT_KEY){alert('尚未設定 Anthropic API Key');return;}
   if(!confirm(`對選取的 ${ids.length} 個單字生成 AI 解釋？每個單字會呼叫一次 API。`)) return;
   const bar=document.getElementById('bulk-count');
-  let done=0;
+  let done=0, failed=0;
   for(const vid of ids){
     bar.textContent=`生成中 ${++done}/${ids.length}…`;
-    await generateExplanation(vid);
+    try{ await generateExplanation(vid); }
+    catch(err){ failed++; console.warn('explain failed',vid,err.message); }
   }
   bar.textContent=`已選 ${ids.length} 個`;
+  if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗（見 console）`);
   updateList();
 }
 
