@@ -91,6 +91,8 @@ tr:last-child td{border-bottom:none}
 tr.selected td{background:#f3f0ff}
 .wc{font-weight:600}
 .ctx{color:#777;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.exp-cell{color:#444;cursor:pointer;border-bottom:1px dashed #ccc;line-height:1.4}
+.exp-cell:hover{color:#1a73e8}
 .ctx.expanded{max-width:none;overflow:visible;white-space:normal;background:#fffde7;padding:4px 6px;border-radius:4px}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.71rem;font-weight:600}
 .bm{background:#e8f5e9;color:#2e7d32}
@@ -238,6 +240,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
           <button class="fb" onclick="setFilter('upcoming',this)">未來</button>
           <button class="fb" onclick="setFilter('mastered',this)">已精熟</button>
           <button class="fb" onclick="setFilter('marked',this)">🔖 已標記</button>
+          <button class="fb" onclick="setFilter('memo',this)">📝 有備忘</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -245,7 +248,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
           <thead><tr>
             <th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th>
             <th style="width:32px"></th>
-            <th>單字</th><th>例句</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th>操作</th>
+            <th>單字</th><th>例句</th><th>解釋</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th>操作</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
@@ -759,6 +762,7 @@ function filteredVocab(){
   if(listFilter==='upcoming') return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
   if(listFilter==='mastered') return vocab.filter(e=>e.mastered);
   if(listFilter==='marked')   return vocab.filter(e=>e.marked);
+  if(listFilter==='memo')     return vocab.filter(e=>e.memo&&e.memo.trim());
   return vocab;
 }
 
@@ -767,7 +771,7 @@ function updateList(){
   const rows=filteredVocab();
   const tbody=document.getElementById('tbl-body');
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
     document.getElementById('chk-all').checked=false;
     return;
   }
@@ -778,21 +782,32 @@ function updateList(){
     const selCls=selectedIds.has(e.id)?'selected':'';
     const markCls=e.marked?'mark-icon on':'mark-icon';
     const wid=esc(e.id); const wword=esc(e.word);
+    // memo: show below word
+    const memoHtml=e.memo&&e.memo.trim()?`<div style="font-size:.74rem;color:#999;margin-top:3px;line-height:1.3">📝 ${esc(e.memo.length>60?e.memo.slice(0,60)+'…':e.memo)}</div>`:'';
+    // explanation: zh_meaning + expandable context_zh
+    const exShort=e.zh_meaning?(e.zh_meaning.length>40?e.zh_meaning.slice(0,40)+'…':e.zh_meaning):'';
+    const exFull=e.zh_meaning||'';
+    const exCtx=e.context_zh||'';
+    const exHtml=exShort
+      ?`<span class="exp-cell" data-short="${esc(exShort)}" data-full="${esc(exFull)}" data-ctx="${esc(exCtx)}" onclick="toggleExp(this)" title="點擊展開">${esc(exShort)}</span>`
+      :`<span style="color:#ccc">—</span>`;
     return `<tr class="${selCls}" id="row-${wid}">
       <td><input type="checkbox" ${checked} data-id="${wid}" onclick="toggleWord(event,this)"></td>
       <td><span class="${markCls}" title="${e.marked?'移除標記':'加上標記'}" data-id="${wid}" onclick="listToggleMark('${wid}',this)">🔖</span></td>
-      <td class="wc">${wword}</td>
+      <td class="wc">${wword}${memoHtml}</td>
       <td class="ctx" data-full="${esc(e.context||'')}" onclick="toggleCtx(this)">${esc(ctx)}</td>
+      <td style="max-width:200px;font-size:.8rem">${exHtml}</td>
       <td>${e.streak??0}</td>
       <td>${e.next_review||'—'}</td>
       <td>${e.first_seen||'—'}</td>
       <td>${badge}</td>
       <td>
+        <button class="sm" title="AI 生成解釋" id="aibtn-${wid}" onclick="generateExplanation('${wid}')">✨</button>
         <button class="sm" data-id="${wid}" onclick="showReset('${wid}')">重置</button>
         <button class="sm sdel" data-id="${wid}" onclick="doDelete('${wid}','${wword}')">刪除</button>
       </td>
     </tr>
-    <tr id="rr-${wid}" style="display:none"><td colspan="9" style="background:#fffde7;padding:8px 13px">
+    <tr id="rr-${wid}" style="display:none"><td colspan="10" style="background:#fffde7;padding:8px 13px">
       <div class="rform"><span style="font-size:.82rem;color:#666">新的複習日期：</span>
         <input type="date" id="rd-${wid}" value="${today()}">
         <button class="rc" onclick="doReset('${wid}')">確認重置</button>
@@ -801,6 +816,59 @@ function updateList(){
   }).join('');
   const allChk=rows.every(e=>selectedIds.has(e.id));
   document.getElementById('chk-all').checked=rows.length>0&&allChk;
+}
+
+function toggleExp(span){
+  const isExpanded=span.dataset.expanded==='1';
+  if(isExpanded){
+    span.dataset.expanded='0';
+    span.textContent=span.dataset.short;
+  } else {
+    span.dataset.expanded='1';
+    const full=span.dataset.full||'';
+    const ctx=span.dataset.ctx||'';
+    span.innerHTML=esc(full)+(ctx?`<br><span style="color:#888;font-size:.76rem">${esc(ctx)}</span>`:'');
+  }
+}
+
+async function generateExplanation(vid){
+  const e=vocab.find(v=>v.id===vid); if(!e) return;
+  if(!ANT_KEY){alert('尚未設定 Anthropic API Key（請到 Supabase app_config 設定）');return;}
+  const btn=document.getElementById('aibtn-'+esc(vid));
+  if(btn){btn.textContent='…';btn.disabled=true;}
+  const prompt=`Word: "${e.word}"
+Context: "${e.context||''}"
+
+Reply in exactly 3 lines, nothing else:
+ZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]
+CTX: [one sentence Traditional Chinese explaining the word in the given context]
+USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'x-api-key':ANT_KEY,'anthropic-version':'2023-06-01',
+        'content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:256,
+        messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'';
+    let zh='',ctx='',use='';
+    for(const line of text.split('\n')){
+      if(line.startsWith('ZH:')) zh=line.slice(3).trim();
+      else if(line.startsWith('CTX:')) ctx=line.slice(4).trim();
+      else if(line.startsWith('USE:')) use=line.slice(4).trim();
+    }
+    if(!zh){throw new Error('解析失敗：'+text);}
+    const ctxFull=ctx+(use?'\n用法：'+use:'');
+    await sbPatch('vocabulary',`id=eq.${vid}`,{zh_meaning:zh,context_zh:ctxFull});
+    const vi=vocab.findIndex(v=>v.id===vid);
+    if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
+    updateList();
+  }catch(err){
+    alert('生成失敗：'+err.message);
+    if(btn){btn.textContent='✨';btn.disabled=false;}
+  }
 }
 
 function toggleCtx(td){
