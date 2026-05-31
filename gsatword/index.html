@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>gsatword</title>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh}
@@ -194,6 +195,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
   <button data-panel="list" onclick="switchPanel(this)">單字列表</button>
   <button data-panel="add" onclick="switchPanel(this)">新增</button>
   <button data-panel="sync" onclick="switchPanel(this)">匯入</button>
+  <button data-panel="stats" onclick="switchPanel(this)">統計</button>
 </div>
 
 <div id="loading-screen">載入中…</div>
@@ -262,6 +264,36 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
       </div>
     </div>
 
+    <!-- Stats -->
+    <div id="panel-stats" class="panel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:20px">
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">每日複習量（最近 30 天）</p>
+          <canvas id="chart-daily"></canvas>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">每日答對率（最近 30 天）</p>
+          <canvas id="chart-acc"></canvas>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">單字累積數</p>
+          <canvas id="chart-growth"></canvas>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">未來 14 天待複習預測</p>
+          <canvas id="chart-forecast"></canvas>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">單字狀態分佈</p>
+          <canvas id="chart-status" style="max-width:280px;margin:0 auto;display:block"></canvas>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">連對次數分佈</p>
+          <canvas id="chart-streak"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- Sync -->
     <div id="panel-sync" class="panel">
       <div class="form-sec">
@@ -283,6 +315,10 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         <button class="btn-pri" onclick="doSync()">匯入</button>
         <div class="sync-log" id="sync-log"></div>
         <div id="sync-msg"></div>
+        <div id="undo-banner" style="display:none;margin-top:16px;padding:12px 16px;background:#fff3e0;border-radius:8px;border-left:3px solid #e65100;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span id="undo-label" style="font-size:.85rem;color:#e65100;font-weight:600;flex:1"></span>
+          <button class="btn-pri" style="background:#e65100;padding:7px 16px" onclick="undoLastImport()">復原此次匯入</button>
+        </div>
       </div>
     </div>
 
@@ -384,7 +420,7 @@ let mode=''; // 'student' | 'teacher'
 let studentId='', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
-let reviewActive=false, teacherCurrentSid='';
+let reviewActive=false, teacherCurrentSid='', lastImportIds=[];
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
@@ -477,6 +513,7 @@ function switchPanel(btn){
   document.getElementById('panel-'+panel).classList.add('active');
   if(panel==='review') initReview();
   if(panel==='list') updateList();
+  if(panel==='stats') renderStats();
 }
 
 // ── Review ────────────────────────────────────────────────────────────────────
@@ -894,15 +931,21 @@ async function doSync(){
   }catch(e){showFormMsg('sync-msg','Claude 錯誤：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
   appendSyncLog(`其中 ${newWords.length} 個是新單字，開始匯入…`);
-  let added=0;
+  let added=0; lastImportIds=[];
   for(const w of newWords){
     try{
-      await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:cd,next_review:fr});
+      const rows=await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:cd,next_review:fr});
+      if(rows&&rows[0]&&rows[0].id) lastImportIds.push(rows[0].id);
       added++;
     }catch(e){appendSyncLog(`  略過「${w.word}」`);}
   }
   appendSyncLog(`完成！新增了 ${added} 個，跳過 ${extracted.length-newWords.length} 個已存在`);
   showFormMsg('sync-msg',`新增 ${added} 個，跳過 ${extracted.length-newWords.length} 個已存在`,true);
+  if(lastImportIds.length){
+    const b=document.getElementById('undo-banner');
+    document.getElementById('undo-label').textContent=`本次匯入了 ${lastImportIds.length} 個單字`;
+    b.style.display='flex';
+  }
   await refreshVocab(); updateStats();
 }
 
@@ -979,9 +1022,9 @@ async function showStudentDetail(sid,name){
   show('back-to-teacher');
   document.getElementById('student-badge').textContent=name;
   document.getElementById('student-badge').style.display='inline-block';
-  // Hide 複習 tab for teacher
+  // Hide 複習 and 統計 tabs for teacher
   document.querySelectorAll('.nav button').forEach(btn=>{
-    if(btn.dataset.panel==='review') btn.style.display='none';
+    if(btn.dataset.panel==='review'||btn.dataset.panel==='stats') btn.style.display='none';
     else btn.style.display='';
   });
   // Set dates
@@ -1010,6 +1053,99 @@ function showTeacherOverview(){
   // Restore all nav tabs for next student
   document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
   show('teacher-view');
+}
+
+// ── Undo last import ──────────────────────────────────────────────────────────
+async function undoLastImport(){
+  if(!lastImportIds.length) return;
+  if(!confirm(`確定復原本次匯入？將刪除 ${lastImportIds.length} 個單字。`)) return;
+  await sbDelete('vocabulary',`id=in.(${lastImportIds.join(',')})`);
+  lastImportIds=[];
+  document.getElementById('undo-banner').style.display='none';
+  showFormMsg('sync-msg','已復原本次匯入',true);
+  await refreshVocab(); updateStats();
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+let statsCharts={};
+
+async function renderStats(){
+  // Collect all reviews from vocab
+  const allReviews=vocab.flatMap(v=>(v.reviews||[]).map(r=>({...r,reviewed_at:r.reviewed_at})));
+  // For daily stats, fetch reviews with dates directly from Supabase
+  let fullReviews=[];
+  try{
+    const ids=vocab.map(v=>v.id);
+    if(ids.length){
+      fullReviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,reviewed_at,result&order=reviewed_at.asc`);
+    }
+  }catch(e){}
+
+  const t=today();
+
+  // Last 30 days range
+  const days30=[]; for(let i=29;i>=0;i--) days30.push(plusDays(t,-i));
+
+  // Daily review counts and accuracy
+  const dailyCount={}, dailyCorrect={}, dailyTotal={};
+  for(const d of days30){dailyCount[d]=0;dailyCorrect[d]=0;dailyTotal[d]=0;}
+  for(const r of fullReviews){
+    const d=r.reviewed_at;
+    if(dailyCount[d]!==undefined){
+      dailyCount[d]++;
+      dailyTotal[d]++;
+      if(r.result==='y') dailyCorrect[d]++;
+    }
+  }
+  const dailyAcc=days30.map(d=>dailyTotal[d]>0?Math.round(dailyCorrect[d]/dailyTotal[d]*100):null);
+  const labels30=days30.map(d=>d.slice(5)); // MM-DD
+
+  // Word growth (cumulative by first_seen)
+  const byDate={};
+  for(const v of vocab){
+    const d=v.first_seen||t;
+    byDate[d]=(byDate[d]||0)+1;
+  }
+  const growthDates=Object.keys(byDate).sort();
+  let cum=0;
+  const growthData=growthDates.map(d=>{cum+=byDate[d];return cum;});
+
+  // Forecast: next 14 days
+  const forecast=[];
+  const fDays=[]; for(let i=0;i<14;i++) fDays.push(plusDays(t,i));
+  for(const d of fDays){
+    forecast.push(vocab.filter(v=>!v.mastered&&v.next_review===d).length);
+  }
+
+  // Status donut
+  const mastered=vocab.filter(v=>v.mastered).length;
+  const due=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review<=t).length;
+  const upcoming=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review>t).length;
+
+  // Streak distribution
+  const streakBuckets={0:0,1:0,2:0,3:0,'4+':0};
+  for(const v of vocab){
+    const s=v.streak||0;
+    if(s>=4) streakBuckets['4+']++;
+    else streakBuckets[s]++;
+  }
+
+  // Destroy old charts
+  Object.values(statsCharts).forEach(c=>c.destroy());
+  statsCharts={};
+
+  const mkChart=(id,type,labels,datasets,opts={})=>{
+    const ctx=document.getElementById(id);
+    if(!ctx) return;
+    statsCharts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{display:datasets.length>1}},scales:type==='doughnut'?{}:{y:{beginAtZero:true},...(opts.scales||{})}}});
+  };
+
+  mkChart('chart-daily','bar',labels30,[{label:'複習數',data:days30.map(d=>dailyCount[d]),backgroundColor:'#1a1a1a88',borderRadius:4}]);
+  mkChart('chart-acc','line',labels30,[{label:'答對率 %',data:dailyAcc,borderColor:'#2e7d32',backgroundColor:'#2e7d3222',tension:.3,spanGaps:true,fill:true}]);
+  mkChart('chart-growth','line',growthDates.map(d=>d.slice(5)),[{label:'累積單字數',data:growthData,borderColor:'#1565c0',backgroundColor:'#1565c022',tension:.3,fill:true}]);
+  mkChart('chart-forecast','bar',fDays.map(d=>d.slice(5)),[{label:'待複習',data:forecast,backgroundColor:'#c6282866',borderRadius:4}]);
+  mkChart('chart-status','doughnut',['已精熟','今日到期','未來'],[{data:[mastered,due,upcoming],backgroundColor:['#2e7d32','#c62828','#1565c0']}]);
+  mkChart('chart-streak','bar',['0次','1次','2次','3次','4+次'],[{label:'單字數',data:Object.values(streakBuckets),backgroundColor:'#7b1fa288',borderRadius:4}]);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
