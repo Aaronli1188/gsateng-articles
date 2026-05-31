@@ -138,7 +138,10 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
 <div id="teacher-view">
   <div class="main">
     <div id="teacher-overview">
-      <p class="section-title">所有學生</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <p class="section-title" style="margin:0">所有學生</p>
+        <button class="btn btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
+      </div>
       <div class="teacher-grid" id="teacher-grid"></div>
     </div>
     <div id="teacher-detail" style="display:none">
@@ -161,7 +164,7 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
   <div class="card">
     <h2>設定 Supabase 連線</h2>
     <p style="color:#888;font-size:.85rem;margin-bottom:20px">只需設定一次，儲存在此裝置。</p>
-    <div class="field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co"></div>
+    <div class="field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co（不要加 /rest/v1）"></div>
     <div class="field"><label>Supabase Anon Key</label><input id="cfg-key" placeholder="eyJ..."></div>
     <div class="field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
     <button class="btn btn-dark" onclick="saveConfig()">儲存並繼續</button>
@@ -517,7 +520,10 @@ async function loadTeacherView(){
           <span class="mastered">精熟 ${mastered}</span>
           <span>總 ${total}</span>
         </div>
-        <div class="sc-token">學生連結：<a href="${link}" target="_blank" onclick="event.stopPropagation()">${link}</a></div>
+        <div class="sc-token" style="display:flex;align-items:center;gap:6px;margin-top:8px">
+          <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
+          <button class="sub-btn" style="flex-shrink:0;font-size:.72rem;padding:3px 10px" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
+        </div>
       </div>`;
     }).join('');
   }catch(e){
@@ -570,6 +576,29 @@ function toggleTeacherCtx(td){
 function showTeacherOverview(){
   document.getElementById('teacher-detail').style.display='none';
   document.getElementById('teacher-overview').style.display='';
+}
+
+function copyLink(link, btn){
+  navigator.clipboard.writeText(link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='已複製！';
+    setTimeout(()=>btn.textContent=orig, 1500);
+  });
+}
+
+async function addStudentPrompt(){
+  const name = prompt('學生名稱（英數字、底線、連字號）：');
+  if(!name) return;
+  if(!/^[\w\-]+$/.test(name)){ alert('名稱只能包含英數字、底線、連字號。'); return; }
+  try{
+    const existing = await sbGet('students', `name=eq.${encodeURIComponent(name)}&select=id,token`);
+    if(existing.length){ alert(`學生「${name}」已存在。`); return; }
+    await sbPost('students', {name});
+    alert(`已新增學生：${name}\n\n記得在本機跑 gsatword_register.py ${name} 建立本地資料夾。`);
+    location.reload();
+  }catch(e){
+    alert('新增失敗：'+e.message);
+  }
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
