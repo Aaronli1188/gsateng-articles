@@ -839,22 +839,20 @@ function toggleExp(span){
 async function callAnthropic(messages, maxTokens=256){
   const key=(ANT_KEY||'').split('').filter(c=>{const n=c.charCodeAt(0);return n>=0x21&&n<=0x7E;}).join('');
   if(!key) throw new Error('API Key 未設定');
-  return new Promise((resolve,reject)=>{
-    const xhr=new XMLHttpRequest();
-    xhr.open('POST','https://api.anthropic.com/v1/messages',true);
-    xhr.setRequestHeader('x-api-key',key);
-    xhr.setRequestHeader('anthropic-version','2023-06-01');
-    xhr.setRequestHeader('content-type','application/json');
-    xhr.setRequestHeader('anthropic-dangerous-direct-browser-calls','true');
-    xhr.timeout=30000;
-    xhr.onload=()=>{
-      try{resolve(JSON.parse(xhr.responseText));}
-      catch(e){reject(new Error('Parse error: '+xhr.responseText.slice(0,200)));}
-    };
-    xhr.onerror=()=>reject(new Error('Network error'));
-    xhr.ontimeout=()=>reject(new Error('Timeout'));
-    xhr.send(JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages}));
+  // Small delay to let browser extension settle (avoids interception timing issues)
+  await new Promise(r=>setTimeout(r,50));
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'content-type':'application/json',
+      'anthropic-dangerous-direct-browser-calls':'true'
+    },
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages})
   });
+  if(!res.ok){const t=await res.text();throw new Error('API '+res.status+': '+t.slice(0,200));}
+  return res.json();
 }
 
 async function generateExplanation(vid){
