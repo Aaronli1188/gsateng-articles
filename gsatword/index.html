@@ -416,7 +416,18 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const CONFIG_KEY = 'gsatword_config';
-function getConfig(){ try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}');}catch(e){return {};} }
+const DEFAULT_SB_URL = 'https://tfixkvvlcalsmjhphowv.supabase.co';
+const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmaXhrdnZsY2Fsc21qaHBob3d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNDg3NTIsImV4cCI6MjA5NTYyNDc1Mn0.koKlWoXShhHR7G4ZxA0smCeXmwB6ULHGDEPVwKWnqM0';
+const DEFAULT_TEACHER = 'aarongsateng';
+function getConfig(){
+  try{
+    const cfg=JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}');
+    // Backfill defaults if not set
+    if(!cfg.url) cfg.url=DEFAULT_SB_URL;
+    if(!cfg.key) cfg.key=DEFAULT_SB_KEY;
+    return cfg;
+  }catch(e){return {url:DEFAULT_SB_URL,key:DEFAULT_SB_KEY};}
+}
 function saveConfig(){
   const url=document.getElementById('cfg-url').value.trim().replace(/\/+$/,'').replace(/\/rest\/v1$/,'');
   const key=document.getElementById('cfg-key').value.trim();
@@ -463,11 +474,13 @@ let INTERVALS={...GLOBAL_INTERVALS};
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
-  const cfg=getConfig();
   const params=new URLSearchParams(location.search);
   const sToken=params.get('s'), tToken=params.get('teacher');
-  if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
-  SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||'';
+  const cfg=getConfig();
+  // Student links always use defaults — never show setup screen
+  if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; }
+  else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
+  else { SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||''; }
   try{
     const cfgRows=await sbGet('app_config','key=in.(anthropic_key,review_intervals)&select=key,value');
     for(const r of cfgRows){
@@ -479,7 +492,8 @@ async function init(){
     mode='student';
     await loadStudentView(sToken);
   } else if(tToken){
-    if(cfg.teacher&&tToken!==cfg.teacher){hide('loading-screen');showError('存取被拒','Teacher token 不正確。');return;}
+    const validTeacher=cfg.teacher||DEFAULT_TEACHER;
+    if(tToken!==validTeacher){hide('loading-screen');showError('存取被拒','Teacher token 不正確。');return;}
     mode='teacher';
     await loadTeacherView();
   } else {
