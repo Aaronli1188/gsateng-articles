@@ -332,6 +332,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">所有學生</p>
         <div style="display:flex;gap:8px">
+          <button class="btn-outline" onclick="openIntervals()">⚙ 複習間隔</button>
           <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
           <button class="btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
         </div>
@@ -361,6 +362,31 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
   <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
   <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
   <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
+</div>
+
+<!-- ── Intervals settings modal ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="intervals-modal">
+  <div class="modal" style="width:380px">
+    <h3>複習間隔設定</h3>
+    <p style="font-size:.8rem;color:#888;margin-bottom:16px">調整後立即生效，套用到所有學生的下次複習計算。</p>
+    <label>不認識（初次）→ 幾天後</label>
+    <input type="number" id="iv-s0" min="1" max="365">
+    <label>連對 1 次 → 幾天後</label>
+    <input type="number" id="iv-s1" min="1" max="365">
+    <label>連對 2 次 → 幾天後</label>
+    <input type="number" id="iv-s2" min="1" max="365">
+    <label>連對 3 次 → 幾天後</label>
+    <input type="number" id="iv-s3" min="1" max="365">
+    <label>太簡單 → 幾天後</label>
+    <input type="number" id="iv-easy" min="1" max="365">
+    <label>精熟門檻（連對幾次）</label>
+    <input type="number" id="iv-master" min="1" max="10">
+    <div id="iv-msg" style="font-size:.82rem;color:#2e7d32;margin-bottom:10px"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeIntervals()">取消</button>
+      <button class="modal-ok" onclick="saveIntervals()">儲存</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── Bulk reset modal ──────────────────────────────────────────────────── -->
@@ -421,6 +447,7 @@ let studentId='', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
 let reviewActive=false, teacherCurrentSid='', lastImportIds=[];
+let INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
@@ -430,8 +457,11 @@ async function init(){
   if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
   SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||'';
   try{
-    const cfgRows=await sbGet('app_config','key=eq.anthropic_key&select=value');
-    if(cfgRows.length) ANT_KEY=cfgRows[0].value;
+    const cfgRows=await sbGet('app_config','key=in.(anthropic_key,review_intervals)&select=key,value');
+    for(const r of cfgRows){
+      if(r.key==='anthropic_key') ANT_KEY=r.value;
+      if(r.key==='review_intervals') try{INTERVALS={...INTERVALS,...JSON.parse(r.value)};}catch(e){}
+    }
   }catch(e){}
   if(sToken){
     mode='student';
@@ -628,11 +658,11 @@ async function doReview(result){
   if(!incognito){
     try{
       const streak=consecutiveCorrect([...(e.reviews||[]),{result}]);
-      const intervals={1:14,2:28,3:56};
+      const ivMap={1:INTERVALS.s1,2:INTERVALS.s2,3:INTERVALS.s3};
       let nextRev,mastered=false;
-      if(streak>=4){nextRev=plusDays(today(),56);mastered=true;}
-      else if(intervals[streak]){nextRev=plusDays(today(),intervals[streak]);}
-      else{nextRev=plusDays(today(),7);}
+      if(streak>=INTERVALS.master_at){nextRev=plusDays(today(),INTERVALS.s3);mastered=true;}
+      else if(ivMap[streak]){nextRev=plusDays(today(),ivMap[streak]);}
+      else{nextRev=plusDays(today(),INTERVALS.s0);}
       await sbPost('reviews',{vocab_id:e.id,reviewed_at:today(),result});
       await sbPatch('vocabulary',`id=eq.${e.id}`,{next_review:nextRev,mastered});
       const vi=vocab.findIndex(v=>v.id===e.id);
@@ -669,7 +699,7 @@ async function cardTooEasy(vid,word){
   setTimeout(renderCard,900);
   if(!incognito){
     try{
-      const nextRev=plusDays(today(),30);
+      const nextRev=plusDays(today(),INTERVALS.too_easy);
       await sbPost('reviews',{vocab_id:vid,reviewed_at:today(),result:'too_easy'});
       await sbPatch('vocabulary',`id=eq.${vid}`,{next_review:nextRev,mastered:false});
       const vi=vocab.findIndex(v=>v.id===vid);
@@ -1053,6 +1083,40 @@ function showTeacherOverview(){
   // Restore all nav tabs for next student
   document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
   show('teacher-view');
+}
+
+// ── Review interval settings ──────────────────────────────────────────────────
+function openIntervals(){
+  document.getElementById('iv-s0').value=INTERVALS.s0;
+  document.getElementById('iv-s1').value=INTERVALS.s1;
+  document.getElementById('iv-s2').value=INTERVALS.s2;
+  document.getElementById('iv-s3').value=INTERVALS.s3;
+  document.getElementById('iv-easy').value=INTERVALS.too_easy;
+  document.getElementById('iv-master').value=INTERVALS.master_at;
+  document.getElementById('iv-msg').textContent='';
+  document.getElementById('intervals-modal').classList.add('open');
+}
+function closeIntervals(){document.getElementById('intervals-modal').classList.remove('open');}
+async function saveIntervals(){
+  const s0=+document.getElementById('iv-s0').value;
+  const s1=+document.getElementById('iv-s1').value;
+  const s2=+document.getElementById('iv-s2').value;
+  const s3=+document.getElementById('iv-s3').value;
+  const easy=+document.getElementById('iv-easy').value;
+  const master=+document.getElementById('iv-master').value;
+  if([s0,s1,s2,s3,easy,master].some(v=>!v||v<1)){
+    document.getElementById('iv-msg').textContent='所有欄位需大於 0'; return;
+  }
+  const val=JSON.stringify({s0,s1,s2,s3,master_at:master,too_easy:easy});
+  try{
+    await sbFetch('/rest/v1/app_config?key=eq.review_intervals',{
+      method:'PATCH',body:JSON.stringify({value:val}),
+      headers:{'Prefer':'return=representation'}
+    });
+    INTERVALS={s0,s1,s2,s3,master_at:master,too_easy:easy};
+    document.getElementById('iv-msg').textContent='已儲存！';
+    setTimeout(closeIntervals,800);
+  }catch(e){document.getElementById('iv-msg').textContent='儲存失敗：'+e.message;}
 }
 
 // ── Undo last import ──────────────────────────────────────────────────────────
