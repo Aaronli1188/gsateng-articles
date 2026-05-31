@@ -140,7 +140,10 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
     <div id="teacher-overview">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <p class="section-title" style="margin:0">所有學生</p>
-        <button class="btn btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="exportBackup()">備份匯出</button>
+          <button class="btn btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
+        </div>
       </div>
       <div class="teacher-grid" id="teacher-grid"></div>
     </div>
@@ -586,18 +589,30 @@ function copyLink(link, btn){
   });
 }
 
-async function addStudentPrompt(){
+function addStudentPrompt(){
   const name = prompt('學生名稱（英數字、底線、連字號）：');
   if(!name) return;
   if(!/^[\w\-]+$/.test(name)){ alert('名稱只能包含英數字、底線、連字號。'); return; }
+  alert(
+    '請在 Mac 終端機執行以下指令（自動建立本地資料夾 + Supabase 帳號 + 印出學生連結）：\n\n' +
+    `/Users/shen4916/gsat_venv/bin/python3 /Users/shen4916/gsateng/core/gsatword_register.py ${name}\n\n` +
+    '執行完後重新整理這個頁面就會看到新學生。'
+  );
+}
+
+async function exportBackup(){
   try{
-    const existing = await sbGet('students', `name=eq.${encodeURIComponent(name)}&select=id,token`);
-    if(existing.length){ alert(`學生「${name}」已存在。`); return; }
-    await sbPost('students', {name});
-    alert(`已新增學生：${name}\n\n記得在本機跑 gsatword_register.py ${name} 建立本地資料夾。`);
-    location.reload();
+    const students = await sbGet('students','select=id,name,token&order=name');
+    const vocab    = await sbGet('vocabulary','select=*&order=word');
+    const reviews  = await sbGet('reviews','select=*&order=reviewed_at');
+    const data = {exported_at: new Date().toISOString(), students, vocab, reviews};
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `gsatword_backup_${today()}.json`;
+    a.click();
   }catch(e){
-    alert('新增失敗：'+e.message);
+    alert('匯出失敗：'+e.message);
   }
 }
 
