@@ -186,6 +186,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 <div class="hdr">
   <h1>GSATWORD</h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
+  <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <span id="student-badge" class="student-badge"></span>
   <div class="hdr-stats" id="hdr-stats"></div>
 </div>
@@ -368,7 +369,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 <div class="modal-overlay" id="intervals-modal">
   <div class="modal" style="width:380px">
     <h3>複習間隔設定</h3>
-    <p style="font-size:.8rem;color:#888;margin-bottom:16px">調整後立即生效，套用到所有學生的下次複習計算。</p>
+    <p id="iv-context" style="font-size:.8rem;color:#888;margin-bottom:16px"></p>
     <label>不認識（初次）→ 幾天後</label>
     <input type="number" id="iv-s0" min="1" max="365">
     <label>連對 1 次 → 幾天後</label>
@@ -446,8 +447,9 @@ let mode=''; // 'student' | 'teacher'
 let studentId='', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
-let reviewActive=false, teacherCurrentSid='', lastImportIds=[];
-let INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
+let reviewActive=false, teacherCurrentSid='', teacherCurrentName='', lastImportIds=[];
+let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
+let INTERVALS={...GLOBAL_INTERVALS};
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
@@ -460,7 +462,7 @@ async function init(){
     const cfgRows=await sbGet('app_config','key=in.(anthropic_key,review_intervals)&select=key,value');
     for(const r of cfgRows){
       if(r.key==='anthropic_key') ANT_KEY=r.value;
-      if(r.key==='review_intervals') try{INTERVALS={...INTERVALS,...JSON.parse(r.value)};}catch(e){}
+      if(r.key==='review_intervals') try{const p=JSON.parse(r.value);GLOBAL_INTERVALS={...GLOBAL_INTERVALS,...p};INTERVALS={...GLOBAL_INTERVALS};}catch(e){}
     }
   }catch(e){}
   if(sToken){
@@ -496,6 +498,7 @@ async function loadStudentView(token){
     document.getElementById('bulk-reset-date').value=t;
     document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
+    await loadStudentIntervals(student.id);
     await refreshVocab();
     hide('loading-screen');
     show('student-view');
@@ -1020,12 +1023,24 @@ function copyLink(link,btn){
   navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
 }
 
-function addStudentPrompt(){
+async function addStudentPrompt(){
   const name=prompt('學生名稱（英數字、底線、連字號）：'); if(!name) return;
   if(!/^[\w\-]+$/.test(name)){alert('名稱只能包含英數字、底線、連字號。');return;}
-  alert('請在 Mac 終端機執行以下指令（自動建立本地資料夾 + Supabase 帳號 + 印出學生連結）：\n\n'+
-    `/Users/shen4916/gsat_venv/bin/python3 /Users/shen4916/gsateng/core/gsatword_register.py ${name}\n\n`+
-    '執行完後重新整理這個頁面就會看到新學生。');
+  try{
+    const existing=await sbGet('students',`name=eq.${encodeURIComponent(name)}&select=id,token`);
+    if(existing.length){
+      const link=`${location.origin+location.pathname}?s=${encodeURIComponent(existing[0].token)}`;
+      if(confirm(`學生「${name}」已存在。\n\n複製連結到剪貼簿？\n${link}`))
+        navigator.clipboard.writeText(link);
+      return;
+    }
+    const rows=await sbPost('students',{name});
+    const token=(rows[0]||rows).token;
+    const link=`${location.origin+location.pathname}?s=${encodeURIComponent(token)}`;
+    navigator.clipboard.writeText(link).catch(()=>{});
+    alert(`已新增學生「${name}」！\n\n學生連結（已複製到剪貼簿）：\n${link}`);
+    await loadTeacherView();
+  }catch(e){alert('新增失敗：'+e.message);}
 }
 
 async function exportBackup(){
@@ -1044,12 +1059,14 @@ async function exportBackup(){
 
 async function showStudentDetail(sid,name){
   teacherCurrentSid=sid;
+  teacherCurrentName=name;
   studentId=sid;
   // Show student-view with nav, hide teacher-view
   hide('teacher-view');
   show('student-view');
   show('main-nav','flex');
   show('back-to-teacher');
+  show('teacher-iv-btn');
   document.getElementById('student-badge').textContent=name;
   document.getElementById('student-badge').style.display='inline-block';
   // Hide 複習 and 統計 tabs for teacher
@@ -1066,7 +1083,8 @@ async function showStudentDetail(sid,name){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-list').classList.add('active');
   document.querySelector('.nav button[data-panel="list"]').classList.add('active');
-  // Load data
+  // Load student-specific intervals then data
+  await loadStudentIntervals(sid);
   await refreshVocab();
   updateStats();
   updateList();
@@ -1079,14 +1097,27 @@ function showTeacherOverview(){
   document.getElementById('student-badge').style.display='none';
   document.getElementById('hdr-stats').innerHTML='';
   selectedIds.clear(); updateBulkBar();
-  studentId=''; vocab=[];
+  studentId=''; vocab=[]; teacherCurrentSid=''; teacherCurrentName='';
+  INTERVALS={...GLOBAL_INTERVALS};
+  hide('teacher-iv-btn');
   // Restore all nav tabs for next student
   document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
   show('teacher-view');
 }
 
 // ── Review interval settings ──────────────────────────────────────────────────
+async function loadStudentIntervals(sid){
+  try{
+    const rows=await sbGet('app_config',`key=eq.intervals_${sid}&select=value`);
+    if(rows.length) INTERVALS={...GLOBAL_INTERVALS,...JSON.parse(rows[0].value)};
+    else INTERVALS={...GLOBAL_INTERVALS};
+  }catch(e){ INTERVALS={...GLOBAL_INTERVALS}; }
+}
 function openIntervals(){
+  const isPerStudent=!!teacherCurrentSid;
+  document.getElementById('iv-context').textContent=isPerStudent
+    ?`目前：${teacherCurrentName} 個別設定（空白欄位用全域預設）`
+    :'目前：全域預設（套用到無個別設定的學生）';
   document.getElementById('iv-s0').value=INTERVALS.s0;
   document.getElementById('iv-s1').value=INTERVALS.s1;
   document.getElementById('iv-s2').value=INTERVALS.s2;
@@ -1108,12 +1139,20 @@ async function saveIntervals(){
     document.getElementById('iv-msg').textContent='所有欄位需大於 0'; return;
   }
   const val=JSON.stringify({s0,s1,s2,s3,master_at:master,too_easy:easy});
+  const configKey=teacherCurrentSid?`intervals_${teacherCurrentSid}`:'review_intervals';
   try{
-    await sbFetch('/rest/v1/app_config?key=eq.review_intervals',{
-      method:'PATCH',body:JSON.stringify({value:val}),
-      headers:{'Prefer':'return=representation'}
-    });
+    // Upsert: PATCH first; if row missing, POST
+    const existing=await sbGet('app_config',`key=eq.${configKey}&select=key`);
+    if(existing.length){
+      await sbFetch(`/rest/v1/app_config?key=eq.${configKey}`,{
+        method:'PATCH',body:JSON.stringify({value:val}),
+        headers:{'Prefer':'return=representation'}
+      });
+    } else {
+      await sbPost('app_config',{key:configKey,value:val});
+    }
     INTERVALS={s0,s1,s2,s3,master_at:master,too_easy:easy};
+    if(!teacherCurrentSid) GLOBAL_INTERVALS={...INTERVALS};
     document.getElementById('iv-msg').textContent='已儲存！';
     setTimeout(closeIntervals,800);
   }catch(e){document.getElementById('iv-msg').textContent='儲存失敗：'+e.message;}
