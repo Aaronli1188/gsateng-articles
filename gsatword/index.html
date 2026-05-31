@@ -335,6 +335,8 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         <div style="display:flex;gap:8px">
           <button class="btn-outline" onclick="openIntervals()">⚙ 複習間隔</button>
           <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
+          <button class="btn-outline" onclick="document.getElementById('restore-input').click()">回復備份</button>
+          <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
           <button class="btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
         </div>
       </div>
@@ -1055,6 +1057,57 @@ async function exportBackup(){
     a.download=`gsatword_backup_${today()}.json`;
     a.click();
   }catch(e){alert('匯出失敗：'+e.message);}
+}
+
+async function restoreBackup(input){
+  const file=input.files[0]; if(!file) return;
+  input.value='';
+  let data;
+  try{ data=JSON.parse(await file.text()); }catch(e){alert('JSON 格式錯誤：'+e.message);return;}
+  if(!data.students||!data.vocab){alert('備份格式不正確（缺少 students 或 vocab）');return;}
+  if(!confirm(`確定回復備份？\n\n備份時間：${data.exported_at||'不明'}\n學生數：${data.students.length}\n單字數：${data.vocab.length}\n複習記錄：${(data.reviews||[]).length} 筆\n\n⚠️ 這會覆蓋 Supabase 中同名學生的資料（不會刪除備份中沒有的學生）。`)) return;
+  try{
+    // Upsert students (by name)
+    for(const s of data.students){
+      const ex=await sbGet('students',`name=eq.${encodeURIComponent(s.name)}&select=id`);
+      if(!ex.length) await sbPost('students',{name:s.name});
+    }
+    // Build name→id map
+    const dbStudents=await sbGet('students','select=id,name');
+    const nameToId=Object.fromEntries(dbStudents.map(s=>[s.name,s.id]));
+    // Upsert vocab
+    for(const s of data.students){
+      const sid=nameToId[s.name]; if(!sid) continue;
+      const sVocab=data.vocab.filter(v=>v.student_id===s.id);
+      for(const v of sVocab){
+        const row={student_id:sid,word:v.word,context:v.context||'',zh_meaning:v.zh_meaning||'',
+          context_zh:v.context_zh||'',mastered:!!v.mastered,next_review:v.next_review||null,
+          first_seen:v.first_seen||null,memo:v.memo||'',marked:!!v.marked};
+        await sbFetch(`/rest/v1/vocabulary?on_conflict=student_id,word`,{
+          method:'POST',body:JSON.stringify(row),
+          headers:{'Prefer':'return=representation,resolution=merge-duplicates'}
+        });
+      }
+    }
+    // Restore reviews (skip if already exist — best effort)
+    if(data.reviews&&data.reviews.length){
+      // Build old_vocab_id → new_vocab_id map
+      const dbVocab=await sbGet('vocabulary','select=id,student_id,word');
+      const oldVocabMap=Object.fromEntries(data.vocab.map(v=>[v.id,v]));
+      const newVocabMap=Object.fromEntries(dbVocab.map(v=>[`${v.student_id}_${v.word}`,v.id]));
+      const reviews=data.reviews.map(r=>{
+        const ov=oldVocabMap[r.vocab_id]; if(!ov) return null;
+        const ownerSid=nameToId[data.students.find(s=>s.id===ov.student_id)?.name];
+        const newVid=newVocabMap[`${ownerSid}_${ov.word}`];
+        if(!newVid) return null;
+        return {vocab_id:newVid,reviewed_at:r.reviewed_at,result:r.result};
+      }).filter(Boolean);
+      for(let i=0;i<reviews.length;i+=200)
+        await sbPost('reviews',reviews.slice(i,i+200));
+    }
+    alert('回復完成！');
+    await loadTeacherView();
+  }catch(e){alert('回復失敗：'+e.message);}
 }
 
 async function showStudentDetail(sid,name){
