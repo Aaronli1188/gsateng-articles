@@ -4,76 +4,149 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>gsatword</title>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh}
 
-/* ── Layout ── */
-.hdr{background:#1a1a1a;color:#fff;padding:0 24px;display:flex;align-items:center;height:56px;gap:16px;position:sticky;top:0;z-index:20}
-.hdr h1{font-size:.9rem;font-weight:700;letter-spacing:.08em}
-.hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-.main{padding:28px 24px;max-width:1100px;margin:0 auto}
+/* Header */
+.hdr{background:#1a1a1a;color:#fff;padding:0 20px;display:flex;align-items:center;height:52px;gap:12px;position:sticky;top:0;z-index:20}
+.hdr h1{font-size:.88rem;font-weight:700;letter-spacing:.1em;white-space:nowrap}
+.student-badge{background:#d32f2f;color:#fff;padding:3px 12px;border-radius:12px;font-size:.82rem;font-weight:700;letter-spacing:.04em;display:none}
+.hdr-stats{display:flex;gap:16px;font-size:.75rem;color:#888;margin-left:auto;flex-wrap:wrap}
+.hdr-stats span b{color:#fff}
 
-/* ── Buttons ── */
-.btn{border:none;padding:10px 22px;border-radius:7px;cursor:pointer;font-size:.9rem;font-weight:600;font-family:inherit}
-.btn-dark{background:#1a1a1a;color:#fff}
-.btn-dark:hover{background:#333}
-.btn-outline{background:#fff;color:#555;border:1px solid #ddd}
-.btn-outline:hover{background:#f5f5f5}
-.btn-green{background:#2e7d32;color:#fff}
-.btn-green:hover{background:#1b5e20}
-.btn-red{background:#c62828;color:#fff}
-.btn-red:hover{background:#b71c1c}
-.btn:disabled{opacity:.4;cursor:default;pointer-events:none}
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;padding:0 20px;position:sticky;top:52px;z-index:9;display:none}
+.nav button{padding:11px 16px;border:none;background:none;cursor:pointer;font-size:.88rem;color:#888;border-bottom:2px solid transparent;font-family:inherit}
+.nav button.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:600}
 
-/* ── Cards / panels ── */
-.card{background:#fff;border-radius:12px;padding:32px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
-.section-title{font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+/* Content */
+.main{padding:24px;max-width:1300px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
 
-/* ── Error / loading ── */
+/* Loading / Error */
+#loading-screen{display:flex;align-items:center;justify-content:center;min-height:60vh;font-size:.9rem;color:#aaa}
 #error-screen{display:none;text-align:center;padding:80px 24px}
 #error-screen h2{font-size:1.2rem;margin-bottom:10px}
 #error-screen p{color:#888;font-size:.9rem}
-#loading-screen{display:flex;align-items:center;justify-content:center;min-height:60vh;font-size:.9rem;color:#aaa}
 
-/* ── Student view ── */
+/* Student view */
 #student-view{display:none}
-.student-name-badge{font-size:.8rem;background:#d32f2f;color:#fff;padding:3px 12px;border-radius:12px;font-weight:700}
-.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
-.stat-box{background:#fff;border-radius:10px;padding:16px 22px;flex:1;min-width:120px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.stat-box .val{font-size:2rem;font-weight:700;color:#1a1a1a}
-.stat-box .lbl{font-size:.75rem;color:#999;margin-top:4px}
 
-/* ── Flashcard ── */
-.rev-wrap{max-width:680px;margin:0 auto}
-.prog{text-align:center;color:#999;font-size:.85rem;margin-bottom:16px}
-.flash-card{background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 2px 12px rgba(0,0,0,.1);min-height:200px}
-.sentence{font-size:1.25rem;line-height:2.1;margin-bottom:8px}
-.whi{color:#c62828;font-weight:700}
-.zh-hint{margin:12px 0;padding:12px 16px;background:#f5f5f5;border-radius:8px;border-left:3px solid #bdbdbd}
-.zh-meaning{font-size:1rem;color:#333;font-weight:600;margin-bottom:4px}
-.zh-context{font-size:.88rem;color:#666;font-style:italic}
-.rev-btns{display:flex;gap:12px;margin-top:24px}
-.btn-y{flex:1;padding:18px;border:none;border-radius:9px;cursor:pointer;font-size:1.05rem;font-weight:700;background:#2e7d32;color:#fff}
-.btn-y:hover{background:#1b5e20}
-.btn-n{flex:1;padding:18px;border:none;border-radius:9px;cursor:pointer;font-size:1.05rem;font-weight:700;background:#c62828;color:#fff}
-.btn-n:hover{background:#b71c1c}
+/* Review */
+.rev-outer{max-width:800px;margin:0 auto}
+.mode-bar{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden;margin-bottom:16px;flex-wrap:wrap}
+.rev-mode-btn{flex:1;padding:7px 10px;border:none;background:#fff;cursor:pointer;font-size:.82rem;color:#666;min-width:100px;font-family:inherit}
+.rev-mode-btn.active{background:#1a1a1a;color:#fff}
+.prog{text-align:center;color:#999;font-size:.82rem;margin-bottom:14px}
+.flash-card{background:#fff;border-radius:10px;padding:36px 40px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sentence{font-size:1.2rem;line-height:2.1}
+.whi{color:#d32f2f;font-weight:700}
+.rev-btns{display:flex;gap:12px;margin-top:28px}
+.btn-y,.btn-n{flex:1;padding:16px;border:none;border-radius:8px;cursor:pointer;font-size:1.05rem;font-weight:600;font-family:inherit}
+.btn-y{background:#2e7d32;color:#fff}.btn-y:hover{background:#1b5e20}
+.btn-n{background:#c62828;color:#fff}.btn-n:hover{background:#b71c1c}
 .btn-y:disabled,.btn-n:disabled{opacity:.4;cursor:default;pointer-events:none}
-.feedback{margin-top:12px;font-size:.92rem;text-align:center;min-height:22px;font-weight:600}
-.card-sub-actions{display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap}
-.sub-btn{padding:7px 18px;border-radius:7px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.82rem;color:#555;font-weight:500}
-.sub-btn:hover{background:#f5f5f5}
-.sub-btn-easy{border-color:#c8e6c9;color:#2e7d32}
-.sub-btn-easy:hover{background:#e8f5e9}
-.memo-area{margin-top:16px;padding-top:14px;border-top:1px solid #f0f0f0}
-.memo-area textarea{width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:7px;font-size:.88rem;font-family:inherit;resize:vertical;min-height:56px;color:#444}
+.feedback{margin-top:12px;font-size:.88rem;text-align:center;min-height:20px}
+.done{background:#fff;border-radius:10px;padding:48px 40px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.done h2{font-size:1.15rem;margin-bottom:10px}.done p{color:#888;font-size:.9rem}
+.incognito-badge{display:inline-block;background:#7b1fa2;color:#fff;font-size:.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
+.card-actions{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.act-btn{padding:6px 16px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.8rem;color:#555;font-weight:500;font-family:inherit}
+.act-btn:hover{background:#f5f5f5}
+.act-del{border-color:#ffcdd2;color:#c62828}.act-del:hover{background:#ffebee}
+.act-easy{border-color:#c8e6c9;color:#2e7d32}.act-easy:hover{background:#e8f5e9}
+.act-mark{border-color:#ffe0b2;color:#e65100}.act-mark:hover{background:#fff3e0}
+.act-mark.marked{background:#fff3e0;border-color:#e65100}
+.memo-area{margin-top:14px;padding-top:12px;border-top:1px solid #f0f0f0}
+.memo-area textarea{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;font-family:inherit;resize:vertical;min-height:52px}
 .memo-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.memo-ok{font-size:.8rem;color:#2e7d32}
-.done-screen{text-align:center;padding:48px 24px}
-.done-screen h2{font-size:1.3rem;margin-bottom:10px}
-.done-screen p{color:#888;font-size:.92rem}
+.act-memo{border-color:#bbdefb;color:#1565c0}.act-memo:hover{background:#e3f2fd}
+.memo-ok{font-size:.78rem;color:#2e7d32}
+.zh-hint{margin:10px 0 6px;padding:10px 14px;background:#f5f5f5;border-radius:8px;border-left:3px solid #bdbdbd}
+.zh-meaning{font-size:1rem;color:#333;font-weight:600;margin-bottom:4px}
+.zh-context{font-size:.9rem;color:#666;font-style:italic}
 
-/* ── Teacher view ── */
+/* Quiz date picker */
+.quiz-dates{background:#fff;border-radius:8px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.quiz-dates h4{font-size:.78rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+.quiz-date-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.qd-item{display:flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #ddd;border-radius:16px;background:#fff;cursor:pointer;font-size:.8rem;color:#555;user-select:none}
+.qd-item.selected{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.quiz-start{padding:7px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.84rem;font-weight:600;font-family:inherit}
+.quiz-start:disabled{opacity:.4;cursor:default}
+
+/* List */
+.list-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.fb{padding:5px 13px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:.79rem;color:#666;font-family:inherit}
+.fb.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.tbl-wrap{background:#fff;border-radius:10px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:10px 14px;text-align:left;font-size:.9rem;border-bottom:1px solid #f0f0f0;white-space:nowrap}
+th{background:#fafafa;font-weight:600;color:#999;font-size:.73rem;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:none}
+tr.selected td{background:#f3f0ff}
+.wc{font-weight:600}
+.ctx{color:#777;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.ctx.expanded{max-width:none;overflow:visible;white-space:normal;background:#fffde7;padding:4px 6px;border-radius:4px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.71rem;font-weight:600}
+.bm{background:#e8f5e9;color:#2e7d32}
+.bd{background:#fce4ec;color:#c62828}
+.bu{background:#e3f2fd;color:#1565c0}
+.sm{padding:3px 8px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.77rem;color:#555;margin-right:3px;font-family:inherit}
+.sm:hover{background:#f5f5f5}
+.sdel{color:#c62828;border-color:#ffcdd2}.sdel:hover{background:#ffebee}
+.mark-icon{cursor:pointer;font-size:.95rem;opacity:.25;transition:opacity .15s}
+.mark-icon.on{opacity:1}
+input[type=checkbox]{cursor:pointer;width:15px;height:15px}
+.rrow td{background:#fffde7!important}
+.rform{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rform input[type=date]{padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:.82rem}
+.rc{background:#1a1a1a;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.78rem;font-family:inherit}
+.rx{background:none;border:none;cursor:pointer;font-size:.78rem;color:#999;padding:5px 4px;font-family:inherit}
+
+/* Bulk bar */
+.bulk-bar{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;color:#fff;padding:12px 24px;display:none;align-items:center;gap:16px;z-index:50;box-shadow:0 -2px 10px rgba(0,0,0,.2)}
+.bulk-bar.visible{display:flex}
+.bulk-count{font-size:.88rem;font-weight:600;margin-right:auto}
+.bulk-btn{padding:7px 16px;border:1px solid #555;background:none;color:#fff;border-radius:6px;cursor:pointer;font-size:.83rem;font-family:inherit}
+.bulk-btn:hover{background:#333}
+.bulk-btn-del{border-color:#c62828;color:#ff8a80}.bulk-btn-del:hover{background:#b71c1c;color:#fff}
+.bulk-btn-cancel{color:#888;border-color:#444}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:10px;padding:28px 32px;width:340px;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.modal h3{font-size:.95rem;margin-bottom:16px}
+.modal label{display:block;font-size:.78rem;color:#888;margin-bottom:5px;font-weight:600;text-transform:uppercase}
+.modal input{width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:6px;font-size:.88rem;margin-bottom:14px;font-family:inherit}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.modal-btns button{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;font-family:inherit}
+.modal-ok{background:#1a1a1a;color:#fff}
+.modal-cancel{background:#f0f0f0;color:#555}
+
+/* Forms */
+.form-sec{background:#fff;border-radius:10px;padding:28px 32px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:500px}
+.form-sec h2{font-size:.92rem;font-weight:600;margin-bottom:20px;color:#444}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.75rem;color:#999;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field textarea{width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:6px;font-size:.88rem;font-family:inherit}
+.field textarea{min-height:64px;resize:vertical}
+.btn-pri{background:#1a1a1a;color:#fff;border:none;padding:9px 22px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:600;font-family:inherit}
+.btn-pri:hover{opacity:.85}
+.msg-box{margin-top:12px;padding:9px 13px;border-radius:6px;font-size:.84rem}
+.ok{background:#e8f5e9;color:#2e7d32}
+.err{background:#ffebee;color:#c62828}
+.info{background:#e3f2fd;color:#1565c0}
+.stabs{display:flex;border:1px solid #ddd;border-radius:6px;overflow:hidden;margin-bottom:18px}
+.stab{flex:1;padding:7px;border:none;background:#fff;cursor:pointer;font-size:.83rem;color:#666;font-family:inherit}
+.stab.active{background:#1a1a1a;color:#fff}
+.sync-log{margin-top:12px;font-size:.82rem;color:#666;white-space:pre-wrap;background:#f5f5f5;border-radius:7px;padding:10px 12px;display:none}
+
+/* Teacher view */
 #teacher-view{display:none}
 .teacher-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px}
 .student-card{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:box-shadow .15s}
@@ -82,63 +155,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sc-stats{display:flex;gap:10px;font-size:.8rem;color:#888;flex-wrap:wrap}
 .sc-stats .due{color:#c62828;font-weight:700}
 .sc-stats .mastered{color:#2e7d32;font-weight:600}
-.sc-token{font-size:.72rem;color:#bbb;margin-top:8px;word-break:break-all}
-.sc-token a{color:#1a0dab;text-decoration:none}
-.sc-token a:hover{text-decoration:underline}
-
-/* ── Teacher detail ── */
 #teacher-detail{display:none}
-.back-btn{background:none;border:none;cursor:pointer;font-size:.85rem;color:#555;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px}
+.back-btn{background:none;border:none;cursor:pointer;font-size:.85rem;color:#555;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px;font-family:inherit}
 .back-btn:hover{color:#1a1a1a}
-table{width:100%;border-collapse:collapse}
-th,td{padding:11px 14px;text-align:left;font-size:.88rem;border-bottom:1px solid #f0f0f0;white-space:nowrap}
-th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
-.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.73rem;font-weight:600}
-.bm{background:#e8f5e9;color:#2e7d32}
-.bd{background:#fce4ec;color:#c62828}
-.bu{background:#e3f2fd;color:#1565c0}
 .ctx-cell{color:#777;max-width:260px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .ctx-cell.expanded{max-width:none;overflow:visible;white-space:normal;background:#fffde7;padding:4px 8px;border-radius:4px}
+.act-btn-sm{padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.75rem;color:#555;font-family:inherit}
+.act-btn-sm.danger{border-color:#ffcdd2;color:#c62828}
+.act-btn-sm.danger:hover{background:#ffebee}
 
-/* ── Tabs ── */
-.tab-bar{display:flex;gap:0;border-bottom:2px solid #e0e0e0;margin-bottom:24px}
-.tab{padding:10px 20px;cursor:pointer;font-size:.88rem;font-weight:600;color:#999;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none}
-.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
-.tab:hover:not(.active){color:#555}
-
-/* ── Vocab list ── */
-.vlist-wrap{overflow-x:auto}
-.vlist-wrap table{min-width:600px}
-.act-btn{padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.75rem;color:#555;margin-right:3px}
-.act-btn:hover{background:#f5f5f5}
-.act-btn.danger{border-color:#ffcdd2;color:#c62828}
-.act-btn.danger:hover{background:#ffebee}
-.act-btn.mark-on{border-color:#ffe082;color:#f57f17;background:#fffde7}
-.add-form{display:flex;flex-direction:column;gap:12px;max-width:520px}
-.add-form input,.add-form textarea{padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.9rem;font-family:inherit}
-.add-form textarea{min-height:70px;resize:vertical}
-.sync-wrap{max-width:520px}
-.sync-wrap textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.88rem;font-family:inherit;min-height:80px;resize:vertical;margin-bottom:10px}
-.sync-log{margin-top:12px;font-size:.82rem;color:#666;white-space:pre-wrap;background:#f5f5f5;border-radius:7px;padding:10px 12px;display:none}
-
-/* ── Setup ── */
+/* Setup */
 #setup-screen{display:none;max-width:480px;margin:60px auto}
 #setup-screen h2{font-size:1.1rem;margin-bottom:20px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:.77rem;color:#999;margin-bottom:5px;font-weight:600;text-transform:uppercase}
-.field input{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.9rem;font-family:inherit}
-.msg{margin-top:10px;padding:9px 13px;border-radius:7px;font-size:.85rem}
-.msg-err{background:#ffebee;color:#c62828}
-.msg-ok{background:#e8f5e9;color:#2e7d32}
+.setup-field{margin-bottom:14px}
+.setup-field label{display:block;font-size:.77rem;color:#999;margin-bottom:5px;font-weight:600;text-transform:uppercase}
+.setup-field input{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.9rem;font-family:inherit}
+.setup-card{background:#fff;border-radius:12px;padding:32px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.btn-dark{border:none;padding:10px 22px;border-radius:7px;cursor:pointer;font-size:.9rem;font-weight:600;background:#1a1a1a;color:#fff;font-family:inherit}
+.btn-dark:hover{background:#333}
+.btn-outline{border:1px solid #ddd;padding:10px 22px;border-radius:7px;cursor:pointer;font-size:.9rem;font-weight:600;background:#fff;color:#555;font-family:inherit}
+.btn-outline:hover{background:#f5f5f5}
+.cfg-msg{margin-top:10px;padding:9px 13px;border-radius:7px;font-size:.85rem}
+.cfg-msg.err{background:#ffebee;color:#c62828}
+.cfg-msg.ok{background:#e8f5e9;color:#2e7d32}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <h1>gsatword</h1>
-  <div class="hdr-right">
-    <span id="name-badge" class="student-name-badge" style="display:none"></span>
-  </div>
+  <h1>GSATWORD</h1>
+  <span id="student-badge" class="student-badge"></span>
+  <div class="hdr-stats" id="hdr-stats"></div>
+</div>
+
+<div class="nav" id="main-nav">
+  <button class="active" data-panel="review" onclick="switchPanel(this)">複習</button>
+  <button data-panel="list" onclick="switchPanel(this)">單字列表</button>
+  <button data-panel="add" onclick="switchPanel(this)">新增</button>
+  <button data-panel="sync" onclick="switchPanel(this)">匯入</button>
 </div>
 
 <div id="loading-screen">載入中…</div>
@@ -147,50 +201,102 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
   <p id="err-msg">請確認你的專屬連結是否正確。</p>
 </div>
 
-<!-- Student view -->
+<!-- ── Student view ──────────────────────────────────────────────────────── -->
 <div id="student-view">
   <div class="main">
-    <div class="stats-row" id="stats-row"></div>
-    <div class="tab-bar">
-      <button class="tab active" onclick="switchTab('review')">複習</button>
-      <button class="tab" onclick="switchTab('list')">單字列表</button>
-      <button class="tab" onclick="switchTab('add')">新增單字</button>
-    </div>
-    <div id="tab-review"><div class="rev-wrap" id="rev-wrap"></div></div>
-    <div id="tab-list" style="display:none"><div class="vlist-wrap"><table><thead><tr><th>單字</th><th>例句</th><th>中文</th><th>狀態</th><th>下次複習</th><th>操作</th></tr></thead><tbody id="vlist-tbody"></tbody></table></div></div>
-    <div id="tab-add" style="display:none">
-      <div class="card" style="margin-bottom:20px">
-        <p class="section-title" style="margin-bottom:16px">手動新增單字</p>
-        <div class="add-form">
-          <input id="add-word" placeholder="單字（英文）">
-          <input id="add-zh" placeholder="中文意思（選填）">
-          <textarea id="add-ctx" placeholder="例句（選填）"></textarea>
-          <button class="btn btn-dark" style="width:fit-content" onclick="addWordManual()">新增</button>
-          <span id="add-msg" style="font-size:.85rem;color:#2e7d32"></span>
+
+    <!-- Review -->
+    <div id="panel-review" class="panel active">
+      <div class="rev-outer">
+        <div class="mode-bar">
+          <button class="rev-mode-btn active" onclick="setRevMode('normal',this)">今日複習</button>
+          <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">全部練習（無痕）</button>
+          <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">測驗模式</button>
+          <button class="rev-mode-btn" onclick="setRevMode('quiz_incognito',this)">測驗（無痕）</button>
         </div>
-      </div>
-      <div class="card">
-        <p class="section-title" style="margin-bottom:8px">從 Google Docs 同步</p>
-        <p style="font-size:.82rem;color:#888;margin-bottom:12px">貼上公開的 Google Docs 網址，自動擷取文章並生成單字（需要設定 Anthropic API Key）</p>
-        <div class="sync-wrap">
-          <textarea id="sync-url" placeholder="https://docs.google.com/document/d/..."></textarea>
-          <button class="btn btn-dark" onclick="syncFromDoc()">開始同步</button>
-          <div class="sync-log" id="sync-log"></div>
+        <div id="quiz-picker" style="display:none">
+          <div class="quiz-dates">
+            <h4>選擇上課日期</h4>
+            <div class="quiz-date-list" id="quiz-date-list"></div>
+            <button class="quiz-start" id="quiz-start-btn" onclick="startQuiz()" disabled>開始測驗</button>
+          </div>
         </div>
+        <div id="rev-wrap"></div>
       </div>
     </div>
+
+    <!-- List -->
+    <div id="panel-list" class="panel">
+      <div class="list-toolbar">
+        <div class="filter-bar">
+          <button class="fb active" onclick="setFilter('all',this)">全部</button>
+          <button class="fb" onclick="setFilter('due',this)">今日到期</button>
+          <button class="fb" onclick="setFilter('upcoming',this)">未來</button>
+          <button class="fb" onclick="setFilter('mastered',this)">已精熟</button>
+          <button class="fb" onclick="setFilter('marked',this)">🔖 已標記</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th>
+            <th style="width:32px"></th>
+            <th>單字</th><th>例句</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add -->
+    <div id="panel-add" class="panel">
+      <div class="form-sec">
+        <h2>手動新增單字</h2>
+        <div class="field"><label>單字</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
+        <div class="field"><label>例句（可留空）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
+        <div class="field"><label>上課日期</label><input id="a-date" type="date"></div>
+        <div class="field"><label>第一次複習日期</label><input id="a-rev" type="date"></div>
+        <button class="btn-pri" onclick="doAdd()">新增</button>
+        <div id="add-msg"></div>
+      </div>
+    </div>
+
+    <!-- Sync -->
+    <div id="panel-sync" class="panel">
+      <div class="form-sec">
+        <h2>匯入單字</h2>
+        <div class="stabs">
+          <button class="stab active" onclick="setSyncTab('url',this)">Google Doc URL</button>
+          <button class="stab" onclick="setSyncTab('file',this)">.docx 上傳</button>
+        </div>
+        <div id="s-url-area">
+          <div class="field"><label>Google Doc URL</label>
+            <input id="s-url" type="text" placeholder="https://docs.google.com/document/d/...">
+          </div>
+        </div>
+        <div id="s-file-area" style="display:none">
+          <div class="field"><label>.docx 檔案</label><input id="s-file" type="file" accept=".docx"></div>
+        </div>
+        <div class="field"><label>上課日期</label><input id="s-date" type="date"></div>
+        <div class="field"><label>第一次複習日期</label><input id="s-rev" type="date"></div>
+        <button class="btn-pri" onclick="doSync()">匯入</button>
+        <div class="sync-log" id="sync-log"></div>
+        <div id="sync-msg"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- Teacher view -->
+<!-- ── Teacher view ──────────────────────────────────────────────────────── -->
 <div id="teacher-view">
   <div class="main">
     <div id="teacher-overview">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <p class="section-title" style="margin:0">所有學生</p>
+        <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">所有學生</p>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline" onclick="exportBackup()">備份匯出</button>
-          <button class="btn btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
+          <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
+          <button class="btn-dark" onclick="addStudentPrompt()">＋ 新增學生</button>
         </div>
       </div>
       <div class="teacher-grid" id="teacher-grid"></div>
@@ -198,24 +304,22 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
     <div id="teacher-detail" style="display:none">
       <button class="back-btn" onclick="showTeacherOverview()">← 返回總覽</button>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <p class="section-title" id="detail-title" style="margin:0"></p>
-        <button class="btn btn-dark" id="teacher-add-btn" onclick="teacherAddWordPanel()">＋ 新增單字</button>
+        <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em" id="detail-title"></p>
+        <button class="btn-dark" onclick="teacherAddWordPanel()">＋ 新增單字</button>
       </div>
       <div id="teacher-add-panel" style="display:none;margin-bottom:16px">
-        <div class="card">
-          <div class="add-form">
-            <input id="t-add-word" placeholder="單字（英文）">
-            <input id="t-add-zh" placeholder="中文意思（選填）">
-            <textarea id="t-add-ctx" placeholder="例句（選填）"></textarea>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-dark" style="width:fit-content" onclick="teacherAddWord()">新增</button>
-              <button class="btn btn-outline" onclick="document.getElementById('teacher-add-panel').style.display='none'">取消</button>
-            </div>
-            <span id="t-add-msg" style="font-size:.85rem;color:#2e7d32"></span>
+        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:480px">
+          <div class="field"><label>單字</label><input id="t-add-word" placeholder="單字（英文）"></div>
+          <div class="field"><label>中文意思</label><input id="t-add-zh" placeholder="（選填）"></div>
+          <div class="field"><label>例句</label><textarea id="t-add-ctx" placeholder="（選填）" style="min-height:56px;resize:vertical;width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:.88rem"></textarea></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-pri" onclick="teacherAddWord()">新增</button>
+            <button class="btn-outline" style="padding:9px 18px;border-radius:6px" onclick="document.getElementById('teacher-add-panel').style.display='none'">取消</button>
           </div>
+          <div id="t-add-msg" style="margin-top:8px;font-size:.85rem;color:#2e7d32"></div>
         </div>
       </div>
-      <div class="card" style="padding:0;overflow:auto">
+      <div style="background:#fff;border-radius:10px;padding:0;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.08)">
         <table>
           <thead><tr>
             <th>單字</th><th>例句</th><th>中文</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th></th>
@@ -227,214 +331,222 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
   </div>
 </div>
 
-<!-- Setup screen (first time) -->
+<!-- ── Setup screen ──────────────────────────────────────────────────────── -->
 <div id="setup-screen" class="main">
-  <div class="card">
+  <div class="setup-card">
     <h2>設定 Supabase 連線</h2>
     <p style="color:#888;font-size:.85rem;margin-bottom:20px">只需設定一次，儲存在此裝置。</p>
-    <div class="field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co（不要加 /rest/v1）"></div>
-    <div class="field"><label>Supabase Anon Key</label><input id="cfg-key" placeholder="eyJ..."></div>
-    <div class="field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
-    <div class="field"><label>Anthropic API Key（用於同步文章生單字，選填）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
-    <button class="btn btn-dark" onclick="saveConfig()">儲存並繼續</button>
+    <div class="setup-field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co（不要加 /rest/v1）"></div>
+    <div class="setup-field"><label>Supabase Anon Key</label><input id="cfg-key" placeholder="eyJ..."></div>
+    <div class="setup-field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
+    <div class="setup-field"><label>Anthropic API Key（選填，用於匯入生單字）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
+    <button class="btn-dark" onclick="saveConfig()">儲存並繼續</button>
     <div id="cfg-msg"></div>
+  </div>
+</div>
+
+<!-- ── Bulk action bar ───────────────────────────────────────────────────── -->
+<div class="bulk-bar" id="bulk-bar">
+  <span class="bulk-count" id="bulk-count">已選 0 個</span>
+  <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
+  <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
+  <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
+</div>
+
+<!-- ── Bulk reset modal ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="bulk-reset-modal">
+  <div class="modal">
+    <h3>批量重置複習進度</h3>
+    <label>新的複習日期</label>
+    <input type="date" id="bulk-reset-date">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeBulkReset()">取消</button>
+      <button class="modal-ok" onclick="doBulkReset()">確認重置</button>
+    </div>
   </div>
 </div>
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const CONFIG_KEY = 'gsatword_config';
-
-function getConfig(){
-  try{ return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}'); }
-  catch(e){ return {}; }
-}
-
+function getConfig(){ try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}');}catch(e){return {};} }
 function saveConfig(){
-  const url  = document.getElementById('cfg-url').value.trim().replace(/\/$/,'').replace(/\/rest\/v1$/,'');
-  const key  = document.getElementById('cfg-key').value.trim();
-  const teacher = document.getElementById('cfg-teacher').value.trim();
-  const ant = document.getElementById('cfg-ant').value.trim();
-  if(!url||!key){ showMsg('cfg-msg','請填寫 URL 和 Key','err'); return; }
-  localStorage.setItem(CONFIG_KEY, JSON.stringify({url,key,teacher,ant}));
-  showMsg('cfg-msg','已儲存，重新載入…','ok');
-  setTimeout(()=>location.reload(), 800);
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/+$/,'').replace(/\/rest\/v1$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  const teacher=document.getElementById('cfg-teacher').value.trim();
+  const ant=document.getElementById('cfg-ant').value.trim();
+  if(!url||!key){showCfgMsg('請填寫 URL 和 Key','err');return;}
+  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,ant}));
+  showCfgMsg('已儲存，重新載入…','ok');
+  setTimeout(()=>location.reload(),800);
 }
+function showCfgMsg(t,c){const e=document.getElementById('cfg-msg');e.textContent=t;e.className='cfg-msg '+c;}
 
-function showMsg(id,text,type){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.textContent=text;
-  el.className='msg msg-'+(type==='err'?'err':'ok');
-}
-
-// ── Supabase helpers ──────────────────────────────────────────────────────────
-let SB_URL='', SB_KEY='', ANT_KEY='';
-
-async function sbFetch(path, opts={}){
-  const res = await fetch(SB_URL+path, {
-    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY,
-               'Content-Type':'application/json', 'Prefer':'return=representation',
-               ...(opts.headers||{})},
+// ── Supabase ──────────────────────────────────────────────────────────────────
+let SB_URL='',SB_KEY='',ANT_KEY='';
+async function sbFetch(path,opts={}){
+  const res=await fetch(SB_URL+path,{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
     ...opts
   });
-  if(!res.ok){ const t=await res.text(); throw new Error(t); }
+  if(!res.ok){const t=await res.text();throw new Error(t);}
   const text=await res.text();
-  return text ? JSON.parse(text) : [];
+  return text?JSON.parse(text):[];
 }
-
-async function sbGet(table, params=''){
-  return sbFetch(`/rest/v1/${table}?${params}`);
-}
-
-async function sbPost(table, body){
-  return sbFetch(`/rest/v1/${table}`, {method:'POST', body:JSON.stringify(body)});
-}
-
-async function sbPatch(table, filter, body){
-  return sbFetch(`/rest/v1/${table}?${filter}`, {method:'PATCH', body:JSON.stringify(body),
-    headers:{'Prefer':'return=representation'}});
-}
+async function sbGet(table,params=''){return sbFetch(`/rest/v1/${table}?${params}`);}
+async function sbPost(table,body){return sbFetch(`/rest/v1/${table}`,{method:'POST',body:JSON.stringify(body)});}
+async function sbPatch(table,filter,body){return sbFetch(`/rest/v1/${table}?${filter}`,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=representation'}});}
+async function sbDelete(table,filter){return sbFetch(`/rest/v1/${table}?${filter}`,{method:'DELETE'});}
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
-function today(){ return new Date().toISOString().slice(0,10); }
-function plusDays(d,n){ const dt=new Date(d); dt.setDate(dt.getDate()+n); return dt.toISOString().slice(0,10); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function today(){return new Date().toISOString().slice(0,10);}
+function plusDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function consecutiveCorrect(reviews){let c=0;for(let i=reviews.length-1;i>=0;i--){if(reviews[i].result==='y')c++;else break;}return c;}
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let mode = '';          // 'student' | 'teacher'
-let studentId = '';
-let studentToken = '';
-let vocab = [];
-let dueQueue = [];
-let revIdx = 0;
-let reviewActive = false;
+let mode=''; // 'student' | 'teacher'
+let studentId='', vocab=[], dueQueue=[], revIdx=0;
+let reviewMode='normal', listFilter='all', syncTab='url';
+let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
+let reviewActive=false, teacherCurrentSid='';
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
-  const cfg = getConfig();
-  const params = new URLSearchParams(location.search);
-  const sToken = params.get('s');
-  const tToken = params.get('teacher');
-
-  // First time setup: no config
-  if(!cfg.url || !cfg.key){
-    hide('loading-screen');
-    show('setup-screen');
-    return;
-  }
-
-  SB_URL = cfg.url;
-  SB_KEY = cfg.key;
-  ANT_KEY = cfg.ant||'';
-  // Load anthropic key from Supabase (overrides local if present)
+  const cfg=getConfig();
+  const params=new URLSearchParams(location.search);
+  const sToken=params.get('s'), tToken=params.get('teacher');
+  if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
+  SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||'';
   try{
-    const cfgRows = await sbGet('app_config','key=eq.anthropic_key&select=value');
-    if(cfgRows.length) ANT_KEY = cfgRows[0].value;
-  }catch(e){ /* table may not exist, fall back to local */ }
-
+    const cfgRows=await sbGet('app_config','key=eq.anthropic_key&select=value');
+    if(cfgRows.length) ANT_KEY=cfgRows[0].value;
+  }catch(e){}
   if(sToken){
-    // Student mode
-    mode = 'student';
-    studentToken = sToken;
+    mode='student';
     await loadStudentView(sToken);
   } else if(tToken){
-    // Teacher mode
-    if(cfg.teacher && tToken !== cfg.teacher){
-      hide('loading-screen');
-      showError('存取被拒','Teacher token 不正確。');
-      return;
-    }
-    mode = 'teacher';
+    if(cfg.teacher&&tToken!==cfg.teacher){hide('loading-screen');showError('存取被拒','Teacher token 不正確。');return;}
+    mode='teacher';
     await loadTeacherView();
   } else {
     hide('loading-screen');
     showError('缺少連結參數','你的 URL 需要 ?s=TOKEN 或 ?teacher=TOKEN 參數。');
   }
 }
+function show(id,d){document.getElementById(id).style.display=d||'block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function showError(title,msg){document.getElementById('err-title').textContent=title;document.getElementById('err-msg').textContent=msg;show('error-screen');}
 
-function show(id,d){ document.getElementById(id).style.display=d||'block'; }
-function hide(id){ document.getElementById(id).style.display='none'; }
-function showError(title, msg){
-  document.getElementById('err-title').textContent=title;
-  document.getElementById('err-msg').textContent=msg;
-  show('error-screen');
-}
-
-// ── Student View ──────────────────────────────────────────────────────────────
+// ── Student view ──────────────────────────────────────────────────────────────
 async function loadStudentView(token){
   try{
-    const students = await sbGet('students', `token=eq.${encodeURIComponent(token)}&select=id,name`);
-    if(!students.length){ hide('loading-screen'); showError('找不到學生','請確認你的連結是否正確。'); return; }
-    const student = students[0];
-    studentId = student.id;
-    document.getElementById('name-badge').textContent = student.name;
-    document.getElementById('name-badge').style.display = 'inline-block';
-
+    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name`);
+    if(!students.length){hide('loading-screen');showError('找不到學生','請確認你的連結是否正確。');return;}
+    const student=students[0];
+    studentId=student.id;
+    document.getElementById('student-badge').textContent=student.name;
+    document.getElementById('student-badge').style.display='inline-block';
+    document.title=`gsatword · ${student.name}`;
+    // Set default dates
+    const t=today();
+    ['a-date','s-date'].forEach(id=>{document.getElementById(id).value=t;});
+    ['a-rev','s-rev'].forEach(id=>{document.getElementById(id).value=plusDays(t,7);});
+    document.getElementById('bulk-reset-date').value=t;
+    document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
+    document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
     await refreshVocab();
     hide('loading-screen');
     show('student-view');
-    renderStats();
+    show('main-nav','flex');
+    updateStats();
     initReview();
-    setInterval(syncVocab, 30000);
-  } catch(e){
-    hide('loading-screen');
-    showError('載入失敗', e.message);
-  }
+    setInterval(syncVocab,30000);
+  }catch(e){hide('loading-screen');showError('載入失敗',e.message);}
 }
 
 async function refreshVocab(){
-  const rows = await sbGet('vocabulary',
-    `student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,memo,marked&order=word`);
-  const reviews = await sbGet('reviews',
-    `vocab_id=in.(${rows.map(r=>`"${r.id}"`).join(',')})&select=vocab_id,result&order=reviewed_at.asc`);
-  // Group reviews by vocab_id
-  const revMap = {};
-  for(const r of reviews){
-    if(!revMap[r.vocab_id]) revMap[r.vocab_id]=[];
-    revMap[r.vocab_id].push(r);
-  }
-  vocab = rows.map(r=>({
-    ...r,
-    reviews: revMap[r.id]||[],
-    streak: consecutiveCorrect(revMap[r.id]||[])
-  }));
+  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked&order=word`);
+  if(!rows.length){vocab=[];return;}
+  const ids=rows.map(r=>r.id);
+  const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result&order=reviewed_at.asc`);
+  const revMap={};
+  for(const r of reviews){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
+  vocab=rows.map(r=>({...r,reviews:revMap[r.id]||[],streak:consecutiveCorrect(revMap[r.id]||[])}));
 }
 
 async function syncVocab(){
   if(reviewActive) return;
   await refreshVocab();
-  renderStats();
+  updateStats();
+  if(document.getElementById('panel-list').classList.contains('active')) updateList();
 }
 
-function consecutiveCorrect(reviews){
-  let count=0;
-  for(let i=reviews.length-1;i>=0;i--){
-    if(reviews[i].result==='y') count++;
-    else break;
-  }
-  return count;
-}
-
-function renderStats(){
+function updateStats(){
   const t=today();
-  const due=vocab.filter(e=>!e.mastered&&e.next_review<=t).length;
+  const due=vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t).length;
   const mastered=vocab.filter(e=>e.mastered).length;
   const total=vocab.length;
   const allR=vocab.flatMap(e=>e.reviews||[]);
   const acc=allR.length?Math.round(allR.filter(r=>r.result==='y').length/allR.length*100):0;
-  document.getElementById('stats-row').innerHTML=
-    `<div class="stat-box"><div class="val">${due}</div><div class="lbl">今日待複習</div></div>`+
-    `<div class="stat-box"><div class="val">${mastered}</div><div class="lbl">已精熟</div></div>`+
-    `<div class="stat-box"><div class="val">${total}</div><div class="lbl">總單字數</div></div>`+
-    `<div class="stat-box"><div class="val">${acc}%</div><div class="lbl">歷史答對率</div></div>`;
+  document.getElementById('hdr-stats').innerHTML=
+    `<span>今日 <b>${due}</b></span><span>精熟 <b>${mastered}</b></span><span>總計 <b>${total}</b></span><span>答對率 <b>${acc}%</b></span>`;
+}
+
+// ── Panel switching ───────────────────────────────────────────────────────────
+function switchPanel(btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const panel=btn.dataset.panel;
+  document.getElementById('panel-'+panel).classList.add('active');
+  if(panel==='review') initReview();
+  if(panel==='list') updateList();
+}
+
+// ── Review ────────────────────────────────────────────────────────────────────
+function setRevMode(m,btn){
+  reviewMode=m;
+  document.querySelectorAll('.rev-mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const isQuiz=m==='quiz'||m==='quiz_incognito';
+  document.getElementById('quiz-picker').style.display=isQuiz?'block':'none';
+  if(isQuiz) renderQuizPicker(); else initReview();
+}
+
+function renderQuizPicker(){
+  const dates=[...new Set(vocab.map(e=>e.first_seen).filter(Boolean))].sort().reverse();
+  const list=document.getElementById('quiz-date-list');
+  list.innerHTML=dates.map(d=>{
+    const count=vocab.filter(e=>e.first_seen===d).length;
+    const sel=quizDates.has(d)?'selected':'';
+    return `<div class="qd-item ${sel}" onclick="toggleQuizDate(this,'${d}')">${d} <span style="opacity:.6">(${count}字)</span></div>`;
+  }).join('')||'<span style="color:#aaa;font-size:.84rem">尚無任何單字</span>';
+  document.getElementById('quiz-start-btn').disabled=quizDates.size===0;
+}
+
+function toggleQuizDate(el,d){
+  if(quizDates.has(d)){quizDates.delete(d);el.classList.remove('selected');}
+  else{quizDates.add(d);el.classList.add('selected');}
+  document.getElementById('quiz-start-btn').disabled=quizDates.size===0;
+}
+
+function startQuiz(){
+  const pool=vocab.filter(e=>quizDates.has(e.first_seen));
+  const q=[...pool];
+  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
+  dueQueue=q; revIdx=0;
+  document.getElementById('quiz-picker').style.display='none';
+  renderCard();
 }
 
 function initReview(){
   reviewActive=false;
+  const isQuiz=reviewMode==='quiz'||reviewMode==='quiz_incognito';
+  if(isQuiz){renderQuizPicker();return;}
   const t=today();
-  const pool=vocab.filter(e=>!e.mastered&&e.next_review<=t);
+  const pool=reviewMode==='incognito'?[...vocab]:vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
   const q=[...pool];
   for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
   dueQueue=q; revIdx=0; renderCard();
@@ -442,10 +554,14 @@ function initReview(){
 
 function renderCard(){
   const wrap=document.getElementById('rev-wrap');
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
   if(!dueQueue.length){
     reviewActive=false;
+    const isQuiz=reviewMode==='quiz'||reviewMode==='quiz_incognito';
+    if(isQuiz){wrap.innerHTML='<div class="done"><h2>沒有符合的單字</h2><p>選取的日期沒有任何單字。</p></div>';return;}
+    if(incognito){wrap.innerHTML='<div class="done"><h2>沒有任何單字</h2><p>請先匯入單字。</p></div>';return;}
     const nxt=vocab.filter(e=>!e.mastered&&e.next_review).map(e=>e.next_review).sort()[0];
-    wrap.innerHTML=`<div class="done-screen"><h2>🎉 今日複習完成！</h2><p>${nxt?'下次複習日期：'+nxt:'所有單字已精熟！'}</p></div>`;
+    wrap.innerHTML=`<div class="done"><h2>今日沒有待複習的單字</h2><p>${nxt?'下次複習日期：'+nxt:'所有單字已精熟！'}</p></div>`;
     return;
   }
   if(revIdx>=dueQueue.length){
@@ -453,21 +569,21 @@ function renderCard(){
     const y=dueQueue.filter(e=>e._r==='y').length;
     const easy=dueQueue.filter(e=>e._r==='easy').length;
     const n=dueQueue.length-y-easy;
-    wrap.innerHTML=`<div class="done-screen"><h2>✅ 複習完成</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p></div>`;
+    const note=incognito?'<p style="color:#7b1fa2;font-size:.82rem;margin-top:8px">進度未寫入</p>':'';
+    wrap.innerHTML=`<div class="done"><h2>${incognito?'練習完成（無痕）':'複習完成'}</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p>${note}</div>`;
     return;
   }
   reviewActive=true;
   const e=dueQueue[revIdx];
   const hi=e.context
-    ? e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
-    : `<span class="whi">${esc(e.word)}</span>（無例句）`;
-  const zhBlock=(e.zh_meaning||e.context_zh)?`
-    <div class="zh-hint">
-      ${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''}
-      ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}
-    </div>`:'';
+    ?e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
+    :`<span class="whi">${esc(e.word)}</span>（無例句）`;
+  const modeLabel=reviewMode==='quiz'?'測驗':reviewMode==='quiz_incognito'?'測驗（無痕）':incognito?'無痕':'';
+  const badge=modeLabel?`<span class="incognito-badge">${modeLabel}</span>`:'';
+  const markCls=e.marked?'act-btn act-mark marked':'act-btn act-mark';
+  const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'';
   wrap.innerHTML=`
-    <div class="prog">${revIdx+1} / ${dueQueue.length}</div>
+    <div class="prog">${revIdx+1} / ${dueQueue.length}${badge}</div>
     <div class="flash-card">
       <div class="sentence">${hi}</div>
       ${zhBlock}
@@ -476,13 +592,15 @@ function renderCard(){
         <button class="btn-n" id="bn" onclick="doReview('n')">不認識 <kbd>N</kbd></button>
       </div>
       <div class="feedback" id="fb"></div>
-      <div class="card-sub-actions">
-        <button class="sub-btn sub-btn-easy" onclick="cardTooEasy('${e.word.replace(/'/g,"\\'")}','${e.id}')">⚡ 太簡單</button>
+      <div class="card-actions">
+        <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
+        <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
+        <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
       </div>
       <div class="memo-area">
         <textarea id="memo-input" placeholder="備忘（可留空）">${esc(e.memo||'')}</textarea>
         <div class="memo-row">
-          <button class="sub-btn" onclick="saveMemo('${e.id}')">儲存備忘</button>
+          <button class="act-btn act-memo" onclick="saveMemo('${e.id}')">儲存備忘</button>
           <span id="memo-msg" class="memo-ok"></span>
         </div>
       </div>
@@ -494,179 +612,296 @@ async function doReview(result){
   const by=document.getElementById('by'),bn=document.getElementById('bn');
   if(by) by.disabled=true; if(bn) bn.disabled=true;
   const e=dueQueue[revIdx]; e._r=result;
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
   const fb=document.getElementById('fb');
-
-  // Calc next review
-  const streak=consecutiveCorrect([...(e.reviews||[]),{result}]);
-  const intervals={1:14,2:28,3:56};
-  let nextRev, mastered=false;
-  if(streak>=4){ nextRev=plusDays(today(),56); mastered=true; }
-  else if(intervals[streak]){ nextRev=plusDays(today(),intervals[streak]); }
-  else { nextRev=plusDays(today(),7); }
-
-  if(fb){
-    if(result==='y'){
-      fb.textContent=mastered?'🎉 已精熟！':`下次複習：${nextRev}（連對 ${streak} 次）`;
-      fb.style.color='#2e7d32';
-    } else {
-      fb.textContent=`下次複習：${nextRev}`;
-      fb.style.color='#c62828';
-    }
+  if(!incognito){
+    try{
+      const streak=consecutiveCorrect([...(e.reviews||[]),{result}]);
+      const intervals={1:14,2:28,3:56};
+      let nextRev,mastered=false;
+      if(streak>=4){nextRev=plusDays(today(),56);mastered=true;}
+      else if(intervals[streak]){nextRev=plusDays(today(),intervals[streak]);}
+      else{nextRev=plusDays(today(),7);}
+      await sbPost('reviews',{vocab_id:e.id,reviewed_at:today(),result});
+      await sbPatch('vocabulary',`id=eq.${e.id}`,{next_review:nextRev,mastered});
+      const vi=vocab.findIndex(v=>v.id===e.id);
+      if(vi>=0){vocab[vi].next_review=nextRev;vocab[vi].mastered=mastered;vocab[vi].reviews=[...(vocab[vi].reviews||[]),{result}];vocab[vi].streak=streak;}
+      updateStats();
+      if(fb){
+        if(result==='y'){fb.textContent=mastered?'🎉 已精熟！':`下次複習：${nextRev}（連對 ${streak} 次）`;fb.style.color='#2e7d32';}
+        else{fb.textContent=`下次複習：${nextRev}`;fb.style.color='#c62828';}
+      }
+    }catch(err){console.error(err);}
+  } else {
+    if(fb){fb.textContent=result==='y'?'✓（不計入進度）':'✗（不計入進度）';fb.style.color=result==='y'?'#7b1fa2':'#888';}
   }
-
   revIdx++;
-  setTimeout(renderCard, 900);
-
-  // Save to Supabase
-  try{
-    await sbPost('reviews', {vocab_id: e.id, reviewed_at: today(), result});
-    await sbPatch('vocabulary', `id=eq.${e.id}`, {next_review: nextRev, mastered});
-    // Update local vocab
-    const vi=vocab.findIndex(v=>v.id===e.id);
-    if(vi>=0){
-      vocab[vi].next_review=nextRev;
-      vocab[vi].mastered=mastered;
-      vocab[vi].reviews=[...(vocab[vi].reviews||[]),{result}];
-      vocab[vi].streak=streak;
-    }
-    renderStats();
-  }catch(err){ console.error('save review failed',err); }
+  setTimeout(renderCard,900);
 }
 
-async function cardTooEasy(word, vocabId){
+async function cardDelete(vid,word){
+  if(!confirm(`確定刪除「${word}」這張卡片？`)) return;
+  await sbDelete('vocabulary',`id=eq.${vid}`);
+  dueQueue.splice(revIdx,1);
+  const fb=document.getElementById('fb');
+  if(fb){fb.textContent='已刪除';fb.style.color='#c62828';}
+  await refreshVocab(); updateStats();
+  setTimeout(renderCard,600);
+}
+
+async function cardTooEasy(vid,word){
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
   const e=dueQueue[revIdx]; if(e) e._r='easy';
   const fb=document.getElementById('fb');
-  if(fb){ fb.textContent='⚡ 已設為 30 天後複習'; fb.style.color='#2e7d32'; }
+  if(fb){fb.textContent=incognito?'⚡ 跳過（不計入進度）':'⚡ 已設為 30 天後複習';fb.style.color='#2e7d32';}
   revIdx++;
-  setTimeout(renderCard, 900);
-  try{
-    const nextRev=plusDays(today(),30);
-    await sbPost('reviews', {vocab_id: vocabId, reviewed_at: today(), result: 'too_easy'});
-    await sbPatch('vocabulary', `id=eq.${vocabId}`, {next_review: nextRev, mastered: false});
-    const vi=vocab.findIndex(v=>v.id===vocabId);
-    if(vi>=0){ vocab[vi].next_review=nextRev; vocab[vi].mastered=false; }
-    renderStats();
-  }catch(err){ console.error('too-easy failed',err); }
+  setTimeout(renderCard,900);
+  if(!incognito){
+    try{
+      const nextRev=plusDays(today(),30);
+      await sbPost('reviews',{vocab_id:vid,reviewed_at:today(),result:'too_easy'});
+      await sbPatch('vocabulary',`id=eq.${vid}`,{next_review:nextRev,mastered:false});
+      const vi=vocab.findIndex(v=>v.id===vid);
+      if(vi>=0){vocab[vi].next_review=nextRev;vocab[vi].mastered=false;}
+      updateStats();
+    }catch(err){}
+  }
 }
 
-async function saveMemo(vocabId){
-  const input=document.getElementById('memo-input');
-  if(!input) return;
-  const memo=input.value.trim();
+async function cardMark(vid,word){
+  const e=dueQueue[revIdx];
+  const newMark=!(e&&e.marked);
   try{
-    await sbPatch('vocabulary', `id=eq.${vocabId}`, {memo});
-    const vi=vocab.findIndex(v=>v.id===vocabId);
-    if(vi>=0) vocab[vi].memo=memo;
-    const msg=document.getElementById('memo-msg');
-    if(msg){ msg.textContent='已儲存'; setTimeout(()=>{if(msg)msg.textContent='';},1500); }
+    await sbPatch('vocabulary',`id=eq.${vid}`,{marked:newMark});
+    if(e) e.marked=newMark;
+    const vi=vocab.findIndex(v=>v.id===vid); if(vi>=0) vocab[vi].marked=newMark;
+    const btn=document.getElementById('mark-btn');
+    if(btn){btn.className=`act-btn act-mark${newMark?' marked':''}`;btn.textContent=`🔖 ${newMark?'已標記':'標記'}`;}
   }catch(err){}
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', e=>{
-  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+async function saveMemo(vid){
+  const input=document.getElementById('memo-input'); if(!input) return;
+  const memo=input.value.trim();
+  try{
+    await sbPatch('vocabulary',`id=eq.${vid}`,{memo});
+    const vi=vocab.findIndex(v=>v.id===vid); if(vi>=0) vocab[vi].memo=memo;
+    const msg=document.getElementById('memo-msg');
+    if(msg){msg.textContent='已儲存';setTimeout(()=>{if(msg)msg.textContent='';},1500);}
+  }catch(err){}
+}
+
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('panel-review').classList.contains('active')) return;
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
   if(e.key==='y'||e.key==='Y') doReview('y');
   if(e.key==='n'||e.key==='N') doReview('n');
 });
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-function switchTab(t){
-  ['review','list','add'].forEach(id=>{
-    document.getElementById('tab-'+id).style.display=id===t?'block':'none';
-  });
-  document.querySelectorAll('.tab').forEach((el,i)=>{
-    el.classList.toggle('active',['review','list','add'][i]===t);
-  });
-  if(t==='list') renderVocabList();
+// ── List ──────────────────────────────────────────────────────────────────────
+function setFilter(f,btn){
+  listFilter=f;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedIds.clear(); lastCheckedId=null; updateBulkBar();
+  updateList();
 }
 
-// ── Vocab List (student) ───────────────────────────────────────────────────────
-function renderVocabList(){
+function filteredVocab(){
   const t=today();
-  const tbody=document.getElementById('vlist-tbody');
-  if(!vocab.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#bbb;padding:24px">尚無單字</td></tr>'; return; }
-  tbody.innerHTML=vocab.map(v=>{
-    const status=v.mastered?'精熟':v.next_review<=t?'今日到期':'未來';
-    const statusCls=v.mastered?'bm':v.next_review<=t?'bd':'bu';
-    const ctx=v.context&&v.context.length>50?v.context.slice(0,50)+'…':v.context||'—';
-    const markLabel=v.marked?'★取消標記':'☆標記';
-    return `<tr>
-      <td style="font-weight:600;white-space:nowrap">${esc(v.word)}</td>
-      <td class="ctx-cell" data-full="${esc(v.context||'')}" onclick="toggleTeacherCtx(this)">${esc(ctx)}</td>
-      <td style="font-size:.85rem;color:#666">${esc(v.zh_meaning||'—')}</td>
-      <td><span class="badge ${statusCls}">${status}</span></td>
-      <td style="white-space:nowrap">${v.next_review||'—'}</td>
-      <td style="white-space:nowrap">
-        <button class="act-btn ${v.marked?'mark-on':''}" onclick="toggleMark('${v.id}',this)">${markLabel}</button>
-        <button class="act-btn" onclick="resetWord('${v.id}','${esc(v.word)}',this)">重設</button>
-        <button class="act-btn danger" onclick="deleteWord('${v.id}','${esc(v.word)}',this)">刪除</button>
+  if(listFilter==='due')      return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+  if(listFilter==='upcoming') return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
+  if(listFilter==='mastered') return vocab.filter(e=>e.mastered);
+  if(listFilter==='marked')   return vocab.filter(e=>e.marked);
+  return vocab;
+}
+
+function updateList(){
+  const t=today();
+  const rows=filteredVocab();
+  const tbody=document.getElementById('tbl-body');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
+    document.getElementById('chk-all').checked=false;
+    return;
+  }
+  tbody.innerHTML=rows.map(e=>{
+    const badge=e.mastered?'<span class="badge bm">精熟</span>':e.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
+    const ctx=e.context?(e.context.length>50?e.context.slice(0,50)+'…':e.context):'—';
+    const checked=selectedIds.has(e.id)?'checked':'';
+    const selCls=selectedIds.has(e.id)?'selected':'';
+    const markCls=e.marked?'mark-icon on':'mark-icon';
+    const wid=esc(e.id); const wword=esc(e.word);
+    return `<tr class="${selCls}" id="row-${wid}">
+      <td><input type="checkbox" ${checked} data-id="${wid}" onclick="toggleWord(event,this)"></td>
+      <td><span class="${markCls}" title="${e.marked?'移除標記':'加上標記'}" data-id="${wid}" onclick="listToggleMark('${wid}',this)">🔖</span></td>
+      <td class="wc">${wword}</td>
+      <td class="ctx" data-full="${esc(e.context||'')}" onclick="toggleCtx(this)">${esc(ctx)}</td>
+      <td>${e.streak??0}</td>
+      <td>${e.next_review||'—'}</td>
+      <td>${e.first_seen||'—'}</td>
+      <td>${badge}</td>
+      <td>
+        <button class="sm" data-id="${wid}" onclick="showReset('${wid}')">重置</button>
+        <button class="sm sdel" data-id="${wid}" onclick="doDelete('${wid}','${wword}')">刪除</button>
       </td>
-    </tr>`;
+    </tr>
+    <tr id="rr-${wid}" style="display:none"><td colspan="9" style="background:#fffde7;padding:8px 13px">
+      <div class="rform"><span style="font-size:.82rem;color:#666">新的複習日期：</span>
+        <input type="date" id="rd-${wid}" value="${today()}">
+        <button class="rc" onclick="doReset('${wid}')">確認重置</button>
+        <button class="rx" onclick="hideReset('${wid}')">取消</button>
+      </div></td></tr>`;
   }).join('');
+  const allChk=rows.every(e=>selectedIds.has(e.id));
+  document.getElementById('chk-all').checked=rows.length>0&&allChk;
 }
 
-async function toggleMark(vid, btn){
-  const vi=vocab.findIndex(v=>v.id===vid); if(vi<0) return;
-  const newMark=!vocab[vi].marked;
+function toggleCtx(td){
+  td.classList.toggle('expanded');
+  td.textContent=td.classList.contains('expanded')?(td.dataset.full||'—'):
+    (td.dataset.full&&td.dataset.full.length>50?td.dataset.full.slice(0,50)+'…':(td.dataset.full||'—'));
+}
+
+async function listToggleMark(vid,el){
+  const v=vocab.find(e=>e.id===vid); if(!v) return;
+  const newMark=!v.marked;
   await sbPatch('vocabulary',`id=eq.${vid}`,{marked:newMark});
-  vocab[vi].marked=newMark;
-  btn.textContent=newMark?'★取消標記':'☆標記';
-  btn.className='act-btn'+(newMark?' mark-on':'');
+  v.marked=newMark;
+  el.className=newMark?'mark-icon on':'mark-icon';
+  el.title=newMark?'移除標記':'加上標記';
 }
 
-async function resetWord(vid, word, btn){
-  if(!confirm(`重設「${word}」的複習記錄？`)) return;
-  btn.disabled=true;
-  await sbPatch('vocabulary',`id=eq.${vid}`,{mastered:false,next_review:today()});
-  await refreshVocab(); renderVocabList(); renderStats();
+function toggleAll(chk){
+  const rows=filteredVocab();
+  if(chk.checked) rows.forEach(e=>selectedIds.add(e.id));
+  else selectedIds.clear();
+  updateBulkBar(); updateList();
 }
 
-async function deleteWord(vid, word, btn){
-  if(!confirm(`刪除「${word}」？無法復原。`)) return;
-  btn.disabled=true;
-  await sbFetch(`/rest/v1/vocabulary?id=eq.${vid}`,{method:'DELETE'});
-  await refreshVocab(); renderVocabList(); renderStats();
+function toggleWord(evt,chk){
+  const id=chk.dataset.id;
+  const rows=filteredVocab();
+  if(evt.shiftKey&&lastCheckedId){
+    const ids=rows.map(e=>e.id);
+    const i1=ids.indexOf(lastCheckedId), i2=ids.indexOf(id);
+    if(i1!==-1&&i2!==-1){
+      const lo=Math.min(i1,i2), hi=Math.max(i1,i2);
+      for(let i=lo;i<=hi;i++){if(chk.checked)selectedIds.add(ids[i]);else selectedIds.delete(ids[i]);}
+    }
+  } else {
+    if(chk.checked) selectedIds.add(id); else selectedIds.delete(id);
+  }
+  lastCheckedId=id;
+  rows.forEach(e=>{
+    const row=document.getElementById('row-'+esc(e.id));
+    if(row) row.className=selectedIds.has(e.id)?'selected':'';
+    const cb=row?.querySelector('input[type=checkbox]');
+    if(cb) cb.checked=selectedIds.has(e.id);
+  });
+  updateBulkBar();
+  document.getElementById('chk-all').checked=rows.length>0&&rows.every(e=>selectedIds.has(e.id));
 }
 
-async function addWordManual(){
-  const word=document.getElementById('add-word').value.trim();
-  const zh=document.getElementById('add-zh').value.trim();
-  const ctx=document.getElementById('add-ctx').value.trim();
-  const msg=document.getElementById('add-msg');
-  if(!word){ msg.textContent='請填寫單字'; msg.style.color='#c62828'; return; }
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar'), n=selectedIds.size;
+  if(n>0){bar.classList.add('visible');document.getElementById('bulk-count').textContent=`已選取 ${n} 個單字`;}
+  else bar.classList.remove('visible');
+}
+
+function clearSelection(){selectedIds.clear();lastCheckedId=null;updateBulkBar();updateList();}
+function openBulkReset(){document.getElementById('bulk-reset-modal').classList.add('open');}
+function closeBulkReset(){document.getElementById('bulk-reset-modal').classList.remove('open');}
+
+async function doBulkReset(){
+  const date=document.getElementById('bulk-reset-date').value; if(!date) return;
+  const ids=[...selectedIds];
+  await sbPatch('vocabulary',`id=in.(${ids.join(',')})`,{next_review:date,mastered:false});
+  closeBulkReset(); selectedIds.clear(); updateBulkBar();
+  await refreshVocab(); updateStats(); updateList();
+}
+
+async function doBulkDelete(){
+  const n=selectedIds.size;
+  if(!confirm(`確定刪除選取的 ${n} 個單字？`)) return;
+  const ids=[...selectedIds];
+  await sbDelete('vocabulary',`id=in.(${ids.join(',')})`);
+  selectedIds.clear(); updateBulkBar();
+  await refreshVocab(); updateStats(); updateList();
+}
+
+function showReset(vid){document.getElementById('rr-'+esc(vid)).style.display='';}
+function hideReset(vid){document.getElementById('rr-'+esc(vid)).style.display='none';}
+
+async function doReset(vid){
+  const el=document.getElementById('rd-'+esc(vid)); if(!el) return;
+  const d=el.value; if(!d) return;
+  await sbPatch('vocabulary',`id=eq.${vid}`,{next_review:d,mastered:false});
+  await refreshVocab(); updateStats(); updateList(); hideReset(vid);
+}
+
+async function doDelete(vid,word){
+  if(!confirm(`確定刪除「${word}」？`)) return;
+  await sbDelete('vocabulary',`id=eq.${vid}`);
+  await refreshVocab(); updateStats(); updateList();
+}
+
+// ── Add ───────────────────────────────────────────────────────────────────────
+async function doAdd(){
+  const w=document.getElementById('a-word').value.trim();
+  if(!w){showFormMsg('add-msg','請輸入單字',false);return;}
   try{
-    await sbPost('vocabulary',{student_id:studentId,word,zh_meaning:zh,context:ctx,first_seen:today(),next_review:today()});
-    msg.textContent=`已新增「${word}」`; msg.style.color='#2e7d32';
-    document.getElementById('add-word').value='';
-    document.getElementById('add-zh').value='';
-    document.getElementById('add-ctx').value='';
-    await refreshVocab(); renderStats();
-  }catch(e){ msg.textContent='新增失敗：'+e.message; msg.style.color='#c62828'; }
+    await sbPost('vocabulary',{
+      student_id:studentId,word:w,
+      context:document.getElementById('a-ctx').value.trim(),
+      first_seen:document.getElementById('a-date').value,
+      next_review:document.getElementById('a-rev').value
+    });
+    showFormMsg('add-msg',`已新增「${w}」`,true);
+    document.getElementById('a-word').value='';
+    document.getElementById('a-ctx').value='';
+    await refreshVocab(); updateStats();
+  }catch(e){showFormMsg('add-msg','新增失敗：'+e.message,false);}
 }
 
-async function syncFromDoc(){
-  const urlVal=document.getElementById('sync-url').value.trim();
-  const log=document.getElementById('sync-log');
-  log.style.display='block'; log.textContent='';
-  const logLine=s=>{ log.textContent+=s+'\n'; };
+// ── Sync ──────────────────────────────────────────────────────────────────────
+function setSyncTab(m,btn){
+  syncTab=m;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  document.getElementById('s-url-area').style.display=m==='url'?'block':'none';
+  document.getElementById('s-file-area').style.display=m==='file'?'block':'none';
+}
 
-  if(!urlVal){ logLine('請填寫 Google Docs 網址'); return; }
-  if(!ANT_KEY){ logLine('請先在設定中填寫 Anthropic API Key'); return; }
-
-  // Extract doc ID and fetch as plain text
-  const m=urlVal.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if(!m){ logLine('無效的 Google Docs 網址'); return; }
-  const docId=m[1];
-  logLine('正在下載文章…');
+async function doSync(){
+  const cd=document.getElementById('s-date').value;
+  const fr=document.getElementById('s-rev').value;
+  if(!ANT_KEY){showFormMsg('sync-msg','請先設定 Anthropic API Key（已自動從 Supabase 讀取，若未設定請聯絡老師）',false);return;}
+  showSyncLog(''); showFormMsg('sync-msg','','info');
   let text='';
-  try{
-    const r=await fetch(`https://docs.google.com/document/d/${docId}/export?format=txt`);
-    if(!r.ok) throw new Error('下載失敗，請確認文件是否公開');
-    text=await r.text();
-    logLine(`下載完成（${text.length} 字元）`);
-  }catch(e){ logLine('錯誤：'+e.message); return; }
-
-  logLine('正在用 Claude 擷取單字…');
+  if(syncTab==='url'){
+    const urlVal=document.getElementById('s-url').value.trim();
+    if(!urlVal){showFormMsg('sync-msg','請輸入 URL',false);return;}
+    const m=urlVal.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if(!m){showFormMsg('sync-msg','無效的 Google Docs 網址',false);return;}
+    appendSyncLog('正在下載文章…');
+    try{
+      const r=await fetch(`https://docs.google.com/document/d/${m[1]}/export?format=txt`);
+      if(!r.ok) throw new Error('下載失敗，請確認文件是否公開');
+      text=await r.text();
+      appendSyncLog(`下載完成（${text.length} 字元）`);
+    }catch(e){showFormMsg('sync-msg','下載失敗：'+e.message,false);return;}
+  } else {
+    const file=document.getElementById('s-file').files[0];
+    if(!file){showFormMsg('sync-msg','請選取 .docx 檔案',false);return;}
+    appendSyncLog('正在解析 .docx…');
+    try{
+      const ab=await file.arrayBuffer();
+      const result=await mammoth.extractRawText({arrayBuffer:ab});
+      text=result.value;
+      appendSyncLog(`解析完成（${text.length} 字元）`);
+    }catch(e){showFormMsg('sync-msg','解析失敗：'+e.message,false);return;}
+  }
+  appendSyncLog('正在用 Claude 擷取單字…');
   const existingWords=vocab.map(v=>v.word.toLowerCase());
   let extracted=[];
   try{
@@ -674,36 +909,131 @@ async function syncFromDoc(){
       method:'POST',
       headers:{'x-api-key':ANT_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
       body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:2000,
-        messages:[{role:'user',content:`從以下英文文章中擷取 B1-C1 程度的重要單字（不含常見基礎詞），每個單字提供：word, zh_meaning（中文意思，3字以內）, context（原文例句，含單字的完整句子）, context_zh（例句中文翻譯）。以 JSON array 回傳，格式：[{"word":"...","zh_meaning":"...","context":"...","context_zh":"..."}]。只回傳 JSON，不要其他文字。\n\n文章：\n${text.slice(0,6000)}`}]
+        model:'claude-haiku-4-5-20251001',max_tokens:2000,
+        messages:[{role:'user',content:`從以下英文文章中擷取 B1-C1 程度的重要單字（不含常見基礎詞），每個單字提供：word, zh_meaning（中文意思，3字以內）, context（原文含單字的完整句子）, context_zh（例句中文翻譯）。以 JSON array 回傳，格式：[{"word":"...","zh_meaning":"...","context":"...","context_zh":"..."}]。只回傳 JSON，不要其他文字。\n\n文章：\n${text.slice(0,6000)}`}]
       })
     });
     const data=await resp.json();
     const raw=data.content[0].text.trim();
     extracted=JSON.parse(raw.replace(/^```json\n?/,'').replace(/\n?```$/,''));
-    logLine(`Claude 擷取了 ${extracted.length} 個單字`);
-  }catch(e){ logLine('Claude 錯誤：'+e.message); return; }
-
-  // Filter out already existing words
+    appendSyncLog(`Claude 擷取了 ${extracted.length} 個單字`);
+  }catch(e){showFormMsg('sync-msg','Claude 錯誤：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
-  logLine(`其中 ${newWords.length} 個是新單字，開始匯入…`);
+  appendSyncLog(`其中 ${newWords.length} 個是新單字，開始匯入…`);
   let added=0;
   for(const w of newWords){
     try{
-      await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:today(),next_review:today()});
+      await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:cd,next_review:fr});
       added++;
-    }catch(e){ logLine(`  略過「${w.word}」：${e.message}`); }
+    }catch(e){appendSyncLog(`  略過「${w.word}」`);}
   }
-  logLine(`完成！新增了 ${added} 個單字`);
-  await refreshVocab(); renderStats();
+  appendSyncLog(`完成！新增了 ${added} 個，跳過 ${extracted.length-newWords.length} 個已存在`);
+  showFormMsg('sync-msg',`新增 ${added} 個，跳過 ${extracted.length-newWords.length} 個已存在`,true);
+  await refreshVocab(); updateStats();
 }
 
-// ── Teacher word management ────────────────────────────────────────────────────
-let teacherCurrentSid='';
-async function showStudentDetailFull(sid, name){
+function showSyncLog(t){const el=document.getElementById('sync-log');el.style.display='block';el.textContent=t;}
+function appendSyncLog(t){const el=document.getElementById('sync-log');el.style.display='block';el.textContent+=t+'\n';}
+function showFormMsg(id,msg,ok){
+  const el=document.getElementById(id); if(!el) return;
+  if(!msg){el.innerHTML='';return;}
+  const cls=ok===true?'ok':ok===false?'err':'info';
+  el.innerHTML=`<div class="msg-box ${cls}">${msg}</div>`;
+}
+
+// ── Teacher View ──────────────────────────────────────────────────────────────
+async function loadTeacherView(){
+  try{
+    const students=await sbGet('students','select=id,name,token&order=name');
+    const t=today();
+    const allVocab=await sbGet('vocabulary','select=student_id,mastered,next_review&order=word');
+    hide('loading-screen');
+    show('teacher-view');
+    const grid=document.getElementById('teacher-grid');
+    const baseUrl=location.origin+location.pathname;
+    grid.innerHTML=students.map(s=>{
+      const sv=allVocab.filter(v=>v.student_id===s.id);
+      const due=sv.filter(v=>!v.mastered&&v.next_review&&v.next_review<=t).length;
+      const mastered=sv.filter(v=>v.mastered).length;
+      const total=sv.length;
+      const link=`${baseUrl}?s=${encodeURIComponent(s.token)}`;
+      return `<div style="background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 3px 12px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.07)'" onclick="showStudentDetail('${s.id}','${esc(s.name)}')">
+        <div class="sc-name">${esc(s.name)}</div>
+        <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+          <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
+          <button class="sm" style="flex-shrink:0" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
+}
+
+function copyLink(link,btn){
+  navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
+}
+
+function addStudentPrompt(){
+  const name=prompt('學生名稱（英數字、底線、連字號）：'); if(!name) return;
+  if(!/^[\w\-]+$/.test(name)){alert('名稱只能包含英數字、底線、連字號。');return;}
+  alert('請在 Mac 終端機執行以下指令（自動建立本地資料夾 + Supabase 帳號 + 印出學生連結）：\n\n'+
+    `/Users/shen4916/gsat_venv/bin/python3 /Users/shen4916/gsateng/core/gsatword_register.py ${name}\n\n`+
+    '執行完後重新整理這個頁面就會看到新學生。');
+}
+
+async function exportBackup(){
+  try{
+    const students=await sbGet('students','select=id,name,token&order=name');
+    const vocab=await sbGet('vocabulary','select=*&order=word');
+    const reviews=await sbGet('reviews','select=*&order=reviewed_at');
+    const data={exported_at:new Date().toISOString(),students,vocab,reviews};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`gsatword_backup_${today()}.json`;
+    a.click();
+  }catch(e){alert('匯出失敗：'+e.message);}
+}
+
+async function showStudentDetail(sid,name){
   teacherCurrentSid=sid;
-  showStudentDetail(sid,name);
+  document.getElementById('teacher-overview').style.display='none';
+  document.getElementById('teacher-detail').style.display='block';
+  document.getElementById('detail-title').textContent=name+' 的單字列表';
+  document.getElementById('detail-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#bbb;padding:24px">載入中…</td></tr>';
+  const t=today();
+  const rows=await sbGet('vocabulary',`student_id=eq.${sid}&select=id,word,context,zh_meaning,mastered,next_review,first_seen&order=word`);
+  if(!rows.length){document.getElementById('detail-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#bbb;padding:24px">尚無單字</td></tr>';return;}
+  const ids=rows.map(r=>r.id).join(',');
+  const reviews=await sbGet('reviews',`vocab_id=in.(${ids})&select=vocab_id,result&order=reviewed_at.asc`);
+  const revMap={};
+  for(const r of reviews){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
+  document.getElementById('detail-tbody').innerHTML=rows.map(r=>{
+    const streak=consecutiveCorrect(revMap[r.id]||[]);
+    const badge=r.mastered?'<span class="badge bm">精熟</span>':r.next_review&&r.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
+    const ctx=r.context&&r.context.length>60?r.context.slice(0,60)+'…':r.context||'—';
+    return `<tr>
+      <td style="font-weight:600">${esc(r.word)}</td>
+      <td class="ctx-cell" data-full="${esc(r.context||'')}" onclick="toggleTeacherCtx(this)">${esc(ctx)}</td>
+      <td style="color:#666;font-size:.85rem">${esc(r.zh_meaning||'—')}</td>
+      <td>${streak}</td>
+      <td>${r.next_review||'—'}</td>
+      <td>${r.first_seen||'—'}</td>
+      <td>${badge}</td>
+      <td><button class="act-btn-sm danger" onclick="teacherDeleteWord('${r.id}','${esc(r.word)}',this)">刪除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleTeacherCtx(td){
+  td.classList.toggle('expanded');
+  td.textContent=td.classList.contains('expanded')?(td.dataset.full||'—'):
+    (td.dataset.full&&td.dataset.full.length>60?td.dataset.full.slice(0,60)+'…':(td.dataset.full||'—'));
+}
+
+function showTeacherOverview(){
+  document.getElementById('teacher-detail').style.display='none';
+  document.getElementById('teacher-overview').style.display='block';
 }
 
 function teacherAddWordPanel(){
@@ -716,144 +1046,23 @@ async function teacherAddWord(){
   const zh=document.getElementById('t-add-zh').value.trim();
   const ctx=document.getElementById('t-add-ctx').value.trim();
   const msg=document.getElementById('t-add-msg');
-  if(!word||!teacherCurrentSid){ msg.textContent='請填寫單字'; msg.style.color='#c62828'; return; }
+  if(!word||!teacherCurrentSid){msg.textContent='請填寫單字';msg.style.color='#c62828';return;}
   try{
     await sbPost('vocabulary',{student_id:teacherCurrentSid,word,zh_meaning:zh,context:ctx,first_seen:today(),next_review:today()});
-    msg.textContent=`已新增「${word}」`; msg.style.color='#2e7d32';
+    msg.textContent=`已新增「${word}」`;msg.style.color='#2e7d32';
     document.getElementById('t-add-word').value='';
     document.getElementById('t-add-zh').value='';
     document.getElementById('t-add-ctx').value='';
-    // Refresh detail table
-    await showStudentDetail(teacherCurrentSid, document.getElementById('detail-title').textContent.replace(' 的單字列表',''));
-  }catch(e){ msg.textContent='新增失敗：'+e.message; msg.style.color='#c62828'; }
+    const name=document.getElementById('detail-title').textContent.replace(' 的單字列表','');
+    await showStudentDetail(teacherCurrentSid,name);
+  }catch(e){msg.textContent='新增失敗：'+e.message;msg.style.color='#c62828';}
 }
 
-async function teacherDeleteWord(vid, word, btn){
+async function teacherDeleteWord(vid,word,btn){
   if(!confirm(`刪除「${word}」？無法復原。`)) return;
   btn.disabled=true;
-  await sbFetch(`/rest/v1/vocabulary?id=eq.${vid}`,{method:'DELETE'});
+  await sbDelete('vocabulary',`id=eq.${vid}`);
   btn.closest('tr').remove();
-}
-
-// ── Teacher View ──────────────────────────────────────────────────────────────
-async function loadTeacherView(){
-  try{
-    const students = await sbGet('students', 'select=id,name,token&order=name');
-    const t=today();
-    // Load vocab for all students
-    const allVocab = await sbGet('vocabulary',
-      'select=student_id,mastered,next_review&order=word');
-
-    hide('loading-screen');
-    show('teacher-view');
-
-    const grid=document.getElementById('teacher-grid');
-    const baseUrl=location.origin+location.pathname;
-    grid.innerHTML=students.map(s=>{
-      const sv=allVocab.filter(v=>v.student_id===s.id);
-      const due=sv.filter(v=>!v.mastered&&v.next_review&&v.next_review<=t).length;
-      const mastered=sv.filter(v=>v.mastered).length;
-      const total=sv.length;
-      const link=`${baseUrl}?s=${encodeURIComponent(s.token)}`;
-      return `<div class="student-card" onclick="showStudentDetail('${s.id}','${esc(s.name)}')">
-        <div class="sc-name">${esc(s.name)}</div>
-        <div class="sc-stats">
-          <span class="due">今日 ${due}</span>
-          <span class="mastered">精熟 ${mastered}</span>
-          <span>總 ${total}</span>
-        </div>
-        <div class="sc-token" style="display:flex;align-items:center;gap:6px;margin-top:8px">
-          <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
-          <button class="sub-btn" style="flex-shrink:0;font-size:.72rem;padding:3px 10px" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    hide('loading-screen');
-    showError('Teacher 載入失敗', e.message);
-  }
-}
-
-async function showStudentDetail(sid, name){
-  document.getElementById('teacher-overview').style.display='none';
-  document.getElementById('teacher-detail').style.display='block';
-  document.getElementById('detail-title').textContent=name+' 的單字列表';
-  document.getElementById('detail-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;color:#bbb;padding:24px">載入中…</td></tr>';
-  const t=today();
-  const rows=await sbGet('vocabulary',
-    `student_id=eq.${sid}&select=id,word,context,zh_meaning,mastered,next_review,first_seen&order=word`);
-  if(!rows.length){
-    document.getElementById('detail-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;color:#bbb;padding:24px">尚無單字</td></tr>';
-    return;
-  }
-  const ids=rows.map(r=>r.id).join(',');
-  const reviews=await sbGet('reviews', `vocab_id=in.(${ids})&select=vocab_id,result&order=reviewed_at.asc`);
-  const revMap={};
-  for(const r of reviews){ if(!revMap[r.vocab_id])revMap[r.vocab_id]=[]; revMap[r.vocab_id].push(r); }
-
-  document.getElementById('detail-tbody').innerHTML=rows.map(r=>{
-    const streak=consecutiveCorrect(revMap[r.id]||[]);
-    const badge=r.mastered?'<span class="badge bm">精熟</span>':
-      r.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
-    const ctx=r.context&&r.context.length>60?r.context.slice(0,60)+'…':r.context||'—';
-    return `<tr>
-      <td style="font-weight:600">${esc(r.word)}</td>
-      <td class="ctx-cell" data-full="${esc(r.context||'')}" onclick="toggleTeacherCtx(this)">${esc(ctx)}</td>
-      <td style="color:#666;font-size:.85rem">${esc(r.zh_meaning||'—')}</td>
-      <td>${streak}</td>
-      <td>${r.next_review||'—'}</td>
-      <td>${r.first_seen||'—'}</td>
-      <td>${badge}</td>
-      <td><button class="act-btn danger" onclick="teacherDeleteWord('${r.id}','${esc(r.word)}',this)">刪除</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function toggleTeacherCtx(td){
-  td.classList.toggle('expanded');
-  td.textContent=td.classList.contains('expanded')
-    ?(td.dataset.full||'—')
-    :(td.dataset.full&&td.dataset.full.length>60?td.dataset.full.slice(0,60)+'…':(td.dataset.full||'—'));
-}
-
-function showTeacherOverview(){
-  document.getElementById('teacher-detail').style.display='none';
-  document.getElementById('teacher-overview').style.display='';
-}
-
-function copyLink(link, btn){
-  navigator.clipboard.writeText(link).then(()=>{
-    const orig=btn.textContent;
-    btn.textContent='已複製！';
-    setTimeout(()=>btn.textContent=orig, 1500);
-  });
-}
-
-function addStudentPrompt(){
-  const name = prompt('學生名稱（英數字、底線、連字號）：');
-  if(!name) return;
-  if(!/^[\w\-]+$/.test(name)){ alert('名稱只能包含英數字、底線、連字號。'); return; }
-  alert(
-    '請在 Mac 終端機執行以下指令（自動建立本地資料夾 + Supabase 帳號 + 印出學生連結）：\n\n' +
-    `/Users/shen4916/gsat_venv/bin/python3 /Users/shen4916/gsateng/core/gsatword_register.py ${name}\n\n` +
-    '執行完後重新整理這個頁面就會看到新學生。'
-  );
-}
-
-async function exportBackup(){
-  try{
-    const students = await sbGet('students','select=id,name,token&order=name');
-    const vocab    = await sbGet('vocabulary','select=*&order=word');
-    const reviews  = await sbGet('reviews','select=*&order=reviewed_at');
-    const data = {exported_at: new Date().toISOString(), students, vocab, reviews};
-    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `gsatword_backup_${today()}.json`;
-    a.click();
-  }catch(e){
-    alert('匯出失敗：'+e.message);
-  }
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
