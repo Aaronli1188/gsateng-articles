@@ -943,14 +943,14 @@ async function doBulkExplain(){
   if(!ANT_KEY){alert('尚未設定 Anthropic API Key');return;}
   if(!confirm(`對選取的 ${ids.length} 個單字生成 AI 解釋？每個單字會呼叫一次 API。`)) return;
   const bar=document.getElementById('bulk-count');
-  let done=0, failed=0;
+  let done=0, failed=0; const errors=[];
   for(const vid of ids){
     bar.textContent=`生成中 ${++done}/${ids.length}…`;
     try{ await generateExplanation(vid); }
-    catch(err){ failed++; console.warn('explain failed',vid,err.message); }
+    catch(err){ failed++; errors.push(err.message); }
   }
   bar.textContent=`已選 ${ids.length} 個`;
-  if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗（見 console）`);
+  if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗：\n\n${errors.join('\n')}`);
   updateList();
 }
 
