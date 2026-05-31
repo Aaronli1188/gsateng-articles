@@ -328,6 +328,11 @@ async function init(){
   SB_URL = cfg.url;
   SB_KEY = cfg.key;
   ANT_KEY = cfg.ant||'';
+  // Load anthropic key from Supabase (overrides local if present)
+  try{
+    const cfgRows = await sbGet('app_config','key=eq.anthropic_key&select=value');
+    if(cfgRows.length) ANT_KEY = cfgRows[0].value;
+  }catch(e){ /* table may not exist, fall back to local */ }
 
   if(sToken){
     // Student mode
