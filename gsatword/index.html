@@ -316,6 +316,10 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         </div>
         <div class="field"><label>上課日期</label><input id="s-date" type="date"></div>
         <div class="field"><label>第一次複習日期</label><input id="s-rev" type="date"></div>
+        <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+          <input type="checkbox" id="s-autoexplain" style="width:auto;margin:0">
+          <label for="s-autoexplain" style="margin:0;font-weight:400;cursor:pointer">匯入後自動用 AI 生成詳細解釋</label>
+        </div>
         <button class="btn-pri" onclick="doSync()">匯入</button>
         <div class="sync-log" id="sync-log"></div>
         <div id="sync-msg"></div>
@@ -365,6 +369,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 <!-- ── Bulk action bar ───────────────────────────────────────────────────── -->
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-count" id="bulk-count">已選 0 個</span>
+  <button class="bulk-btn" onclick="doBulkExplain()">✨ 加入意思</button>
   <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
   <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
   <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
@@ -935,6 +940,21 @@ async function doBulkReset(){
   await refreshVocab(); updateStats(); updateList();
 }
 
+async function doBulkExplain(){
+  const ids=[...selectedIds];
+  if(!ids.length) return;
+  if(!ANT_KEY){alert('尚未設定 Anthropic API Key');return;}
+  if(!confirm(`對選取的 ${ids.length} 個單字生成 AI 解釋？每個單字會呼叫一次 API。`)) return;
+  const bar=document.getElementById('bulk-count');
+  let done=0;
+  for(const vid of ids){
+    bar.textContent=`生成中 ${++done}/${ids.length}…`;
+    await generateExplanation(vid);
+  }
+  bar.textContent=`已選 ${ids.length} 個`;
+  updateList();
+}
+
 async function doBulkDelete(){
   const n=selectedIds.size;
   if(!confirm(`確定刪除選取的 ${n} 個單字？`)) return;
@@ -1050,6 +1070,17 @@ async function doSync(){
     b.style.display='flex';
   }
   await refreshVocab(); updateStats();
+  // Auto-explain if checkbox checked
+  if(document.getElementById('s-autoexplain').checked && lastImportIds.length && ANT_KEY){
+    appendSyncLog(`開始為 ${lastImportIds.length} 個新單字生成 AI 解釋…`);
+    let eIdx=0;
+    for(const vid of lastImportIds){
+      appendSyncLog(`  解釋 ${++eIdx}/${lastImportIds.length}：${vocab.find(v=>v.id===vid)?.word||vid}`);
+      await generateExplanation(vid);
+    }
+    appendSyncLog('解釋生成完成！');
+    updateList();
+  }
 }
 
 function showSyncLog(t){const el=document.getElementById('sync-log');el.style.display='block';el.textContent=t;}
