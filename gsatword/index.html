@@ -839,7 +839,8 @@ function toggleExp(span){
 async function generateExplanation(vid){
   const sidStr=String(vid);
   const e=vocab.find(v=>String(v.id)===sidStr); if(!e) return;
-  const key=(ANT_KEY||'').trim();
+  // Strip any non-printable-ASCII chars that would fail fetch header validation
+  const key=(ANT_KEY||'').split('').filter(c=>{const n=c.charCodeAt(0);return n>=0x21&&n<=0x7E;}).join('');
   if(!key){alert('尚未設定 Anthropic API Key（請到 Supabase app_config 設定）');return;}
   const btn=document.getElementById('aibtn-'+esc(vid));
   if(btn){btn.textContent='…';btn.disabled=true;}
@@ -1008,7 +1009,8 @@ function setSyncTab(m,btn){
 async function doSync(){
   const cd=document.getElementById('s-date').value;
   const fr=document.getElementById('s-rev').value;
-  if(!ANT_KEY){showFormMsg('sync-msg','請先設定 Anthropic API Key（已自動從 Supabase 讀取，若未設定請聯絡老師）',false);return;}
+  const syncKey=(ANT_KEY||'').split('').filter(c=>{const n=c.charCodeAt(0);return n>=0x21&&n<=0x7E;}).join('');
+  if(!syncKey){showFormMsg('sync-msg','請先設定 Anthropic API Key（已自動從 Supabase 讀取，若未設定請聯絡老師）',false);return;}
   showSyncLog(''); showFormMsg('sync-msg','','info');
   let text='';
   if(syncTab==='url'){
@@ -1040,7 +1042,7 @@ async function doSync(){
   try{
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'x-api-key':ANT_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
+      headers:{'x-api-key':syncKey,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',max_tokens:2000,
         messages:[{role:'user',content:`從以下英文文章中擷取 B1-C1 程度的重要單字（不含常見基礎詞），每個單字提供：word, zh_meaning（中文意思，3字以內）, context（原文含單字的完整句子）, context_zh（例句中文翻譯）。以 JSON array 回傳，格式：[{"word":"...","zh_meaning":"...","context":"...","context_zh":"..."}]。只回傳 JSON，不要其他文字。\n\n文章：\n${text.slice(0,6000)}`}]
