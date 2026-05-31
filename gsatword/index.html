@@ -184,6 +184,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 
 <div class="hdr">
   <h1>GSATWORD</h1>
+  <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <span id="student-badge" class="student-badge"></span>
   <div class="hdr-stats" id="hdr-stats"></div>
 </div>
@@ -300,33 +301,6 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         </div>
       </div>
       <div class="teacher-grid" id="teacher-grid"></div>
-    </div>
-    <div id="teacher-detail" style="display:none">
-      <button class="back-btn" onclick="showTeacherOverview()">← 返回總覽</button>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em" id="detail-title"></p>
-        <button class="btn-dark" onclick="teacherAddWordPanel()">＋ 新增單字</button>
-      </div>
-      <div id="teacher-add-panel" style="display:none;margin-bottom:16px">
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:480px">
-          <div class="field"><label>單字</label><input id="t-add-word" placeholder="單字（英文）"></div>
-          <div class="field"><label>中文意思</label><input id="t-add-zh" placeholder="（選填）"></div>
-          <div class="field"><label>例句</label><textarea id="t-add-ctx" placeholder="（選填）" style="min-height:56px;resize:vertical;width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:.88rem"></textarea></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn-pri" onclick="teacherAddWord()">新增</button>
-            <button class="btn-outline" style="padding:9px 18px;border-radius:6px" onclick="document.getElementById('teacher-add-panel').style.display='none'">取消</button>
-          </div>
-          <div id="t-add-msg" style="margin-top:8px;font-size:.85rem;color:#2e7d32"></div>
-        </div>
-      </div>
-      <div style="background:#fff;border-radius:10px;padding:0;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-        <table>
-          <thead><tr>
-            <th>單字</th><th>例句</th><th>中文</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th></th>
-          </tr></thead>
-          <tbody id="detail-tbody"></tbody>
-        </table>
-      </div>
     </div>
   </div>
 </div>
@@ -997,72 +971,45 @@ async function exportBackup(){
 
 async function showStudentDetail(sid,name){
   teacherCurrentSid=sid;
-  document.getElementById('teacher-overview').style.display='none';
-  document.getElementById('teacher-detail').style.display='block';
-  document.getElementById('detail-title').textContent=name+' 的單字列表';
-  document.getElementById('detail-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#bbb;padding:24px">載入中…</td></tr>';
+  studentId=sid;
+  // Show student-view with nav, hide teacher-view
+  hide('teacher-view');
+  show('student-view');
+  show('main-nav','flex');
+  show('back-to-teacher');
+  document.getElementById('student-badge').textContent=name;
+  document.getElementById('student-badge').style.display='inline-block';
+  // Hide 複習 tab for teacher
+  document.querySelectorAll('.nav button').forEach(btn=>{
+    if(btn.dataset.panel==='review') btn.style.display='none';
+    else btn.style.display='';
+  });
+  // Set dates
   const t=today();
-  const rows=await sbGet('vocabulary',`student_id=eq.${sid}&select=id,word,context,zh_meaning,mastered,next_review,first_seen&order=word`);
-  if(!rows.length){document.getElementById('detail-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#bbb;padding:24px">尚無單字</td></tr>';return;}
-  const ids=rows.map(r=>r.id).join(',');
-  const reviews=await sbGet('reviews',`vocab_id=in.(${ids})&select=vocab_id,result&order=reviewed_at.asc`);
-  const revMap={};
-  for(const r of reviews){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
-  document.getElementById('detail-tbody').innerHTML=rows.map(r=>{
-    const streak=consecutiveCorrect(revMap[r.id]||[]);
-    const badge=r.mastered?'<span class="badge bm">精熟</span>':r.next_review&&r.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
-    const ctx=r.context&&r.context.length>60?r.context.slice(0,60)+'…':r.context||'—';
-    return `<tr>
-      <td style="font-weight:600">${esc(r.word)}</td>
-      <td class="ctx-cell" data-full="${esc(r.context||'')}" onclick="toggleTeacherCtx(this)">${esc(ctx)}</td>
-      <td style="color:#666;font-size:.85rem">${esc(r.zh_meaning||'—')}</td>
-      <td>${streak}</td>
-      <td>${r.next_review||'—'}</td>
-      <td>${r.first_seen||'—'}</td>
-      <td>${badge}</td>
-      <td><button class="act-btn-sm danger" onclick="teacherDeleteWord('${r.id}','${esc(r.word)}',this)">刪除</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function toggleTeacherCtx(td){
-  td.classList.toggle('expanded');
-  td.textContent=td.classList.contains('expanded')?(td.dataset.full||'—'):
-    (td.dataset.full&&td.dataset.full.length>60?td.dataset.full.slice(0,60)+'…':(td.dataset.full||'—'));
+  ['a-date','s-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=t;});
+  ['a-rev','s-rev'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=plusDays(t,7);});
+  // Activate list tab
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-list').classList.add('active');
+  document.querySelector('.nav button[data-panel="list"]').classList.add('active');
+  // Load data
+  await refreshVocab();
+  updateStats();
+  updateList();
 }
 
 function showTeacherOverview(){
-  document.getElementById('teacher-detail').style.display='none';
-  document.getElementById('teacher-overview').style.display='block';
-}
-
-function teacherAddWordPanel(){
-  const p=document.getElementById('teacher-add-panel');
-  p.style.display=p.style.display==='none'?'block':'none';
-}
-
-async function teacherAddWord(){
-  const word=document.getElementById('t-add-word').value.trim();
-  const zh=document.getElementById('t-add-zh').value.trim();
-  const ctx=document.getElementById('t-add-ctx').value.trim();
-  const msg=document.getElementById('t-add-msg');
-  if(!word||!teacherCurrentSid){msg.textContent='請填寫單字';msg.style.color='#c62828';return;}
-  try{
-    await sbPost('vocabulary',{student_id:teacherCurrentSid,word,zh_meaning:zh,context:ctx,first_seen:today(),next_review:today()});
-    msg.textContent=`已新增「${word}」`;msg.style.color='#2e7d32';
-    document.getElementById('t-add-word').value='';
-    document.getElementById('t-add-zh').value='';
-    document.getElementById('t-add-ctx').value='';
-    const name=document.getElementById('detail-title').textContent.replace(' 的單字列表','');
-    await showStudentDetail(teacherCurrentSid,name);
-  }catch(e){msg.textContent='新增失敗：'+e.message;msg.style.color='#c62828';}
-}
-
-async function teacherDeleteWord(vid,word,btn){
-  if(!confirm(`刪除「${word}」？無法復原。`)) return;
-  btn.disabled=true;
-  await sbDelete('vocabulary',`id=eq.${vid}`);
-  btn.closest('tr').remove();
+  hide('student-view');
+  hide('main-nav');
+  hide('back-to-teacher');
+  document.getElementById('student-badge').style.display='none';
+  document.getElementById('hdr-stats').innerHTML='';
+  selectedIds.clear(); updateBulkBar();
+  studentId=''; vocab=[];
+  // Restore all nav tabs for next student
+  document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
+  show('teacher-view');
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
