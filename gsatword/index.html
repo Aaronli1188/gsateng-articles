@@ -100,6 +100,27 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
 .ctx-cell{color:#777;max-width:260px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .ctx-cell.expanded{max-width:none;overflow:visible;white-space:normal;background:#fffde7;padding:4px 8px;border-radius:4px}
 
+/* ── Tabs ── */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid #e0e0e0;margin-bottom:24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.88rem;font-weight:600;color:#999;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.tab:hover:not(.active){color:#555}
+
+/* ── Vocab list ── */
+.vlist-wrap{overflow-x:auto}
+.vlist-wrap table{min-width:600px}
+.act-btn{padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.75rem;color:#555;margin-right:3px}
+.act-btn:hover{background:#f5f5f5}
+.act-btn.danger{border-color:#ffcdd2;color:#c62828}
+.act-btn.danger:hover{background:#ffebee}
+.act-btn.mark-on{border-color:#ffe082;color:#f57f17;background:#fffde7}
+.add-form{display:flex;flex-direction:column;gap:12px;max-width:520px}
+.add-form input,.add-form textarea{padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.9rem;font-family:inherit}
+.add-form textarea{min-height:70px;resize:vertical}
+.sync-wrap{max-width:520px}
+.sync-wrap textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:7px;font-size:.88rem;font-family:inherit;min-height:80px;resize:vertical;margin-bottom:10px}
+.sync-log{margin-top:12px;font-size:.82rem;color:#666;white-space:pre-wrap;background:#f5f5f5;border-radius:7px;padding:10px 12px;display:none}
+
 /* ── Setup ── */
 #setup-screen{display:none;max-width:480px;margin:60px auto}
 #setup-screen h2{font-size:1.1rem;margin-bottom:20px}
@@ -130,7 +151,34 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
 <div id="student-view">
   <div class="main">
     <div class="stats-row" id="stats-row"></div>
-    <div class="rev-wrap" id="rev-wrap"></div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('review')">複習</button>
+      <button class="tab" onclick="switchTab('list')">單字列表</button>
+      <button class="tab" onclick="switchTab('add')">新增單字</button>
+    </div>
+    <div id="tab-review"><div class="rev-wrap" id="rev-wrap"></div></div>
+    <div id="tab-list" style="display:none"><div class="vlist-wrap"><table><thead><tr><th>單字</th><th>例句</th><th>中文</th><th>狀態</th><th>下次複習</th><th>操作</th></tr></thead><tbody id="vlist-tbody"></tbody></table></div></div>
+    <div id="tab-add" style="display:none">
+      <div class="card" style="margin-bottom:20px">
+        <p class="section-title" style="margin-bottom:16px">手動新增單字</p>
+        <div class="add-form">
+          <input id="add-word" placeholder="單字（英文）">
+          <input id="add-zh" placeholder="中文意思（選填）">
+          <textarea id="add-ctx" placeholder="例句（選填）"></textarea>
+          <button class="btn btn-dark" style="width:fit-content" onclick="addWordManual()">新增</button>
+          <span id="add-msg" style="font-size:.85rem;color:#2e7d32"></span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="section-title" style="margin-bottom:8px">從 Google Docs 同步</p>
+        <p style="font-size:.82rem;color:#888;margin-bottom:12px">貼上公開的 Google Docs 網址，自動擷取文章並生成單字（需要設定 Anthropic API Key）</p>
+        <div class="sync-wrap">
+          <textarea id="sync-url" placeholder="https://docs.google.com/document/d/..."></textarea>
+          <button class="btn btn-dark" onclick="syncFromDoc()">開始同步</button>
+          <div class="sync-log" id="sync-log"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -149,11 +197,28 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
     </div>
     <div id="teacher-detail" style="display:none">
       <button class="back-btn" onclick="showTeacherOverview()">← 返回總覽</button>
-      <p class="section-title" id="detail-title"></p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <p class="section-title" id="detail-title" style="margin:0"></p>
+        <button class="btn btn-dark" id="teacher-add-btn" onclick="teacherAddWordPanel()">＋ 新增單字</button>
+      </div>
+      <div id="teacher-add-panel" style="display:none;margin-bottom:16px">
+        <div class="card">
+          <div class="add-form">
+            <input id="t-add-word" placeholder="單字（英文）">
+            <input id="t-add-zh" placeholder="中文意思（選填）">
+            <textarea id="t-add-ctx" placeholder="例句（選填）"></textarea>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-dark" style="width:fit-content" onclick="teacherAddWord()">新增</button>
+              <button class="btn btn-outline" onclick="document.getElementById('teacher-add-panel').style.display='none'">取消</button>
+            </div>
+            <span id="t-add-msg" style="font-size:.85rem;color:#2e7d32"></span>
+          </div>
+        </div>
+      </div>
       <div class="card" style="padding:0;overflow:auto">
         <table>
           <thead><tr>
-            <th>單字</th><th>例句</th><th>中文</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th>
+            <th>單字</th><th>例句</th><th>中文</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th></th>
           </tr></thead>
           <tbody id="detail-tbody"></tbody>
         </table>
@@ -170,6 +235,7 @@ th{background:#fafafa;font-weight:600;color:#999;font-size:.76rem;text-transform
     <div class="field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co（不要加 /rest/v1）"></div>
     <div class="field"><label>Supabase Anon Key</label><input id="cfg-key" placeholder="eyJ..."></div>
     <div class="field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
+    <div class="field"><label>Anthropic API Key（用於同步文章生單字，選填）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
     <button class="btn btn-dark" onclick="saveConfig()">儲存並繼續</button>
     <div id="cfg-msg"></div>
   </div>
@@ -185,11 +251,12 @@ function getConfig(){
 }
 
 function saveConfig(){
-  const url  = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const url  = document.getElementById('cfg-url').value.trim().replace(/\/$/,'').replace(/\/rest\/v1$/,'');
   const key  = document.getElementById('cfg-key').value.trim();
   const teacher = document.getElementById('cfg-teacher').value.trim();
+  const ant = document.getElementById('cfg-ant').value.trim();
   if(!url||!key){ showMsg('cfg-msg','請填寫 URL 和 Key','err'); return; }
-  localStorage.setItem(CONFIG_KEY, JSON.stringify({url,key,teacher}));
+  localStorage.setItem(CONFIG_KEY, JSON.stringify({url,key,teacher,ant}));
   showMsg('cfg-msg','已儲存，重新載入…','ok');
   setTimeout(()=>location.reload(), 800);
 }
@@ -202,7 +269,7 @@ function showMsg(id,text,type){
 }
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
-let SB_URL='', SB_KEY='';
+let SB_URL='', SB_KEY='', ANT_KEY='';
 
 async function sbFetch(path, opts={}){
   const res = await fetch(SB_URL+path, {
@@ -260,6 +327,7 @@ async function init(){
 
   SB_URL = cfg.url;
   SB_KEY = cfg.key;
+  ANT_KEY = cfg.ant||'';
 
   if(sToken){
     // Student mode
@@ -496,6 +564,172 @@ document.addEventListener('keydown', e=>{
   if(e.key==='n'||e.key==='N') doReview('n');
 });
 
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(t){
+  ['review','list','add'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display=id===t?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['review','list','add'][i]===t);
+  });
+  if(t==='list') renderVocabList();
+}
+
+// ── Vocab List (student) ───────────────────────────────────────────────────────
+function renderVocabList(){
+  const t=today();
+  const tbody=document.getElementById('vlist-tbody');
+  if(!vocab.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#bbb;padding:24px">尚無單字</td></tr>'; return; }
+  tbody.innerHTML=vocab.map(v=>{
+    const status=v.mastered?'精熟':v.next_review<=t?'今日到期':'未來';
+    const statusCls=v.mastered?'bm':v.next_review<=t?'bd':'bu';
+    const ctx=v.context&&v.context.length>50?v.context.slice(0,50)+'…':v.context||'—';
+    const markLabel=v.marked?'★取消標記':'☆標記';
+    return `<tr>
+      <td style="font-weight:600;white-space:nowrap">${esc(v.word)}</td>
+      <td class="ctx-cell" data-full="${esc(v.context||'')}" onclick="toggleTeacherCtx(this)">${esc(ctx)}</td>
+      <td style="font-size:.85rem;color:#666">${esc(v.zh_meaning||'—')}</td>
+      <td><span class="badge ${statusCls}">${status}</span></td>
+      <td style="white-space:nowrap">${v.next_review||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="act-btn ${v.marked?'mark-on':''}" onclick="toggleMark('${v.id}',this)">${markLabel}</button>
+        <button class="act-btn" onclick="resetWord('${v.id}','${esc(v.word)}',this)">重設</button>
+        <button class="act-btn danger" onclick="deleteWord('${v.id}','${esc(v.word)}',this)">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleMark(vid, btn){
+  const vi=vocab.findIndex(v=>v.id===vid); if(vi<0) return;
+  const newMark=!vocab[vi].marked;
+  await sbPatch('vocabulary',`id=eq.${vid}`,{marked:newMark});
+  vocab[vi].marked=newMark;
+  btn.textContent=newMark?'★取消標記':'☆標記';
+  btn.className='act-btn'+(newMark?' mark-on':'');
+}
+
+async function resetWord(vid, word, btn){
+  if(!confirm(`重設「${word}」的複習記錄？`)) return;
+  btn.disabled=true;
+  await sbPatch('vocabulary',`id=eq.${vid}`,{mastered:false,next_review:today()});
+  await refreshVocab(); renderVocabList(); renderStats();
+}
+
+async function deleteWord(vid, word, btn){
+  if(!confirm(`刪除「${word}」？無法復原。`)) return;
+  btn.disabled=true;
+  await sbFetch(`/rest/v1/vocabulary?id=eq.${vid}`,{method:'DELETE'});
+  await refreshVocab(); renderVocabList(); renderStats();
+}
+
+async function addWordManual(){
+  const word=document.getElementById('add-word').value.trim();
+  const zh=document.getElementById('add-zh').value.trim();
+  const ctx=document.getElementById('add-ctx').value.trim();
+  const msg=document.getElementById('add-msg');
+  if(!word){ msg.textContent='請填寫單字'; msg.style.color='#c62828'; return; }
+  try{
+    await sbPost('vocabulary',{student_id:studentId,word,zh_meaning:zh,context:ctx,first_seen:today(),next_review:today()});
+    msg.textContent=`已新增「${word}」`; msg.style.color='#2e7d32';
+    document.getElementById('add-word').value='';
+    document.getElementById('add-zh').value='';
+    document.getElementById('add-ctx').value='';
+    await refreshVocab(); renderStats();
+  }catch(e){ msg.textContent='新增失敗：'+e.message; msg.style.color='#c62828'; }
+}
+
+async function syncFromDoc(){
+  const urlVal=document.getElementById('sync-url').value.trim();
+  const log=document.getElementById('sync-log');
+  log.style.display='block'; log.textContent='';
+  const logLine=s=>{ log.textContent+=s+'\n'; };
+
+  if(!urlVal){ logLine('請填寫 Google Docs 網址'); return; }
+  if(!ANT_KEY){ logLine('請先在設定中填寫 Anthropic API Key'); return; }
+
+  // Extract doc ID and fetch as plain text
+  const m=urlVal.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(!m){ logLine('無效的 Google Docs 網址'); return; }
+  const docId=m[1];
+  logLine('正在下載文章…');
+  let text='';
+  try{
+    const r=await fetch(`https://docs.google.com/document/d/${docId}/export?format=txt`);
+    if(!r.ok) throw new Error('下載失敗，請確認文件是否公開');
+    text=await r.text();
+    logLine(`下載完成（${text.length} 字元）`);
+  }catch(e){ logLine('錯誤：'+e.message); return; }
+
+  logLine('正在用 Claude 擷取單字…');
+  const existingWords=vocab.map(v=>v.word.toLowerCase());
+  let extracted=[];
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'x-api-key':ANT_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-calls':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:2000,
+        messages:[{role:'user',content:`從以下英文文章中擷取 B1-C1 程度的重要單字（不含常見基礎詞），每個單字提供：word, zh_meaning（中文意思，3字以內）, context（原文例句，含單字的完整句子）, context_zh（例句中文翻譯）。以 JSON array 回傳，格式：[{"word":"...","zh_meaning":"...","context":"...","context_zh":"..."}]。只回傳 JSON，不要其他文字。\n\n文章：\n${text.slice(0,6000)}`}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content[0].text.trim();
+    extracted=JSON.parse(raw.replace(/^```json\n?/,'').replace(/\n?```$/,''));
+    logLine(`Claude 擷取了 ${extracted.length} 個單字`);
+  }catch(e){ logLine('Claude 錯誤：'+e.message); return; }
+
+  // Filter out already existing words
+  const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
+  logLine(`其中 ${newWords.length} 個是新單字，開始匯入…`);
+  let added=0;
+  for(const w of newWords){
+    try{
+      await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:today(),next_review:today()});
+      added++;
+    }catch(e){ logLine(`  略過「${w.word}」：${e.message}`); }
+  }
+  logLine(`完成！新增了 ${added} 個單字`);
+  await refreshVocab(); renderStats();
+}
+
+// ── Teacher word management ────────────────────────────────────────────────────
+let teacherCurrentSid='';
+async function showStudentDetailFull(sid, name){
+  teacherCurrentSid=sid;
+  showStudentDetail(sid,name);
+}
+
+function teacherAddWordPanel(){
+  const p=document.getElementById('teacher-add-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+}
+
+async function teacherAddWord(){
+  const word=document.getElementById('t-add-word').value.trim();
+  const zh=document.getElementById('t-add-zh').value.trim();
+  const ctx=document.getElementById('t-add-ctx').value.trim();
+  const msg=document.getElementById('t-add-msg');
+  if(!word||!teacherCurrentSid){ msg.textContent='請填寫單字'; msg.style.color='#c62828'; return; }
+  try{
+    await sbPost('vocabulary',{student_id:teacherCurrentSid,word,zh_meaning:zh,context:ctx,first_seen:today(),next_review:today()});
+    msg.textContent=`已新增「${word}」`; msg.style.color='#2e7d32';
+    document.getElementById('t-add-word').value='';
+    document.getElementById('t-add-zh').value='';
+    document.getElementById('t-add-ctx').value='';
+    // Refresh detail table
+    await showStudentDetail(teacherCurrentSid, document.getElementById('detail-title').textContent.replace(' 的單字列表',''));
+  }catch(e){ msg.textContent='新增失敗：'+e.message; msg.style.color='#c62828'; }
+}
+
+async function teacherDeleteWord(vid, word, btn){
+  if(!confirm(`刪除「${word}」？無法復原。`)) return;
+  btn.disabled=true;
+  await sbFetch(`/rest/v1/vocabulary?id=eq.${vid}`,{method:'DELETE'});
+  btn.closest('tr').remove();
+}
+
 // ── Teacher View ──────────────────────────────────────────────────────────────
 async function loadTeacherView(){
   try{
@@ -537,7 +771,7 @@ async function loadTeacherView(){
 
 async function showStudentDetail(sid, name){
   document.getElementById('teacher-overview').style.display='none';
-  document.getElementById('teacher-detail').style.display='';
+  document.getElementById('teacher-detail').style.display='block';
   document.getElementById('detail-title').textContent=name+' 的單字列表';
   document.getElementById('detail-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;color:#bbb;padding:24px">載入中…</td></tr>';
   const t=today();
@@ -565,6 +799,7 @@ async function showStudentDetail(sid, name){
       <td>${r.next_review||'—'}</td>
       <td>${r.first_seen||'—'}</td>
       <td>${badge}</td>
+      <td><button class="act-btn danger" onclick="teacherDeleteWord('${r.id}','${esc(r.word)}',this)">刪除</button></td>
     </tr>`;
   }).join('');
 }
