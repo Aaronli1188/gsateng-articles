@@ -852,14 +852,11 @@ function toggleExp(span){
 
 async function callAnthropic(messages, maxTokens=256){
   const key=SB_KEY||DEFAULT_SB_KEY;
-  const proxyUrl=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'')+'/functions/v1/ai-proxy';
+  const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
+  const proxyUrl=base+'/functions/v1/ai-proxy?apikey='+encodeURIComponent(key);
   const res=await fetch(proxyUrl,{
     method:'POST',
-    headers:{
-      'apikey':key,
-      'Authorization':'Bearer '+key,
-      'content-type':'application/json'
-    },
+    headers:{'content-type':'application/json'},
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages})
   });
   if(!res.ok){const t=await res.text();throw new Error('AI proxy '+res.status+': '+t.slice(0,200));}
