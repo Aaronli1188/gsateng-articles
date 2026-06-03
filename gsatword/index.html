@@ -445,8 +445,9 @@ let SB_URL='',SB_KEY='',ANT_KEY='';
 async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
   const _url=SB_URL||DEFAULT_SB_URL;
-  const res=await fetch(_url+path,{
-    headers:{'apikey':_key,'Authorization':'Bearer '+_key,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
+  const sep=path.includes('?')?'&':'?';
+  const res=await fetch(_url+path+sep+'apikey='+_key,{
+    headers:{'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
     ...opts
   });
   if(!res.ok){const t=await res.text();throw new Error(t);}
