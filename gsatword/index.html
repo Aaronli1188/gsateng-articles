@@ -446,9 +446,10 @@ async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
   const _url=SB_URL||DEFAULT_SB_URL;
   const sep=path.includes('?')?'&':'?';
+  const {headers:_h,..._rest}=opts;
   const res=await fetch(_url+path+sep+'apikey='+_key,{
-    headers:{'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
-    ...opts
+    headers:{'Content-Type':'application/json','Prefer':'return=representation',...(_h||{})},
+    ..._rest
   });
   if(!res.ok){const t=await res.text();throw new Error(t);}
   const text=await res.text();
