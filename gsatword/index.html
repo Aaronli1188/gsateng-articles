@@ -821,7 +821,7 @@ function updateList(){
       <td>${e.first_seen||'—'}</td>
       <td>${badge}</td>
       <td>
-        <button class="sm" title="AI 生成解釋" id="aibtn-${wid}" onclick="generateExplanation('${wid}')">✨</button>
+        ${mode==='teacher'?`<button class="sm" title="AI 生成解釋" id="aibtn-${wid}" onclick="generateExplanation('${wid}')">✨</button>`:''}
         <button class="sm" data-id="${wid}" onclick="showReset('${wid}')">重置</button>
         <button class="sm sdel" data-id="${wid}" onclick="doDelete('${wid}','${wword}')">刪除</button>
       </td>
