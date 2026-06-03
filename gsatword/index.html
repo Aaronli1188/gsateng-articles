@@ -851,28 +851,23 @@ function toggleExp(span){
 }
 
 async function callAnthropic(messages, maxTokens=256){
-  const key=(ANT_KEY||'').split('').filter(c=>{const n=c.charCodeAt(0);return n>=0x21&&n<=0x7E;}).join('');
-  if(!key) throw new Error('API Key 未設定');
-  // Small delay to let browser extension settle (avoids interception timing issues)
-  await new Promise(r=>setTimeout(r,50));
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+  const proxyUrl=(SB_URL||'').replace(/\/+$/,'')+'/functions/v1/ai-proxy';
+  const res=await fetch(proxyUrl,{
     method:'POST',
     headers:{
-      'x-api-key':key,
-      'anthropic-version':'2023-06-01',
-      'content-type':'application/json',
-      'anthropic-dangerous-direct-browser-calls':'true'
+      'apikey':SB_KEY||'',
+      'Authorization':'Bearer '+(SB_KEY||''),
+      'content-type':'application/json'
     },
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages})
   });
-  if(!res.ok){const t=await res.text();throw new Error('API '+res.status+': '+t.slice(0,200));}
+  if(!res.ok){const t=await res.text();throw new Error('AI proxy '+res.status+': '+t.slice(0,200));}
   return res.json();
 }
 
 async function generateExplanation(vid){
   const sidStr=String(vid);
   const e=vocab.find(v=>String(v.id)===sidStr); if(!e) return;
-  if(!(ANT_KEY||'').trim()){alert('尚未設定 Anthropic API Key（請到 Supabase app_config 設定）');return;}
   const btn=document.getElementById('aibtn-'+esc(vid));
   if(btn){btn.textContent='…';btn.disabled=true;}
   const prompt='Word: "'+e.word+'"\nContext: "'+(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')+'"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]';
