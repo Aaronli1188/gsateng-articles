@@ -888,13 +888,14 @@ async function generateExplanation(vid){
     const vi=vocab.findIndex(v=>String(v.id)===sidStr);
     if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
     const u=data.usage||{};
-    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
+    const costUSD=(((u.input_tokens||0)*1+(u.output_tokens||0)*5)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
     if(btn){btn.title=`上次花費 NT$${costTWD}`;btn.textContent='✨';btn.disabled=false;}
     const costEl=document.getElementById('aicost-'+esc(vid));
     if(costEl){costEl.textContent='NT$'+costTWD;}
     else{const s=document.createElement('span');s.id='aicost-'+esc(vid);s.style.cssText='font-size:.7rem;color:#888;margin-left:2px';s.textContent='NT$'+costTWD;btn&&btn.parentNode&&btn.parentNode.insertBefore(s,btn.nextSibling);}
     updateList();
+    return parseFloat(costTWD);
   }catch(err){
     if(btn){btn.textContent='✨';btn.disabled=false;}
     throw err;
@@ -970,14 +971,15 @@ async function doBulkExplain(){
   if(!ids.length) return;
   if(!confirm(`對選取的 ${ids.length} 個單字生成 AI 解釋？每個單字會呼叫一次 API。`)) return;
   const bar=document.getElementById('bulk-count');
-  let done=0, failed=0; const errors=[];
+  let done=0, failed=0, bulkCostTWD=0; const errors=[];
   for(const vid of ids){
     bar.textContent=`生成中 ${++done}/${ids.length}…`;
-    try{ await generateExplanation(vid); }
+    try{ bulkCostTWD+=(await generateExplanation(vid))||0; }
     catch(err){ failed++; errors.push(err.message); }
   }
-  bar.textContent=`已選 ${ids.length} 個`;
-  if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗：\n\n${errors.join('\n')}`);
+  const costLine=bulkCostTWD>0?`\n總花費：NT$${bulkCostTWD.toFixed(4)}`:'';
+  bar.textContent=`已選 ${ids.length} 個${bulkCostTWD>0?' · NT$'+bulkCostTWD.toFixed(4):''}`;
+  if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗：${costLine}\n\n${errors.join('\n')}`);
   updateList();
 }
 
@@ -1035,7 +1037,6 @@ function setSyncTab(m,btn){
 async function doSync(){
   const cd=document.getElementById('s-date').value;
   const fr=document.getElementById('s-rev').value;
-  if(!(ANT_KEY||'').trim()){showFormMsg('sync-msg','請先設定 Anthropic API Key（已自動從 Supabase 讀取，若未設定請聯絡老師）',false);return;}
   showSyncLog(''); showFormMsg('sync-msg','','info');
   let text='';
   if(syncTab==='url'){
@@ -1069,6 +1070,9 @@ async function doSync(){
     const raw=data.content[0].text.trim();
     extracted=JSON.parse(raw.replace(/^```json\n?/,'').replace(/\n?```$/,''));
     appendSyncLog(`Claude 擷取了 ${extracted.length} 個單字`);
+    const su=data.usage||{};
+    const sCostTWD=(((su.input_tokens||0)*1+(su.output_tokens||0)*5)/1e6*32).toFixed(4);
+    appendSyncLog(`Claude 花費 NT$${sCostTWD}`);
   }catch(e){showFormMsg('sync-msg','Claude 錯誤：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
   appendSyncLog(`其中 ${newWords.length} 個是新單字，開始匯入…`);
@@ -1089,7 +1093,7 @@ async function doSync(){
   }
   await refreshVocab(); updateStats();
   // Auto-explain if checkbox checked
-  if(document.getElementById('s-autoexplain').checked && lastImportIds.length && ANT_KEY){
+  if(document.getElementById('s-autoexplain').checked && lastImportIds.length){
     appendSyncLog(`開始為 ${lastImportIds.length} 個新單字生成 AI 解釋…`);
     let eIdx=0;
     for(const vid of lastImportIds){
