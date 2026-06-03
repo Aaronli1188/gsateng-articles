@@ -858,7 +858,6 @@ async function callAnthropic(messages, maxTokens=256){
   const key=SB_KEY||DEFAULT_SB_KEY;
   const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
   const proxyUrl=base+'/functions/v1/ai-proxy?apikey='+key;
-  console.log('[AI] URL=',proxyUrl.slice(0,80),'key_len=',key.length);
   const res=await fetch(proxyUrl,{
     method:'POST',
     headers:{'content-type':'application/json'},
@@ -888,7 +887,13 @@ async function generateExplanation(vid){
     await sbPatch('vocabulary','id=eq.'+sidStr,{zh_meaning:zh,context_zh:ctxFull});
     const vi=vocab.findIndex(v=>String(v.id)===sidStr);
     if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
-    if(btn){btn.textContent='✨';btn.disabled=false;}
+    const u=data.usage||{};
+    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
+    const costTWD=(costUSD*32).toFixed(4);
+    if(btn){btn.title=`上次花費 NT$${costTWD}`;btn.textContent='✨';btn.disabled=false;}
+    const costEl=document.getElementById('aicost-'+esc(vid));
+    if(costEl){costEl.textContent='NT$'+costTWD;}
+    else{const s=document.createElement('span');s.id='aicost-'+esc(vid);s.style.cssText='font-size:.7rem;color:#888;margin-left:2px';s.textContent='NT$'+costTWD;btn&&btn.parentNode&&btn.parentNode.insertBefore(s,btn.nextSibling);}
     updateList();
   }catch(err){
     if(btn){btn.textContent='✨';btn.disabled=false;}
