@@ -1046,7 +1046,7 @@ async function doSync(){
     if(!m){showFormMsg('sync-msg','無效的 Google Docs 網址',false);return;}
     appendSyncLog('正在下載文章…');
     try{
-      const r=await fetch(`https://docs.google.com/document/d/${m[1]}/export?format=txt`);
+      const r=await fetch(`https://docs.google.com/document/d/${m[1]}/export?format=html`);
       if(!r.ok) throw new Error('下載失敗，請確認文件是否公開');
       text=await r.text();
       appendSyncLog(`下載完成（${text.length} 字元）`);
@@ -1057,23 +1057,35 @@ async function doSync(){
     appendSyncLog('正在解析 .docx…');
     try{
       const ab=await file.arrayBuffer();
-      const result=await mammoth.extractRawText({arrayBuffer:ab});
+      const result=await mammoth.convertToHtml({arrayBuffer:ab});
       text=result.value;
       appendSyncLog(`解析完成（${text.length} 字元）`);
     }catch(e){showFormMsg('sync-msg','解析失敗：'+e.message,false);return;}
   }
-  appendSyncLog('正在用 Claude 擷取單字…');
+  appendSyncLog('正在解析粗體單字…');
   const existingWords=vocab.map(v=>v.word.toLowerCase());
   let extracted=[];
   try{
-    const data=await callAnthropic([{role:'user',content:'從以下英文文章中擷取 B1-C1 程度的重要單字（不含常見基礎詞），每個單字提供：word, zh_meaning（中文意思，3字以內）, context（原文含單字的完整句子）, context_zh（例句中文翻譯）。以 JSON array 回傳，格式：[{"word":"...","zh_meaning":"...","context":"...","context_zh":"..."}]。只回傳 JSON，不要其他文字。\n\n文章：\n'+text.slice(0,6000)}],2000);
-    const raw=data.content[0].text.trim();
-    extracted=JSON.parse(raw.replace(/^```json\n?/,'').replace(/\n?```$/,''));
-    appendSyncLog(`Claude 擷取了 ${extracted.length} 個單字`);
-    const su=data.usage||{};
-    const sCostTWD=(((su.input_tokens||0)*1+(su.output_tokens||0)*5)/1e6*32).toFixed(4);
-    appendSyncLog(`Claude 花費 NT$${sCostTWD}`);
-  }catch(e){showFormMsg('sync-msg','Claude 錯誤：'+e.message,false);return;}
+    const parser=new DOMParser();
+    const htmlDoc=parser.parseFromString(text,'text/html');
+    const fullText=(htmlDoc.body.innerText||htmlDoc.body.textContent||'').replace(/\s+/g,' ');
+    const boldWords=new Set();
+    // mammoth outputs <strong>; Google Docs HTML outputs <b> or <span style="font-weight:700">
+    htmlDoc.querySelectorAll('b,strong').forEach(el=>{
+      el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+    });
+    htmlDoc.querySelectorAll('span').forEach(el=>{
+      const fw=el.style.fontWeight;
+      if(fw==='700'||fw==='bold'){el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});}
+    });
+    const sentences=fullText.split(/(?<=[.!?])\s+/);
+    for(const word of boldWords){
+      const re=new RegExp('(?<![a-zA-Z])'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![a-zA-Z])','i');
+      const ctx=sentences.find(s=>re.test(s))||'';
+      extracted.push({word,context:ctx.trim(),zh_meaning:'',context_zh:''});
+    }
+    appendSyncLog(`找到 ${extracted.length} 個粗體單字`);
+  }catch(e){showFormMsg('sync-msg','解析失敗：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
   appendSyncLog(`其中 ${newWords.length} 個是新單字，開始匯入…`);
   let added=0; lastImportIds=[];
