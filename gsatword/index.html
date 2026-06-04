@@ -1097,7 +1097,12 @@ async function doSync(){
       const ctx=sentences.find(s=>re.test(s))||'';
       extracted.push({word,context:ctx.trim(),zh_meaning:'',context_zh:''});
     }
-    appendSyncLog(`debug: style塊=${htmlDoc.querySelectorAll('style').length} boldClasses=${boldClasses.size}([${Array.from(boldClasses).slice(0,5).join(',')}]) b/strong=${htmlDoc.querySelectorAll('b,strong').length} boldWords=${boldWords.size}`);
+    const _styleEl=htmlDoc.querySelector('style');
+    const _css=_styleEl?_styleEl.textContent:'';
+    const _fwIdx=_css.indexOf('font-weight');
+    appendSyncLog(`debug: style塊=${htmlDoc.querySelectorAll('style').length} boldClasses=${boldClasses.size} b/strong=${htmlDoc.querySelectorAll('b,strong').length}`);
+    appendSyncLog(`debug: CSS含font-weight=${_fwIdx>=0} CSS前200=${_css.slice(0,200).replace(/\n/g,'↵')}`);
+    if(_fwIdx>=0)appendSyncLog(`debug: font-weight附近=${_css.slice(Math.max(0,_fwIdx-30),_fwIdx+60).replace(/\n/g,'↵')}`);
     appendSyncLog(`找到 ${extracted.length} 個粗體單字`);
   }catch(e){showFormMsg('sync-msg','解析失敗：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
