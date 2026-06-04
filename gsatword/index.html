@@ -1070,13 +1070,26 @@ async function doSync(){
     const htmlDoc=parser.parseFromString(text,'text/html');
     const fullText=(htmlDoc.body.innerText||htmlDoc.body.textContent||'').replace(/\s+/g,' ');
     const boldWords=new Set();
-    // mammoth outputs <strong>; Google Docs HTML outputs <b> or <span style="font-weight:700">
+    // 1) mammoth outputs <strong>; some HTML uses <b>
     htmlDoc.querySelectorAll('b,strong').forEach(el=>{
       el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
     });
-    htmlDoc.querySelectorAll('span').forEach(el=>{
+    // 2) Google Docs HTML export uses CSS classes for bold (e.g. .c2{font-weight:700})
+    //    DOMParser doesn't apply stylesheets, so el.style.fontWeight is empty for class-based bold.
+    //    Parse <style> blocks to find which classes declare font-weight:700/bold.
+    const boldClasses=new Set();
+    htmlDoc.querySelectorAll('style').forEach(styleEl=>{
+      const css=styleEl.textContent;
+      const re=/\.([a-zA-Z0-9_-]+)[^{]*\{[^}]*font-weight\s*:\s*(700|bold)\b[^}]*\}/g;
+      let m;while((m=re.exec(css))!==null)boldClasses.add(m[1]);
+    });
+    // 3) Inline style spans + class-based bold
+    htmlDoc.querySelectorAll('span,p,div').forEach(el=>{
       const fw=el.style.fontWeight;
-      if(fw==='700'||fw==='bold'){el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});}
+      const hasBoldClass=boldClasses.size>0&&Array.from(el.classList).some(c=>boldClasses.has(c));
+      if(fw==='700'||fw==='bold'||hasBoldClass){
+        el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+      }
     });
     const sentences=fullText.split(/(?<=[.!?])\s+/);
     for(const word of boldWords){
