@@ -1066,43 +1066,49 @@ async function doSync(){
   const existingWords=vocab.map(v=>v.word.toLowerCase());
   let extracted=[];
   try{
+    // Use DOMParser only for full-text extraction (context sentences)
     const parser=new DOMParser();
     const htmlDoc=parser.parseFromString(text,'text/html');
     const fullText=(htmlDoc.body.innerText||htmlDoc.body.textContent||'').replace(/\s+/g,' ');
     const boldWords=new Set();
-    // 1) mammoth outputs <strong>; some HTML uses <b>
-    htmlDoc.querySelectorAll('b,strong').forEach(el=>{
-      el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
-    });
-    // 2) Google Docs HTML export uses CSS classes for bold (e.g. .c2{font-weight:700})
-    //    DOMParser doesn't apply stylesheets, so el.style.fontWeight is empty for class-based bold.
-    //    Parse <style> blocks to find which classes declare font-weight:700/bold.
+
+    // Strategy 1: <b> / <strong> tags (mammoth output)
+    const bsRe=/<(?:b|strong)(?:\s[^>]*)?>([^<]+)<\/(?:b|strong)>/gi;
+    let bm;while((bm=bsRe.exec(text))!==null){
+      bm[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+    }
+
+    // Strategy 2: Google Docs HTML — find bold CSS classes via raw regex on HTML string
+    // then find span elements with those classes via raw regex
     const boldClasses=new Set();
-    htmlDoc.querySelectorAll('style').forEach(styleEl=>{
-      const css=styleEl.textContent;
-      const re=/\.([a-zA-Z0-9_-]+)[^{]*\{[^}]*font-weight\s*:\s*(700|bold)\b[^}]*\}/g;
-      let m;while((m=re.exec(css))!==null)boldClasses.add(m[1]);
-    });
-    // 3) Inline style spans + class-based bold
-    htmlDoc.querySelectorAll('span,p,div').forEach(el=>{
-      const fw=el.style.fontWeight;
-      const hasBoldClass=boldClasses.size>0&&Array.from(el.classList).some(c=>boldClasses.has(c));
-      if(fw==='700'||fw==='bold'||hasBoldClass){
-        el.textContent.trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+    const styleRe=/<style[^>]*>([\s\S]*?)<\/style>/gi;
+    let sm;while((sm=styleRe.exec(text))!==null){
+      const css=sm[1];
+      const clsRe=/\.([a-zA-Z0-9_-]+)[^{]*\{[^}]*font-weight\s*:\s*(700|bold)[^}]*/g;
+      let cm;while((cm=clsRe.exec(css))!==null)boldClasses.add(cm[1]);
+    }
+    if(boldClasses.size>0){
+      const pat=Array.from(boldClasses).map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+      const spanRe=new RegExp('<span[^>]+class="[^"]*(?:'+pat+')[^"]*"[^>]*>([^<]+)<\\/span>','gi');
+      let sp;while((sp=spanRe.exec(text))!==null){
+        sp[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
       }
-    });
+    }
+
+    // Strategy 3: inline style font-weight (fallback)
+    const inlineRe=/<span[^>]+style="[^"]*font-weight\s*:\s*(?:700|bold)[^"]*"[^>]*>([^<]+)<\/span>/gi;
+    let im;while((im=inlineRe.exec(text))!==null){
+      im[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+    }
+
+    appendSyncLog(`解析完成：boldClasses=${boldClasses.size}([${Array.from(boldClasses).slice(0,5).join(',')}]) boldWords=${boldWords.size}`);
+
     const sentences=fullText.split(/(?<=[.!?])\s+/);
     for(const word of boldWords){
       const re=new RegExp('(?<![a-zA-Z])'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![a-zA-Z])','i');
       const ctx=sentences.find(s=>re.test(s))||'';
       extracted.push({word,context:ctx.trim(),zh_meaning:'',context_zh:''});
     }
-    const _styleEl=htmlDoc.querySelector('style');
-    const _css=_styleEl?_styleEl.textContent:'';
-    const _fwIdx=_css.indexOf('font-weight');
-    appendSyncLog(`debug: style塊=${htmlDoc.querySelectorAll('style').length} boldClasses=${boldClasses.size} b/strong=${htmlDoc.querySelectorAll('b,strong').length}`);
-    appendSyncLog(`debug: CSS含font-weight=${_fwIdx>=0} CSS前200=${_css.slice(0,200).replace(/\n/g,'↵')}`);
-    if(_fwIdx>=0)appendSyncLog(`debug: font-weight附近=${_css.slice(Math.max(0,_fwIdx-30),_fwIdx+60).replace(/\n/g,'↵')}`);
     appendSyncLog(`找到 ${extracted.length} 個粗體單字`);
   }catch(e){showFormMsg('sync-msg','解析失敗：'+e.message,false);return;}
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
