@@ -1084,7 +1084,7 @@ async function doSync(){
     const styleRe=/<style[^>]*>([\s\S]*?)<\/style>/gi;
     let sm;while((sm=styleRe.exec(text))!==null){
       const css=sm[1];
-      const clsRe=/\.([a-zA-Z0-9_-]+)[^{]*\{[^}]*font-weight\s*:\s*(700|bold)[^}]*/g;
+      const clsRe=/\.([a-zA-Z][a-zA-Z0-9_-]*)[^{]*\{[^}]*font-weight\s*:\s*(700|bold)\b[^}]*\}/g;
       let cm;while((cm=clsRe.exec(css))!==null)boldClasses.add(cm[1]);
     }
     if(boldClasses.size>0){
