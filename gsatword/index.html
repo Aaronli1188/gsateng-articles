@@ -256,6 +256,119 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 @keyframes ci-confetti-fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
 @keyframes ci-pop{from{opacity:0;transform:scale(.75) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes ci-bounce{from{transform:translateY(0) scale(1)}to{transform:translateY(-10px) scale(1.05)}}
+
+/* ══════════════════════════════════════════════════════════════
+   UI Redesign v2 — Light + Depth + Gamification
+══════════════════════════════════════════════════════════════ */
+:root{
+  --acc:#7c3aed;--acc2:#a855f7;
+  --acc-bg:#f5f3ff;--acc-light:#ede9fe;
+  --yes1:#059669;--yes2:#10b981;
+  --no1:#dc2626;--no2:#f87171;
+  --card-sh:0 8px 32px rgba(124,58,237,.1),0 2px 8px rgba(0,0,0,.04);
+  --r:20px;
+}
+body{background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 55%,#f0fdf4 100%);background-attachment:fixed}
+.hdr{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4c1d95 100%);box-shadow:0 2px 16px rgba(79,38,196,.35)}
+.hdr h1{background:linear-gradient(90deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.18em}
+.student-badge{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+.hdr-stats{color:#a78bfa}.hdr-stats span b{color:#c4b5fd}
+.nav{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(124,58,237,.12)}
+.nav button{font-size:.9rem;transition:color .15s}
+.nav button.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:700}
+.nav button:hover:not(.active){color:var(--acc)}
+
+/* Flash card */
+.flash-card{border-radius:var(--r);box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.09);transition:box-shadow .2s;padding:40px 44px}
+.flash-card:hover{box-shadow:0 12px 44px rgba(124,58,237,.14),0 2px 8px rgba(0,0,0,.04)}
+.sentence{font-size:1.3rem;line-height:2.3;color:#1e1b4b;letter-spacing:.01em}
+.whi{background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;font-style:normal}
+.prog{font-size:.88rem;color:var(--acc);font-weight:700;letter-spacing:.04em;margin-bottom:18px}
+
+/* Progress bar */
+.rpb-wrap{background:rgba(124,58,237,.08);border-radius:99px;height:7px;margin-bottom:20px;overflow:hidden}
+.rpb{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* Difficulty badge */
+.diff-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.05em;vertical-align:middle;margin-left:6px}
+.diff-new{background:#e0e7ff;color:#3730a3}
+.diff-hard{background:#fee2e2;color:#991b1b}
+.diff-mid{background:#fef3c7;color:#92400e}
+.diff-easy{background:#d1fae5;color:#065f46}
+
+/* Reveal button */
+.btn-reveal{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:14px;font-size:1.05rem;box-shadow:0 4px 18px rgba(124,58,237,.38);transition:transform .1s,box-shadow .1s;width:72%;max-width:300px;padding:17px 0}
+.btn-reveal:hover{background:linear-gradient(135deg,#6d28d9,#9333ea);transform:translateY(-2px);box-shadow:0 7px 22px rgba(124,58,237,.48)}
+.btn-reveal:active{transform:translateY(0)}
+
+/* Reveal section animation */
+#reveal-section{animation:reveal-in .28s cubic-bezier(.34,1.2,.64,1) forwards}
+@keyframes reveal-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* zh-hint */
+.zh-hint{border-radius:12px;background:linear-gradient(135deg,rgba(124,58,237,.04),rgba(168,85,247,.04));border:1px solid rgba(124,58,237,.14);border-left:3px solid var(--acc);padding:14px 16px}
+.zh-meaning{color:var(--acc);font-size:1.05rem;font-weight:700}
+.zh-context{color:#6b7280}
+
+/* 認識/不認識 */
+.btn-y{background:linear-gradient(135deg,var(--yes1),var(--yes2));border-radius:14px;font-size:1.12rem;box-shadow:0 4px 16px rgba(5,150,105,.28);transition:transform .1s,box-shadow .1s}
+.btn-y:hover{background:linear-gradient(135deg,#047857,#059669);transform:translateY(-2px);box-shadow:0 6px 22px rgba(5,150,105,.38)}
+.btn-y:active{transform:translateY(0)}
+.btn-n{background:linear-gradient(135deg,var(--no1),var(--no2));border-radius:14px;font-size:1.12rem;box-shadow:0 4px 16px rgba(220,38,38,.24);transition:transform .1s,box-shadow .1s}
+.btn-n:hover{background:linear-gradient(135deg,#b91c1c,#dc2626);transform:translateY(-2px);box-shadow:0 6px 22px rgba(220,38,38,.34)}
+.btn-n:active{transform:translateY(0)}
+.rev-btns{gap:16px;margin-top:20px}
+
+/* Done card */
+.done{border-radius:var(--r);background:linear-gradient(135deg,#f5f3ff,#eff6ff);box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.1);padding:52px 44px}
+.done h2{background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:1.4rem}
+.done p{color:#6b7280;font-size:.95rem;margin-top:6px}
+
+/* Action buttons */
+.act-btn{border-radius:10px;transition:transform .1s,box-shadow .1s}
+.act-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.1)}
+
+/* Filter pills */
+.fb{border-radius:22px;font-size:.82rem;transition:all .15s}
+.fb.active{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:#7c3aed;color:#fff;box-shadow:0 2px 10px rgba(124,58,237,.3)}
+
+/* Table */
+.tbl-wrap{border-radius:16px;box-shadow:0 4px 24px rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.08)}
+th{background:linear-gradient(135deg,#f5f3ff,#eff6ff)!important;color:var(--acc)!important}
+tr:hover td{background:rgba(124,58,237,.025)}
+.bm{background:#d1fae5;color:#065f46}
+.bd{background:#fee2e2;color:#991b1b}
+.bu{background:#e0e7ff;color:#3730a3}
+
+/* Forms */
+.form-sec{border-radius:var(--r);box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.07)}
+.btn-pri{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:10px;box-shadow:0 3px 12px rgba(124,58,237,.28);transition:transform .1s,box-shadow .1s}
+.btn-pri:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(124,58,237,.38);opacity:1}
+.field input,.field textarea{border-radius:9px;border-color:rgba(124,58,237,.2);transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+
+/* Mode bar */
+.mode-bar{border-radius:12px;border-color:rgba(124,58,237,.15)}
+.rev-mode-btn{font-size:.85rem;transition:all .15s}
+.rev-mode-btn.active{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+
+/* Stabs */
+.stab.active{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+.stabs{border-radius:10px;border-color:rgba(124,58,237,.2)}
+
+/* Teacher student cards */
+.student-card{border-radius:16px;border:1px solid rgba(124,58,237,.1);transition:transform .15s,box-shadow .15s}
+.student-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(124,58,237,.14)}
+
+/* Setup */
+.setup-card{border-radius:var(--r);box-shadow:var(--card-sh)}
+.btn-dark{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:10px;box-shadow:0 3px 12px rgba(124,58,237,.28)}
+.btn-dark:hover{background:linear-gradient(135deg,#6d28d9,#9333ea)}
+
+/* Quiz */
+.quiz-dates{border-radius:14px;box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.08)}
+.qd-item.selected{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:#7c3aed}
+.quiz-start{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:9px;box-shadow:0 3px 12px rgba(124,58,237,.28)}
 </style>
 </head>
 <body>
@@ -832,8 +945,13 @@ function renderCard(){
   const badge=modeLabel?`<span class="incognito-badge">${modeLabel}</span>`:'';
   const markCls=e.marked?'act-btn act-mark marked':'act-btn act-mark';
   const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'<div class="zh-hint" style="color:#bbb;font-size:.82rem">（尚無解釋）</div>';
+  const _pct=dueQueue.length>0?Math.round(revIdx/dueQueue.length*100):0;
+  const _stab=e.sm_stability||0;
+  const _diffCls=_stab===0?'diff-new':_stab<7?'diff-hard':_stab<21?'diff-mid':'diff-easy';
+  const _diffLbl=_stab===0?'新單字':_stab<7?'學習中':_stab<21?'進步中':'熟悉';
   wrap.innerHTML=`
-    <div class="prog">${revIdx+1} / ${dueQueue.length}${badge}</div>
+    <div class="rpb-wrap"><div class="rpb" style="width:${_pct}%"></div></div>
+    <div class="prog">${revIdx+1} / ${dueQueue.length}${badge} <span class="diff-badge ${_diffCls}">${_diffLbl}</span></div>
     <div class="flash-card">
       <div class="sentence">${hi}</div>
       <div id="reveal-btn-wrap">
