@@ -93,6 +93,11 @@ tr.selected td{background:#f3f0ff}
 .ctx{color:#777;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .exp-cell{color:#444;cursor:pointer;border-bottom:1px dashed #ccc;line-height:1.4}
 .exp-cell:hover{color:#1a73e8}
+th.srt{cursor:pointer;user-select:none;white-space:nowrap}
+th.srt:hover{background:#e8f0fe}
+th.srt.srt-on{color:#1a73e8}
+th.srt .si{font-size:.72em;opacity:.4;margin-left:2px}
+th.srt.srt-on .si{opacity:1}
 .ctx.expanded{max-width:none;overflow:visible;white-space:normal;background:#fffde7;padding:4px 6px;border-radius:4px}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.71rem;font-weight:600}
 .bm{background:#e8f5e9;color:#2e7d32}
@@ -248,7 +253,14 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
           <thead><tr>
             <th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th>
             <th style="width:32px"></th>
-            <th>單字</th><th>例句</th><th>解釋</th><th>連對</th><th>下次複習</th><th>加入日</th><th>狀態</th><th>操作</th>
+            <th class="srt" onclick="setSortCol('word')">單字<span class="si" id="si-word"></span></th>
+            <th>例句</th>
+            <th class="srt" onclick="setSortCol('zh_meaning')">解釋<span class="si" id="si-zh_meaning"></span></th>
+            <th class="srt" onclick="setSortCol('streak')">連對<span class="si" id="si-streak"></span></th>
+            <th class="srt" onclick="setSortCol('next_review')">下次複習<span class="si" id="si-next_review"></span></th>
+            <th class="srt" onclick="setSortCol('first_seen')">加入日<span class="si" id="si-first_seen"></span></th>
+            <th class="srt" onclick="setSortCol('mastered')">狀態<span class="si" id="si-mastered"></span></th>
+            <th>操作</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
@@ -472,6 +484,8 @@ let mode=''; // 'student' | 'teacher'
 let studentId='', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
+let sortCol=null, sortDir=1;
+const _defSortDir={word:1,zh_meaning:1,streak:-1,next_review:1,first_seen:-1,mastered:-1};
 let reviewActive=false, teacherCurrentSid='', teacherCurrentName='', lastImportIds=[];
 let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 let INTERVALS={...GLOBAL_INTERVALS};
@@ -779,6 +793,45 @@ function setFilter(f,btn){
   updateList();
 }
 
+function setSortCol(col){
+  if(sortCol===col){sortDir*=-1;}
+  else{sortCol=col;sortDir=_defSortDir[col]??1;}
+  updateSortHeaders();
+  updateList();
+}
+function updateSortHeaders(){
+  document.querySelectorAll('th.srt').forEach(th=>{
+    const col=th.getAttribute('onclick').match(/'(\w+)'/)[1];
+    const si=th.querySelector('.si');
+    if(col===sortCol){th.classList.add('srt-on');si.textContent=sortDir===1?' ▲':' ▼';}
+    else{th.classList.remove('srt-on');si.textContent='';}
+  });
+}
+function sortedVocab(rows){
+  if(!sortCol) return rows;
+  return [...rows].sort((a,b)=>{
+    if(sortCol==='word')
+      return sortDir*(a.word||'').localeCompare(b.word||'');
+    if(sortCol==='zh_meaning'){
+      const av=a.zh_meaning?1:0, bv=b.zh_meaning?1:0;
+      if(av!==bv) return sortDir*(bv-av);
+      return (a.word||'').localeCompare(b.word||'');
+    }
+    if(sortCol==='streak')
+      return sortDir*((a.streak??0)-(b.streak??0));
+    if(sortCol==='next_review'){
+      const av=a.next_review||'9999-99-99', bv=b.next_review||'9999-99-99';
+      return sortDir*av.localeCompare(bv);
+    }
+    if(sortCol==='first_seen'){
+      const av=a.first_seen||'', bv=b.first_seen||'';
+      return sortDir*av.localeCompare(bv);
+    }
+    if(sortCol==='mastered')
+      return sortDir*((a.mastered?1:0)-(b.mastered?1:0));
+    return 0;
+  });
+}
 function filteredVocab(){
   const t=today();
   if(listFilter==='due')      return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
@@ -791,7 +844,7 @@ function filteredVocab(){
 
 function updateList(){
   const t=today();
-  const rows=filteredVocab();
+  const rows=sortedVocab(filteredVocab());
   const tbody=document.getElementById('tbl-body');
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
@@ -1101,7 +1154,6 @@ async function doSync(){
       im[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
     }
 
-    appendSyncLog(`解析完成：boldClasses=${boldClasses.size}([${Array.from(boldClasses).slice(0,5).join(',')}]) boldWords=${boldWords.size}`);
 
     const sentences=fullText.split(/(?<=[.!?])\s+/);
     for(const word of boldWords){
