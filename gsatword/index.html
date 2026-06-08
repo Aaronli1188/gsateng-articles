@@ -1471,6 +1471,8 @@ async function loadTeacherView(){
   try{
     const t=today();
     const ago30=plusDays(t,-30);
+    // 清理 90 天前的登入紀錄（fire and forget）
+    sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
     const [students,allVocab,sessions,recentRevs]=await Promise.all([
       sbGet('students','select=id,name,token&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
