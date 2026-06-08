@@ -775,10 +775,9 @@ function fsrsMigrateCard(card){
 }
 async function fsrsBumpOverdue(){
   const t=today();
+  // Pass 1: truly overdue (next_review < today) — bump + record delay
   const overdue=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review<t);
-  console.log('[overdue] today=',t,'overdue count=',overdue.length, overdue.map(v=>({id:v.id,word:v.word,next_review:v.next_review})));
   for(const v of overdue){
-    // Record delay before bumping so renderCard can still show the warning
     const days=Math.round((new Date(t)-new Date(v.next_review))/864e5);
     _overdueDelayMap[v.id]={days,original:v.next_review};
     try{
@@ -787,6 +786,18 @@ async function fsrsBumpOverdue(){
       if(vi>=0) vocab[vi].next_review=t;
     }catch(e){}
   }
+  // Pass 2: already-bumped overdue — added on a previous day, never reviewed, due today
+  // These were bumped in a prior session so next_review === today, but sm_reps still 0
+  vocab.filter(v=>
+    !v.mastered &&
+    !_overdueDelayMap[v.id] &&
+    v.next_review===t &&
+    (!v.sm_reps||v.sm_reps===0) &&
+    v.first_seen && v.first_seen<t
+  ).forEach(v=>{
+    const days=Math.round((new Date(t)-new Date(v.first_seen))/864e5);
+    if(days>0) _overdueDelayMap[v.id]={days,original:v.first_seen};
+  });
 }
 async function fsrsMigrateOldCards(){
   const toMigrate=vocab.filter(v=>(!v.sm_reps||v.sm_reps===0)&&v.sm_stability==null&&(v.reviews||[]).length>0);
