@@ -151,7 +151,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 .modal-cancel{background:#f0f0f0;color:#555}
 
 /* Forms */
-.form-sec{background:#fff;border-radius:10px;padding:28px 32px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:500px}
+.form-sec{background:#fff;border-radius:10px;padding:22px 28px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:540px;margin:0 auto}
 .form-sec h2{font-size:.92rem;font-weight:600;margin-bottom:20px;color:#444}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:.75rem;color:#999;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
@@ -369,6 +369,11 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .quiz-dates{border-radius:14px;box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.08)}
 .qd-item.selected{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:#7c3aed}
 .quiz-start{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:9px;box-shadow:0 3px 12px rgba(124,58,237,.28)}
+
+/* Center add/sync panels */
+#panel-add,#panel-sync{display:none;justify-content:center}
+#panel-add.active,#panel-sync.active{display:flex;flex-direction:column;align-items:center}
+#panel-add .form-sec,#panel-sync .form-sec{width:100%}
 </style>
 </head>
 <body>
