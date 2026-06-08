@@ -2280,40 +2280,55 @@ async function doBulkAdd(){
 
   async function _processWord(word){
     const prompt=`Word: "${word}"\n\nReply in exactly 4 lines, nothing else:\nSENT: [one natural English example sentence using this word]\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the sentence context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
-    const data=await callGemini([{role:'user',content:prompt}]);
-    const text=data.content?.[0]?.text||'';
-    let sent='',zh='',ctxZh='',use='';
-    for(const line of text.split('\n')){
-      if(line.startsWith('SENT:')) sent=line.slice(5).trim();
-      else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
-      else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
-      else if(line.startsWith('USE:')) use=line.slice(4).trim();
+    // retry up to 2 times on 429
+    let lastErr;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const data=await callGemini([{role:'user',content:prompt}]);
+        const text=data.content?.[0]?.text||'';
+        let sent='',zh='',ctxZh='',use='';
+        for(const line of text.split('\n')){
+          if(line.startsWith('SENT:')) sent=line.slice(5).trim();
+          else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
+          else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
+          else if(line.startsWith('USE:')) use=line.slice(4).trim();
+        }
+        if(!zh) throw new Error('解析失敗：'+text.slice(0,80));
+        const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
+        await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
+        const u=data.usage||{};
+        return ((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+      }catch(e){
+        lastErr=e;
+        if(e.message.includes('429')){await new Promise(r=>setTimeout(r,2000*(attempt+1)));}
+        else throw e;
+      }
     }
-    if(!zh) throw new Error('解析失敗：'+text.slice(0,80));
-    const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
-    await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
-    const u=data.usage||{};
-    return ((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+    throw lastErr;
   }
 
-  const CONCURRENCY=5;
-  for(let i=0;i<words.length;i+=CONCURRENCY){
-    const batch=words.slice(i,i+CONCURRENCY);
-    document.getElementById('bulk-status').textContent=`處理中 ${i+1}–${Math.min(i+CONCURRENCY,words.length)} / ${words.length}`;
-    document.getElementById('bulk-rpb').style.width=`${i/words.length*100}%`;
-    const results=await Promise.allSettled(batch.map(_processWord));
-    for(let j=0;j<batch.length;j++){
+  // Worker pool: always keep CONCURRENCY tasks in flight simultaneously
+  const CONCURRENCY=20;
+  const allResults=new Array(words.length);
+  let nextIdx=0;
+  async function _worker(){
+    while(nextIdx<words.length){
+      const i=nextIdx++;
+      allResults[i]=await Promise.allSettled([_processWord(words[i])]).then(r=>r[0]);
       done++;
-      if(results[j].status==='fulfilled'){
+      document.getElementById('bulk-status').textContent=`處理中 ${done} / ${words.length}`;
+      document.getElementById('bulk-rpb').style.width=`${done/words.length*100}%`;
+      if(allResults[i].status==='fulfilled'){
         added++;
-        totalCostUSD+=results[j].value;
-        logAiCost(results[j].value,'bulk_add');
+        totalCostUSD+=allResults[i].value;
+        logAiCost(allResults[i].value,'bulk_add');
       }else{
-        failed.push(batch[j]);
-        if(!firstError) firstError=results[j].reason?.message||'未知錯誤';
+        failed.push(words[i]);
+        if(!firstError) firstError=allResults[i].reason?.message||'未知錯誤';
       }
     }
   }
+  await Promise.all(Array.from({length:CONCURRENCY},_worker));
   document.getElementById('bulk-rpb').style.width='100%';
   btn.disabled=false;
   const costStr=totalCostUSD>0?' · NT$'+(totalCostUSD*32).toFixed(3):'';
