@@ -477,18 +477,44 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <!-- Add -->
     <div id="panel-add" class="panel">
       <div class="form-sec">
-        <h2>手動新增單字</h2>
-        <div class="field"><label>單字</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
-        <div class="field"><label>例句（可留空，生成時自動填入）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
-        <div class="field"><label>解釋（可留空，生成時自動填入）</label><textarea id="a-zh" rows="2" placeholder="（動詞）建立；設立"></textarea></div>
-        <div class="gen-row">
-          <button class="btn-sec" id="add-gen-btn" onclick="generateForAdd()">✨ 生成</button>
-          <span id="add-gen-cost" style="font-size:.78rem;color:#888"></span>
+        <h2>新增單字</h2>
+        <div class="stabs" id="add-tabs" style="margin-bottom:18px">
+          <button class="stab active" onclick="setAddTab('single',this)">單字</button>
+          <button class="stab" onclick="setAddTab('bulk',this)">批量匯入</button>
         </div>
-        <div class="field"><label>上課日期</label><input id="a-date" type="date"></div>
-        <div class="field"><label>第一次複習日期</label><input id="a-rev" type="date"></div>
-        <button class="btn-pri" onclick="doAdd()">新增</button>
-        <div id="add-msg"></div>
+        <!-- Single -->
+        <div id="add-single-area">
+          <div class="field"><label>單字</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
+          <div class="field"><label>例句（可留空，生成時自動填入）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
+          <div class="field"><label>解釋（可留空，生成時自動填入）</label><textarea id="a-zh" rows="2" placeholder="（動詞）建立；設立"></textarea></div>
+          <div class="gen-row">
+            <button class="btn-sec" id="add-gen-btn" onclick="generateForAdd()">✨ 生成</button>
+            <span id="add-gen-cost" style="font-size:.78rem;color:#888"></span>
+          </div>
+          <div class="field"><label>上課日期</label><input id="a-date" type="date"></div>
+          <div class="field"><label>第一次複習日期</label><input id="a-rev" type="date"></div>
+          <button class="btn-pri" onclick="doAdd()">新增</button>
+          <div id="add-msg"></div>
+        </div>
+        <!-- Bulk -->
+        <div id="add-bulk-area" style="display:none">
+          <div class="field">
+            <label>單字清單（每行一個）</label>
+            <textarea id="bulk-words" rows="9" placeholder="apple&#10;banana&#10;peach&#10;..."></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:.78rem;color:#aaa">或上傳 .docx</span>
+            <input type="file" accept=".docx" id="bulk-file-input" onchange="loadBulkDocx(this)" style="font-size:.8rem;flex:1">
+          </div>
+          <div class="field"><label>上課日期</label><input id="bulk-date" type="date"></div>
+          <div class="field"><label>第一次複習日期</label><input id="bulk-rev" type="date"></div>
+          <button class="btn-pri" id="bulk-gen-btn" onclick="doBulkAdd()" style="width:100%">✨ 生成並新增全部</button>
+          <div id="bulk-progress" style="display:none;margin-top:16px">
+            <div class="rpb-wrap"><div class="rpb" id="bulk-rpb" style="width:0%"></div></div>
+            <div id="bulk-status" style="font-size:.82rem;color:#888;margin-top:8px;text-align:center"></div>
+          </div>
+          <div id="bulk-msg" style="margin-top:10px"></div>
+        </div>
       </div>
     </div>
 
@@ -832,8 +858,8 @@ async function loadStudentView(token){
     document.title=`gsatword · ${student.name}`;
     // Set default dates
     const t=today();
-    ['a-date','s-date'].forEach(id=>{document.getElementById(id).value=t;});
-    ['a-rev','s-rev'].forEach(id=>{document.getElementById(id).value=plusDays(t,7);});
+    ['a-date','s-date','bulk-date'].forEach(id=>{document.getElementById(id).value=t;});
+    ['a-rev','s-rev','bulk-rev'].forEach(id=>{document.getElementById(id).value=plusDays(t,7);});
     document.getElementById('bulk-reset-date').value=t;
     document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
@@ -2200,6 +2226,81 @@ async function showCheckinModal(sid){
 
 function closeCi(){
   document.getElementById('ci-overlay').style.display = 'none';
+}
+
+
+// ── Bulk add ──────────────────────────────────────────────────────────
+function setAddTab(tab, btn){
+  document.querySelectorAll('#add-tabs .stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('add-single-area').style.display=tab==='single'?'block':'none';
+  document.getElementById('add-bulk-area').style.display=tab==='bulk'?'block':'none';
+}
+
+async function loadBulkDocx(input){
+  const file=input.files[0]; if(!file) return;
+  try{
+    const ab=await file.arrayBuffer();
+    const result=await mammoth.extractRawText({arrayBuffer:ab});
+    const words=result.value.split(/?
+/).map(w=>w.trim()).filter(w=>w.length>0);
+    document.getElementById('bulk-words').value=words.join('
+');
+  }catch(e){alert('讀取失敗：'+e.message);}
+}
+
+async function doBulkAdd(){
+  const raw=document.getElementById('bulk-words').value;
+  const words=[...new Set(raw.split(/?
+/).map(w=>w.trim()).filter(w=>/[a-zA-Z]/.test(w)))];
+  if(!words.length){showFormMsg('bulk-msg','請輸入至少一個單字',false);return;}
+  const date=document.getElementById('bulk-date').value;
+  const rev=document.getElementById('bulk-rev').value;
+  const btn=document.getElementById('bulk-gen-btn');
+  btn.disabled=true;
+  document.getElementById('bulk-progress').style.display='block';
+  let done=0, added=0, failed=[];
+  let totalCostUSD=0;
+  for(const word of words){
+    document.getElementById('bulk-status').textContent=`處理中 ${done+1} / ${words.length}：${word}`;
+    document.getElementById('bulk-rpb').style.width=`${done/words.length*100}%`;
+    try{
+      // Check not already in vocab
+      const prompt=`Word: "${word}"
+
+Reply in exactly 4 lines, nothing else:
+SENT: [one natural English example sentence using this word]
+ZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]
+CTX: [one sentence Traditional Chinese explaining the word in the sentence context]
+USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+      const data=await callAnthropic([{role:'user',content:prompt}]);
+      const text=data.content?.[0]?.text||'';
+      let sent='',zh='',ctxZh='',use='';
+      for(const line of text.split('
+')){
+        if(line.startsWith('SENT:')) sent=line.slice(5).trim();
+        else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
+        else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
+        else if(line.startsWith('USE:')) use=line.slice(4).trim();
+      }
+      if(!zh) throw new Error('解析失敗');
+      const fullCtxZh=ctxZh+(use?'
+用法：'+use:'');
+      await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
+      const u=data.usage||{};
+      const c=((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6;
+      totalCostUSD+=c;
+      logAiCost(c,'bulk_add');
+      added++;
+    }catch(e){failed.push(word);}
+    done++;
+  }
+  document.getElementById('bulk-rpb').style.width='100%';
+  btn.disabled=false;
+  const costStr=totalCostUSD>0?' · NT$'+(totalCostUSD*32).toFixed(3):'';
+  const failStr=failed.length?`，失敗 ${failed.length} 個：${failed.join('、')}`:'';
+  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${failStr}${costStr}`,failed.length===0);
+  if(added>0){ await refreshVocab(); updateStats(); }
 }
 
 </script>
