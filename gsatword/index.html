@@ -1132,6 +1132,10 @@ async function callAnthropic(messages, maxTokens=256){
   return res.json();
 }
 
+function logAiCost(costUsd,action){
+  if(!studentId||!costUsd) return;
+  sbPost('ai_usage',{student_id:studentId,cost_usd:costUsd,action}).catch(()=>{});
+}
 function showCostToast(msg){
   let t=document.getElementById('cost-toast');
   if(!t){t=document.createElement('div');t.id='cost-toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:8px 16px;border-radius:8px;font-size:.82rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none';document.body.appendChild(t);}
@@ -1162,6 +1166,7 @@ async function generateExplanation(vid){
     // claude-haiku-4-5: $0.80 input / $4.00 output per MTok
     const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
+    logAiCost(costUSD,'explain');
     if(btn){btn.title=`上次花費 NT$${costTWD}`;btn.textContent='✨';btn.disabled=false;}
     const costEl=document.getElementById('aicost-'+esc(vid));
     if(costEl){costEl.textContent='NT$'+costTWD;}
@@ -1333,6 +1338,7 @@ async function generateForAdd(){
     const u=data.usage||{};
     const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
+    logAiCost(costUSD,'add_word');
     document.getElementById('add-gen-cost').textContent='NT$'+costTWD;
     showCostToast('NT$'+costTWD);
   }catch(err){
@@ -1473,12 +1479,19 @@ async function loadTeacherView(){
     const ago30=plusDays(t,-30);
     // 清理 90 天前的登入紀錄（fire and forget）
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
-    const [students,allVocab,sessions,recentRevs]=await Promise.all([
+    const [students,allVocab,sessions,recentRevs,allCosts]=await Promise.all([
       sbGet('students','select=id,name,token&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
-      sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`)
+      sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
+      sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc')
     ]);
+    // costs per student
+    const costMap={};
+    for(const c of allCosts){
+      if(!costMap[c.student_id]) costMap[c.student_id]=[];
+      costMap[c.student_id].push(c);
+    }
     // Build maps
     const vocabSid={};
     for(const v of allVocab) vocabSid[v.id]=v.student_id;
@@ -1515,10 +1528,14 @@ async function loadTeacherView(){
       const weekRevs=srvs.filter(r=>r.reviewed_at>=plusDays(t,-7)).length;
       const dotCls=daysSince===0?'green':daysSince<=3?'yellow':'red';
       const activeLabel=daysSince===0?'今天活躍':daysSince===1?'昨天':daysSince<999?`${daysSince} 天未登入`:'從未登入';
+      const sCosts=costMap[s.id]||[];
+      const totalTWD=sCosts.reduce((a,c)=>a+c.cost_usd,0)*32;
+      const costLabel=totalTWD>0?`NT$${totalTWD.toFixed(2)}`:'NT$0';
       return `<div style="background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 3px 12px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.07)'" onclick="showStudentDetail('${s.id}','${esc(s.name)}')">
         <div class="sc-name">${esc(s.name)}</div>
         <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
+        <div style="font-size:.77rem;color:#888;margin:5px 0 2px">累計 AI 費用：<span style="color:#e65100;font-weight:600">${costLabel}</span></div>
         <div class="sc-act-row">
           <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
           <button class="sm" style="flex-shrink:0" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
@@ -1527,7 +1544,7 @@ async function loadTeacherView(){
       </div>`;
     }).join('');
     // Cache for activity modal
-    window._tcache={students,allVocab,sessMap,revMap,vocabSid};
+    window._tcache={students,allVocab,sessMap,revMap,vocabSid,costMap};
   }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
 }
 
@@ -1687,6 +1704,31 @@ function showStudentActivity(sid,name){
   const sessHtml=ssns.length
     ?ssns.slice(0,15).map(s=>`${s.slice(0,10)} ${s.slice(11,16)}`).join('<br>')
     :'（無登入記錄）';
+  // Billing
+  const sCosts=(c.costMap||{})[sid]||[];
+  const totalUSD=sCosts.reduce((a,x)=>a+x.cost_usd,0);
+  const totalTWD=(totalUSD*32).toFixed(2);
+  const actionLabel={explain:'解釋生成',add_word:'新增單字',bulk_explain:'批量生成'};
+  // monthly breakdown
+  const monthMap={};
+  for(const x of sCosts){
+    const m=x.created_at.slice(0,7);
+    if(!monthMap[m]) monthMap[m]={usd:0,count:0};
+    monthMap[m].usd+=x.cost_usd; monthMap[m].count++;
+  }
+  const monthRows=Object.entries(monthMap).sort((a,b)=>b[0].localeCompare(a[0]))
+    .map(([m,v])=>`<tr><td>${m}</td><td style="text-align:right">${v.count} 次</td><td style="text-align:right;color:#e65100;font-weight:600">NT$${(v.usd*32).toFixed(2)}</td></tr>`).join('');
+  const recentCostRows=sCosts.slice(0,20).map(x=>`<tr><td>${x.created_at.slice(0,10)}</td><td>${actionLabel[x.action]||x.action}</td><td style="text-align:right;color:#e65100">NT$${(x.cost_usd*32).toFixed(4)}</td></tr>`).join('');
+  const billingHtml=`
+    <div class="act-section">
+      <h4>AI 費用帳單</h4>
+      <div class="act-kpi-row" style="margin-bottom:12px">
+        <div class="act-kpi"><div class="kv" style="color:#e65100">NT$${totalTWD}</div><div class="kl">累計總費用</div></div>
+        <div class="act-kpi"><div class="kv">${sCosts.length}</div><div class="kl">生成次數</div></div>
+      </div>
+      ${monthRows?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-bottom:10px"><thead><tr style="color:#999;font-size:.7rem"><th style="text-align:left">月份</th><th style="text-align:right">次數</th><th style="text-align:right">費用</th></tr></thead><tbody>${monthRows}</tbody></table>`:'<div style="font-size:.8rem;color:#aaa">尚無費用記錄</div>'}
+      ${recentCostRows?`<details style="margin-top:6px"><summary style="font-size:.75rem;color:#888;cursor:pointer">最近 20 筆明細</summary><table style="width:100%;font-size:.78rem;border-collapse:collapse;margin-top:6px"><tbody>${recentCostRows}</tbody></table></details>`:''}
+    </div>`;
   document.getElementById('act-modal-title').textContent=`${name} 學習報告`;
   document.getElementById('act-modal-body').innerHTML=`
     <div class="act-section">
@@ -1712,7 +1754,8 @@ function showStudentActivity(sid,name){
     <div class="act-section">
       <h4>最近登入紀錄</h4>
       <div class="session-list">${sessHtml}</div>
-    </div>`;
+    </div>
+    ${billingHtml}`;
   document.getElementById('act-modal-overlay').style.display='flex';
 }
 function showTeacherOverview(){
