@@ -275,7 +275,7 @@ body{background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 55%,#f0fdf4 100%);back
 .hdr h1{background:linear-gradient(90deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.18em}
 .student-badge{background:linear-gradient(135deg,#7c3aed,#a855f7)}
 .hdr-stats{color:#a78bfa}.hdr-stats span b{color:#c4b5fd}
-.nav{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(124,58,237,.12)}
+.nav{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(124,58,237,.12);justify-content:center}
 .nav button{font-size:.9rem;transition:color .15s}
 .nav button.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:700}
 .nav button:hover:not(.active){color:var(--acc)}
@@ -428,7 +428,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div class="rev-outer">
         <div class="mode-bar">
           <button class="rev-mode-btn active" onclick="setRevMode('normal',this)">今日複習</button>
-          <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">全部練習（無痕）</button>
+          <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">無痕練習</button>
           <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">選擇日期測驗</button>
           <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()">⌨</button>
         </div>
