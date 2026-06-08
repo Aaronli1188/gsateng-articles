@@ -493,6 +493,48 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function consecutiveCorrect(reviews){let c=0;for(let i=reviews.length-1;i>=0;i--){if(reviews[i].result==='y')c++;else break;}return c;}
 
+// ── FSRS-4.5 ──────────────────────────────────────────────────────────────────
+// grade: 1=Again(N), 3=Good(Y), 4=Easy(太簡單)
+// stability = days until 90% retention; interval ≈ stability
+const _FW=[0.4072,1.1829,3.1262,15.4722,7.2102,0.5316,1.0651,0.0589,1.5330,0.1544,1.0071,1.9936,0.1100,0.2900,2.2700,0.1400,2.9898];
+const _FDK=-0.5, _FFC=19/81; // DECAY, FACTOR
+function _fR(t,s){return Math.pow(1+_FFC*t/Math.max(s,0.1),_FDK);}
+function _fS0(g){return Math.max(_FW[g-1],0.1);}
+function _fD0(g){return Math.min(Math.max(_FW[4]-Math.exp(_FW[5]*(g-1))+1,1),10);}
+function _fSrecall(d,s,r,g){
+  const hp=g===2?_FW[15]:1, eb=g===4?_FW[16]:1;
+  return s*(Math.exp(_FW[8])*(11-d)*Math.pow(s,-_FW[9])*(Math.exp(_FW[10]*(1-r))-1)*hp*eb+1);
+}
+function _fSforget(d,s,r){return _FW[11]*Math.pow(d,-_FW[12])*(Math.pow(s+1,_FW[13])-1)*Math.exp(_FW[14]*(1-r));}
+function _fDnext(d,g){
+  const nd=d-_FW[6]*(g-3);
+  return Math.min(Math.max(_FW[7]*_fD0(4)+(1-_FW[7])*nd,1),10);
+}
+function fsrsInterval(s){return Math.max(1,Math.round(s/Math.pow(0.9,1/_FDK)-s/_FFC*0+s));}
+// simplified: interval = round(s) because at t=S, R=0.9 exactly
+function fsrsSchedule(card,grade,elapsedDays){
+  const reps=card.sm_reps||0;
+  let s,d;
+  if(reps===0||card.sm_stability==null){
+    s=_fS0(grade); d=_fD0(grade);
+  } else {
+    s=card.sm_stability; d=card.sm_difficulty||_fD0(3);
+    const r=_fR(elapsedDays,s);
+    s=grade===1?_fSforget(d,s,r):_fSrecall(d,s,r,grade);
+    d=_fDnext(d,grade);
+    s=Math.max(s,0.1); d=Math.min(Math.max(d,1),10);
+  }
+  const interval=Math.max(1,Math.round(s));
+  return {sm_stability:s,sm_difficulty:d,sm_reps:reps+1,interval,mastered:interval>=90};
+}
+function fsrsElapsed(card){
+  const rv=card.reviews||[];
+  if(!rv.length) return 0;
+  const last=rv[rv.length-1].reviewed_at;
+  if(!last) return 0;
+  return Math.max(0,Math.round((new Date(today())-new Date(last))/86400000));
+}
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let mode=''; // 'student' | 'teacher'
 let studentId='', vocab=[], dueQueue=[], revIdx=0;
@@ -566,10 +608,10 @@ async function loadStudentView(token){
 }
 
 async function refreshVocab(){
-  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked&order=word`);
+  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps&order=word`);
   if(!rows.length){vocab=[];return;}
   const ids=rows.map(r=>r.id);
-  const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result&order=reviewed_at.asc`);
+  const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
   const revMap={};
   for(const r of reviews){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
   vocab=rows.map(r=>({...r,reviews:revMap[r.id]||[],streak:consecutiveCorrect(revMap[r.id]||[])}));
@@ -728,20 +770,24 @@ async function doReview(result){
   const fb=document.getElementById('fb');
   if(!incognito){
     try{
-      const streak=consecutiveCorrect([...(e.reviews||[]),{result}]);
-      const ivMap={1:INTERVALS.s1,2:INTERVALS.s2,3:INTERVALS.s3};
-      let nextRev,mastered=false;
-      if(streak>=INTERVALS.master_at){nextRev=plusDays(today(),INTERVALS.s3);mastered=true;}
-      else if(ivMap[streak]){nextRev=plusDays(today(),ivMap[streak]);}
-      else{nextRev=plusDays(today(),INTERVALS.s0);}
+      const grade=result==='y'?3:1;
+      const elapsed=fsrsElapsed(e);
+      const sched=fsrsSchedule(e,grade,elapsed);
+      const nextRev=plusDays(today(),sched.interval);
+      const mastered=sched.mastered;
       await sbPost('reviews',{vocab_id:e.id,reviewed_at:today(),result});
-      await sbPatch('vocabulary',`id=eq.${e.id}`,{next_review:nextRev,mastered});
+      await sbPatch('vocabulary',`id=eq.${e.id}`,{next_review:nextRev,mastered,sm_stability:sched.sm_stability,sm_difficulty:sched.sm_difficulty,sm_reps:sched.sm_reps});
       const vi=vocab.findIndex(v=>v.id===e.id);
-      if(vi>=0){vocab[vi].next_review=nextRev;vocab[vi].mastered=mastered;vocab[vi].reviews=[...(vocab[vi].reviews||[]),{result}];vocab[vi].streak=streak;}
+      if(vi>=0){
+        Object.assign(vocab[vi],{next_review:nextRev,mastered,sm_stability:sched.sm_stability,sm_difficulty:sched.sm_difficulty,sm_reps:sched.sm_reps});
+        vocab[vi].reviews=[...(vocab[vi].reviews||[]),{result,reviewed_at:today()}];
+        vocab[vi].streak=consecutiveCorrect(vocab[vi].reviews);
+      }
       updateStats();
       if(fb){
-        if(result==='y'){fb.textContent=mastered?'🎉 已精熟！':`下次複習：${nextRev}（連對 ${streak} 次）`;fb.style.color='#2e7d32';}
-        else{fb.textContent=`下次複習：${nextRev}`;fb.style.color='#c62828';}
+        const ivLabel=`${sched.interval} 天後`;
+        if(result==='y'){fb.textContent=mastered?'🎉 已精熟！':`下次複習：${nextRev}（${ivLabel}）`;fb.style.color='#2e7d32';}
+        else{fb.textContent=`下次複習：${nextRev}（${ivLabel}）`;fb.style.color='#c62828';}
       }
     }catch(err){console.error(err);}
   } else {
@@ -770,11 +816,14 @@ async function cardTooEasy(vid,word){
   setTimeout(renderCard,900);
   if(!incognito){
     try{
-      const nextRev=plusDays(today(),INTERVALS.too_easy);
+      const e2=vocab.find(v=>v.id===vid)||{};
+      const sched=fsrsSchedule({...e2,sm_reps:Math.max(e2.sm_reps||0,1)},4,fsrsElapsed(e2));
+      const interval=Math.max(sched.interval,INTERVALS.too_easy);
+      const nextRev=plusDays(today(),interval);
       await sbPost('reviews',{vocab_id:vid,reviewed_at:today(),result:'too_easy'});
-      await sbPatch('vocabulary',`id=eq.${vid}`,{next_review:nextRev,mastered:false});
+      await sbPatch('vocabulary',`id=eq.${vid}`,{next_review:nextRev,mastered:false,sm_stability:sched.sm_stability,sm_difficulty:sched.sm_difficulty,sm_reps:sched.sm_reps});
       const vi=vocab.findIndex(v=>v.id===vid);
-      if(vi>=0){vocab[vi].next_review=nextRev;vocab[vi].mastered=false;}
+      if(vi>=0){Object.assign(vocab[vi],{next_review:nextRev,mastered:false,sm_stability:sched.sm_stability,sm_difficulty:sched.sm_difficulty,sm_reps:sched.sm_reps});}
       updateStats();
     }catch(err){}
   }
