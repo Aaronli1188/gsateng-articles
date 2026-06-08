@@ -159,6 +159,10 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 .field textarea{min-height:64px;resize:vertical}
 .btn-pri{background:#1a1a1a;color:#fff;border:none;padding:9px 22px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:600;font-family:inherit}
 .btn-pri:hover{opacity:.85}
+.btn-sec{background:#fff;color:#333;border:1px solid #ccc;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:600;font-family:inherit}
+.btn-sec:hover{background:#f5f5f5}
+.btn-sec:disabled{opacity:.4;cursor:default}
+.gen-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .msg-box{margin-top:12px;padding:9px 13px;border-radius:6px;font-size:.84rem}
 .ok{background:#e8f5e9;color:#2e7d32}
 .err{background:#ffebee;color:#c62828}
@@ -286,7 +290,12 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
       <div class="form-sec">
         <h2>手動新增單字</h2>
         <div class="field"><label>單字</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
-        <div class="field"><label>例句（可留空）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
+        <div class="field"><label>例句（可留空，生成時自動填入）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
+        <div class="field"><label>解釋（可留空，生成時自動填入）</label><textarea id="a-zh" rows="2" placeholder="（動詞）建立；設立"></textarea></div>
+        <div class="gen-row">
+          <button class="btn-sec" id="add-gen-btn" onclick="generateForAdd()">✨ 生成</button>
+          <span id="add-gen-cost" style="font-size:.78rem;color:#888"></span>
+        </div>
         <div class="field"><label>上課日期</label><input id="a-date" type="date"></div>
         <div class="field"><label>第一次複習日期</label><input id="a-rev" type="date"></div>
         <button class="btn-pri" onclick="doAdd()">新增</button>
@@ -1251,6 +1260,7 @@ async function doDelete(vid,word){
 }
 
 // ── Add ───────────────────────────────────────────────────────────────────────
+let _addCtxZh='';
 async function doAdd(){
   const w=document.getElementById('a-word').value.trim();
   if(!w){showFormMsg('add-msg','請輸入單字',false);return;}
@@ -1258,14 +1268,56 @@ async function doAdd(){
     await sbPost('vocabulary',{
       student_id:studentId,word:w,
       context:document.getElementById('a-ctx').value.trim(),
+      zh_meaning:document.getElementById('a-zh').value.trim(),
+      context_zh:_addCtxZh,
       first_seen:document.getElementById('a-date').value,
       next_review:document.getElementById('a-rev').value
     });
     showFormMsg('add-msg',`已新增「${w}」`,true);
     document.getElementById('a-word').value='';
     document.getElementById('a-ctx').value='';
+    document.getElementById('a-zh').value='';
+    document.getElementById('add-gen-cost').textContent='';
+    _addCtxZh='';
     await refreshVocab(); updateStats();
   }catch(e){showFormMsg('add-msg','新增失敗：'+e.message,false);}
+}
+async function generateForAdd(){
+  const word=document.getElementById('a-word').value.trim();
+  if(!word){showFormMsg('add-msg','請先輸入單字',false);return;}
+  const ctx=document.getElementById('a-ctx').value.trim();
+  const btn=document.getElementById('add-gen-btn');
+  if(btn){btn.textContent='…';btn.disabled=true;}
+  let prompt;
+  if(ctx){
+    prompt=`Word: "${word}"\nContext: "${ctx.replace(/"/g,"'").replace(/[\r\n]+/g,' ')}"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+  } else {
+    prompt=`Word: "${word}"\n\nReply in exactly 4 lines, nothing else:\nSENT: [one natural English example sentence using this word]\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the sentence context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+  }
+  try{
+    const data=await callAnthropic([{role:'user',content:prompt}]);
+    const text=data.content?.[0]?.text||'';
+    let sent='',zh='',ctxZh='',use='';
+    for(const line of text.split('\n')){
+      if(line.startsWith('SENT:')) sent=line.slice(5).trim();
+      else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
+      else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
+      else if(line.startsWith('USE:')) use=line.slice(4).trim();
+    }
+    if(!zh) throw new Error('解析失敗：'+text);
+    if(sent&&!ctx) document.getElementById('a-ctx').value=sent;
+    document.getElementById('a-zh').value=zh;
+    _addCtxZh=ctxZh+(use?'\n用法：'+use:'');
+    const u=data.usage||{};
+    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
+    const costTWD=(costUSD*32).toFixed(4);
+    document.getElementById('add-gen-cost').textContent='NT$'+costTWD;
+    showCostToast('NT$'+costTWD);
+  }catch(err){
+    showFormMsg('add-msg','生成失敗：'+err.message,false);
+  }finally{
+    if(btn){btn.textContent='✨ 生成';btn.disabled=false;}
+  }
 }
 
 // ── Sync ──────────────────────────────────────────────────────────────────────
