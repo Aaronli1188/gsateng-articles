@@ -664,7 +664,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
 </div>
 
 <script>
-// ── Config ────────────────────────────────────────────────────────────────────
+/// ── Config ────────────────────────────────────────────────────────────────────
 const CONFIG_KEY = 'gsatword_config';
 const DEFAULT_SB_URL = 'https://tfixkvvlcalsmjhphowv.supabase.co';
 const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmaXhrdnZsY2Fsc21qaHBob3d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNDg3NTIsImV4cCI6MjA5NTYyNDc1Mn0.koKlWoXShhHR7G4ZxA0smCeXmwB6ULHGDEPVwKWnqM0';
@@ -672,7 +672,7 @@ const DEFAULT_TEACHER = 'aarongsateng';
 function getConfig(){
   try{
     const cfg=JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}');
-    // Backfill defaults if not set
+    /// Backfill defaults if not set
     if(!cfg.url) cfg.url=DEFAULT_SB_URL;
     if(!cfg.key) cfg.key=DEFAULT_SB_KEY;
     return cfg;
@@ -690,7 +690,7 @@ function saveConfig(){
 }
 function showCfgMsg(t,c){const e=document.getElementById('cfg-msg');e.textContent=t;e.className='cfg-msg '+c;}
 
-// ── Supabase ──────────────────────────────────────────────────────────────────
+/// ── Supabase ──────────────────────────────────────────────────────────────────
 let SB_URL='',SB_KEY='',ANT_KEY='';
 async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
@@ -1332,6 +1332,24 @@ async function callAnthropic(messages, maxTokens=256){
   return res.json();
 }
 
+async function callGemini(messages, maxTokens=256){
+  const sbKey=SB_KEY||DEFAULT_SB_KEY;
+  const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
+  const proxyUrl=base+'/functions/v1/ai-proxy?apikey='+sbKey;
+  const contents=messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+  const res=await fetch(proxyUrl,{
+    method:'POST',
+    headers:{'content-type':'application/json'},
+    body:JSON.stringify({provider:'gemini',model:'gemini-2.5-flash-lite',contents,generationConfig:{maxOutputTokens:maxTokens}})
+  });
+  if(!res.ok){const t=await res.text();throw new Error('Gemini proxy '+res.status+': '+t.slice(0,200));}
+  const json=await res.json();
+  // Return Anthropic-compatible shape so callers need no changes
+  const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  const u=json.usageMetadata||{};
+  return {content:[{text}],usage:{input_tokens:u.promptTokenCount||0,output_tokens:u.candidatesTokenCount||0}};
+}
+
 function logAiCost(costUsd,action){
   if(!studentId||!costUsd) return;
   sbPost('ai_usage',{student_id:studentId,cost_usd:costUsd,action}).catch(()=>{});
@@ -1349,7 +1367,7 @@ async function generateExplanation(vid){
   if(btn){btn.textContent='…';btn.disabled=true;}
   const prompt='Word: "'+e.word+'"\nContext: "'+(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')+'"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]';
   try{
-    const data=await callAnthropic([{role:'user',content:prompt}]);
+    const data=await callGemini([{role:'user',content:prompt}]);
     const text=data.content?.[0]?.text||'';
     let zh='',ctx='',use='';
     for(const line of text.split('\n')){
@@ -1363,8 +1381,8 @@ async function generateExplanation(vid){
     const vi=vocab.findIndex(v=>String(v.id)===sidStr);
     if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
     const u=data.usage||{};
-    // claude-haiku-4-5: $0.80 input / $4.00 output per MTok
-    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
+    // gemini-2.5-flash-lite: $0.25 input / $1.50 output per MTok
+    const costUSD=(((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
     logAiCost(costUSD,'explain');
     if(btn){btn.title=`上次花費 NT$${costTWD}`;btn.textContent='✨';btn.disabled=false;}
@@ -1522,7 +1540,7 @@ async function generateForAdd(){
     prompt=`Word: "${word}"\n\nReply in exactly 4 lines, nothing else:\nSENT: [one natural English example sentence using this word]\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the sentence context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
   }
   try{
-    const data=await callAnthropic([{role:'user',content:prompt}]);
+    const data=await callGemini([{role:'user',content:prompt}]);
     const text=data.content?.[0]?.text||'';
     let sent='',zh='',ctxZh='',use='';
     for(const line of text.split('\n')){
@@ -1536,7 +1554,7 @@ async function generateForAdd(){
     document.getElementById('a-zh').value=zh;
     _addCtxZh=ctxZh+(use?'\n用法：'+use:'');
     const u=data.usage||{};
-    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
+    const costUSD=(((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
     logAiCost(costUSD,'add_word');
     document.getElementById('add-gen-cost').textContent='NT$'+costTWD;
@@ -2242,17 +2260,14 @@ async function loadBulkDocx(input){
   try{
     const ab=await file.arrayBuffer();
     const result=await mammoth.extractRawText({arrayBuffer:ab});
-    const words=result.value.split(/?
-/).map(w=>w.trim()).filter(w=>w.length>0);
-    document.getElementById('bulk-words').value=words.join('
-');
+    const words=result.value.split(/\r?\n/).map(w=>w.trim()).filter(w=>w.length>0);
+    document.getElementById('bulk-words').value=words.join('\n');
   }catch(e){alert('讀取失敗：'+e.message);}
 }
 
 async function doBulkAdd(){
   const raw=document.getElementById('bulk-words').value;
-  const words=[...new Set(raw.split(/?
-/).map(w=>w.trim()).filter(w=>/[a-zA-Z]/.test(w)))];
+  const words=[...new Set(raw.split(/\r?\n/).map(w=>w.trim()).filter(w=>/[a-zA-Z]/.test(w)))];
   if(!words.length){showFormMsg('bulk-msg','請輸入至少一個單字',false);return;}
   const date=document.getElementById('bulk-date').value;
   const rev=document.getElementById('bulk-rev').value;
@@ -2273,22 +2288,20 @@ SENT: [one natural English example sentence using this word]
 ZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]
 CTX: [one sentence Traditional Chinese explaining the word in the sentence context]
 USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
-      const data=await callAnthropic([{role:'user',content:prompt}]);
+      const data=await callGemini([{role:'user',content:prompt}]);
       const text=data.content?.[0]?.text||'';
       let sent='',zh='',ctxZh='',use='';
-      for(const line of text.split('
-')){
+      for(const line of text.split('\n')){
         if(line.startsWith('SENT:')) sent=line.slice(5).trim();
         else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
         else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
         else if(line.startsWith('USE:')) use=line.slice(4).trim();
       }
       if(!zh) throw new Error('解析失敗');
-      const fullCtxZh=ctxZh+(use?'
-用法：'+use:'');
+      const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
       await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
       const u=data.usage||{};
-      const c=((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6;
+      const c=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
       totalCostUSD+=c;
       logAiCost(c,'bulk_add');
       added++;
