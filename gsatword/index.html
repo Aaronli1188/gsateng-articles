@@ -1983,6 +1983,7 @@ function showTeacherOverview(){
   selectedIds.clear(); updateBulkBar();
   studentId=''; vocab=[]; teacherCurrentSid=''; teacherCurrentName='';
   INTERVALS={...GLOBAL_INTERVALS};
+  loadTeacherView(); // refresh billing + activity data
   hide('teacher-iv-btn');
   // Restore all nav tabs for next student
   document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
