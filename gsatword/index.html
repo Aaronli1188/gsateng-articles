@@ -1340,7 +1340,7 @@ async function callGemini(messages, maxTokens=256){
   const res=await fetch(proxyUrl,{
     method:'POST',
     headers:{'content-type':'application/json'},
-    body:JSON.stringify({provider:'gemini',model:'gemini-2.5-flash-lite',contents,generationConfig:{maxOutputTokens:maxTokens}})
+    body:JSON.stringify({provider:'gemini',model:'gemini-2.0-flash-lite',contents,generationConfig:{maxOutputTokens:maxTokens}})
   });
   if(!res.ok){const t=await res.text();throw new Error('Gemini proxy '+res.status+': '+t.slice(0,200));}
   const json=await res.json();
@@ -2276,43 +2276,50 @@ async function doBulkAdd(){
   document.getElementById('bulk-progress').style.display='block';
   let done=0, added=0, failed=[];
   let totalCostUSD=0;
-  for(const word of words){
-    document.getElementById('bulk-status').textContent=`處理中 ${done+1} / ${words.length}：${word}`;
-    document.getElementById('bulk-rpb').style.width=`${done/words.length*100}%`;
-    try{
-      // Check not already in vocab
-      const prompt=`Word: "${word}"
+  let firstError='';
 
-Reply in exactly 4 lines, nothing else:
-SENT: [one natural English example sentence using this word]
-ZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]
-CTX: [one sentence Traditional Chinese explaining the word in the sentence context]
-USE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
-      const data=await callGemini([{role:'user',content:prompt}]);
-      const text=data.content?.[0]?.text||'';
-      let sent='',zh='',ctxZh='',use='';
-      for(const line of text.split('\n')){
-        if(line.startsWith('SENT:')) sent=line.slice(5).trim();
-        else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
-        else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
-        else if(line.startsWith('USE:')) use=line.slice(4).trim();
+  async function _processWord(word){
+    const prompt=`Word: "${word}"\n\nReply in exactly 4 lines, nothing else:\nSENT: [one natural English example sentence using this word]\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the sentence context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
+    const data=await callGemini([{role:'user',content:prompt}]);
+    const text=data.content?.[0]?.text||'';
+    let sent='',zh='',ctxZh='',use='';
+    for(const line of text.split('\n')){
+      if(line.startsWith('SENT:')) sent=line.slice(5).trim();
+      else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
+      else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
+      else if(line.startsWith('USE:')) use=line.slice(4).trim();
+    }
+    if(!zh) throw new Error('解析失敗：'+text.slice(0,80));
+    const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
+    await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
+    const u=data.usage||{};
+    return ((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+  }
+
+  const CONCURRENCY=5;
+  for(let i=0;i<words.length;i+=CONCURRENCY){
+    const batch=words.slice(i,i+CONCURRENCY);
+    document.getElementById('bulk-status').textContent=`處理中 ${i+1}–${Math.min(i+CONCURRENCY,words.length)} / ${words.length}`;
+    document.getElementById('bulk-rpb').style.width=`${i/words.length*100}%`;
+    const results=await Promise.allSettled(batch.map(_processWord));
+    for(let j=0;j<batch.length;j++){
+      done++;
+      if(results[j].status==='fulfilled'){
+        added++;
+        totalCostUSD+=results[j].value;
+        logAiCost(results[j].value,'bulk_add');
+      }else{
+        failed.push(batch[j]);
+        if(!firstError) firstError=results[j].reason?.message||'未知錯誤';
       }
-      if(!zh) throw new Error('解析失敗');
-      const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
-      await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
-      const u=data.usage||{};
-      const c=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
-      totalCostUSD+=c;
-      logAiCost(c,'bulk_add');
-      added++;
-    }catch(e){failed.push(word);}
-    done++;
+    }
   }
   document.getElementById('bulk-rpb').style.width='100%';
   btn.disabled=false;
   const costStr=totalCostUSD>0?' · NT$'+(totalCostUSD*32).toFixed(3):'';
   const failStr=failed.length?`，失敗 ${failed.length} 個：${failed.join('、')}`:'';
-  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${failStr}${costStr}`,failed.length===0);
+  const errStr=firstError?`\n錯誤：${firstError}`:'';
+  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${failStr}${costStr}${errStr}`,failed.length===0);
   if(added>0){ await refreshVocab(); updateStats(); }
 }
 

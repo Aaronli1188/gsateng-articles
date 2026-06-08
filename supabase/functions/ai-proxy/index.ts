@@ -23,7 +23,7 @@ serve(async (req) => {
         });
       }
       const { provider: _p, model, ...geminiBody } = body;
-      const geminiModel = model || "gemini-2.5-flash-lite";
+      const geminiModel = model || "gemini-2.0-flash-lite";
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GOOGLE_KEY}`;
       const res = await fetch(url, {
         method: "POST",
