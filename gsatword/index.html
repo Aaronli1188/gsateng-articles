@@ -1917,8 +1917,9 @@ function showStudentActivity(sid,name){
     heatCells.push(`<div class="hm-cell" style="background:${bg}" data-tip="${d.slice(5)}: ${n}次"></div>`);
   }
   // Sessions list
+  const _toTW=s=>{const d=new Date(s);return d.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});};
   const sessHtml=ssns.length
-    ?ssns.slice(0,15).map(s=>`${s.slice(0,10)} ${s.slice(11,16)}`).join('<br>')
+    ?ssns.slice(0,15).map(_toTW).join('<br>')
     :'（無登入記錄）';
   // Billing
   const sCosts=(c.costMap||{})[sid]||[];
@@ -1927,14 +1928,16 @@ function showStudentActivity(sid,name){
   const actionLabel={explain:'解釋生成',add_word:'新增單字',bulk_explain:'批量生成'};
   // monthly breakdown
   const monthMap={};
+  const _twDate=s=>{const d=new Date(s);return d.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour12:false}).slice(0,10);};
+  const _twMonth=s=>{const d=new Date(s);return d.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',hour12:false}).slice(0,7);};
   for(const x of sCosts){
-    const m=x.created_at.slice(0,7);
+    const m=_twMonth(x.created_at);
     if(!monthMap[m]) monthMap[m]={usd:0,count:0};
     monthMap[m].usd+=x.cost_usd; monthMap[m].count++;
   }
   const monthRows=Object.entries(monthMap).sort((a,b)=>b[0].localeCompare(a[0]))
     .map(([m,v])=>`<tr><td>${m}</td><td style="text-align:right">${v.count} 次</td><td style="text-align:right;color:#e65100;font-weight:600">NT$${(v.usd*32).toFixed(2)}</td></tr>`).join('');
-  const recentCostRows=sCosts.slice(0,20).map(x=>`<tr><td>${x.created_at.slice(0,10)}</td><td>${actionLabel[x.action]||x.action}</td><td style="text-align:right;color:#e65100">NT$${(x.cost_usd*32).toFixed(4)}</td></tr>`).join('');
+  const recentCostRows=sCosts.slice(0,20).map(x=>`<tr><td>${_twDate(x.created_at)}</td><td>${actionLabel[x.action]||x.action}</td><td style="text-align:right;color:#e65100">NT$${(x.cost_usd*32).toFixed(4)}</td></tr>`).join('');
   const billingHtml=`
     <div class="act-section">
       <h4>AI 費用帳單</h4>
@@ -2207,7 +2210,8 @@ async function showCheckinModal(sid){
   let sessions = [];
   try{ sessions = await sbGet('student_sessions',`student_id=eq.${sid}&logged_in_at=gte.${ago120}&select=logged_in_at`); }catch(e){ return; }
 
-  const loginDays = new Set(sessions.map(s=>s.logged_in_at.slice(0,10)));
+  const _toTWDate=s=>{const d=new Date(s);return d.toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});};
+  const loginDays = new Set(sessions.map(s=>_toTWDate(s.logged_in_at)));
   loginDays.add(todayStr); // include today's fresh login
 
   // Streak (consecutive days ending today)
