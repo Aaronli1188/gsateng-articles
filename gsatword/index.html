@@ -1394,11 +1394,13 @@ async function doSync(){
     const fullText=(htmlDoc.body.innerText||htmlDoc.body.textContent||'').replace(/\s+/g,' ');
     const boldWords=new Set();
 
+    // Decode HTML entities before extracting words (prevents &nbsp; → "nbsp" prefix)
+    function _decEnt(s){return s.replace(/&[a-z]+;/gi,' ').replace(/&#\d+;/g,' ').replace(/&#x[0-9a-f]+;/gi,' ');}
+    function _addWords(raw){_decEnt(raw).trim().split(/[\s\u00a0]+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});}
+
     // Strategy 1: <b> / <strong> tags (mammoth output)
     const bsRe=/<(?:b|strong)(?:\s[^>]*)?>([^<]+)<\/(?:b|strong)>/gi;
-    let bm;while((bm=bsRe.exec(text))!==null){
-      bm[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
-    }
+    let bm;while((bm=bsRe.exec(text))!==null){_addWords(bm[1]);}
 
     // Strategy 2: Google Docs HTML — find bold CSS classes via raw regex on HTML string
     // then find span elements with those classes via raw regex
@@ -1412,16 +1414,12 @@ async function doSync(){
     if(boldClasses.size>0){
       const pat=Array.from(boldClasses).map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
       const spanRe=new RegExp('<span[^>]+class="[^"]*(?:'+pat+')[^"]*"[^>]*>([^<]+)<\\/span>','gi');
-      let sp;while((sp=spanRe.exec(text))!==null){
-        sp[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
-      }
+      let sp;while((sp=spanRe.exec(text))!==null){_addWords(sp[1]);}
     }
 
     // Strategy 3: inline style font-weight (fallback)
     const inlineRe=/<span[^>]+style="[^"]*font-weight\s*:\s*(?:700|bold)[^"]*"[^>]*>([^<]+)<\/span>/gi;
-    let im;while((im=inlineRe.exec(text))!==null){
-      im[1].trim().split(/\s+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
-    }
+    let im;while((im=inlineRe.exec(text))!==null){_addWords(im[1]);}
 
 
     const sentences=fullText.split(/(?<=[.!?])\s+/);
