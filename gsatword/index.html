@@ -335,7 +335,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         <button class="btn-pri" onclick="doSync()">匯入</button>
         <div class="sync-log" id="sync-log"></div>
         <div id="sync-msg"></div>
-        <div id="undo-banner" style="display:none;margin-top:16px;padding:12px 16px;background:#fff3e0;border-radius:8px;border-left:3px solid #e65100;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div id="undo-banner" style="display:none;margin-top:16px;padding:12px 16px;background:#fff3e0;border-radius:8px;border-left:3px solid #e65100;align-items:center;gap:12px;flex-wrap:wrap">
           <span id="undo-label" style="font-size:.85rem;color:#e65100;font-weight:600;flex:1"></span>
           <button class="btn-pri" style="background:#e65100;padding:7px 16px" onclick="undoLastImport()">復原此次匯入</button>
         </div>
@@ -920,6 +920,12 @@ async function callAnthropic(messages, maxTokens=256){
   return res.json();
 }
 
+function showCostToast(msg){
+  let t=document.getElementById('cost-toast');
+  if(!t){t=document.createElement('div');t.id='cost-toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:8px 16px;border-radius:8px;font-size:.82rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none';document.body.appendChild(t);}
+  t.textContent='AI 費用：'+msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},3000);
+}
 async function generateExplanation(vid){
   const sidStr=String(vid);
   const e=vocab.find(v=>String(v.id)===sidStr); if(!e) return;
@@ -941,12 +947,14 @@ async function generateExplanation(vid){
     const vi=vocab.findIndex(v=>String(v.id)===sidStr);
     if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
     const u=data.usage||{};
-    const costUSD=(((u.input_tokens||0)*1+(u.output_tokens||0)*5)/1e6);
+    // claude-haiku-4-5: $0.80 input / $4.00 output per MTok
+    const costUSD=(((u.input_tokens||0)*0.8+(u.output_tokens||0)*4)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
     if(btn){btn.title=`上次花費 NT$${costTWD}`;btn.textContent='✨';btn.disabled=false;}
     const costEl=document.getElementById('aicost-'+esc(vid));
     if(costEl){costEl.textContent='NT$'+costTWD;}
     else{const s=document.createElement('span');s.id='aicost-'+esc(vid);s.style.cssText='font-size:.7rem;color:#888;margin-left:2px';s.textContent='NT$'+costTWD;btn&&btn.parentNode&&btn.parentNode.insertBefore(s,btn.nextSibling);}
+    showCostToast('NT$'+costTWD);
     updateList();
     return parseFloat(costTWD);
   }catch(err){
