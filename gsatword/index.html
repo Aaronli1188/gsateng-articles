@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>gsatword</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh}
+body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh}
 
 /* Header */
 .hdr{background:#1a1a1a;color:#fff;padding:0 20px;display:flex;align-items:center;height:52px;gap:12px;position:sticky;top:0;z-index:20}
@@ -374,11 +376,28 @@ tr:hover td{background:rgba(124,58,237,.025)}
 #panel-add,#panel-sync{display:none;justify-content:center}
 #panel-add.active,#panel-sync.active{display:flex;flex-direction:column;align-items:center}
 #panel-add .form-sec,#panel-sync .form-sec{width:100%}
+
+/* Center all panel content */
+.panel.active{display:block}
+.rev-outer{max-width:780px;margin:0 auto}
+#panel-list .list-toolbar,#panel-list .tbl-wrap{max-width:1100px;margin-left:auto;margin-right:auto}
+#panel-stats>div{max-width:1100px;margin:0 auto}
+#panel-stats .stat-card{background:#fff;border-radius:var(--r,16px);padding:20px 24px;box-shadow:var(--card-sh,0 4px 20px rgba(124,58,237,.08));border:1px solid rgba(124,58,237,.07)}
+#panel-stats .stat-card p{font-size:.73rem;font-weight:700;color:var(--acc,#7c3aed);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+/* Sentence font */
+.sentence,.flash-card{font-family:'Plus Jakarta Sans',-apple-system,sans-serif}
+/* Title styling */
+.hdr h1{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-weight:800;font-size:.92rem}
 </style>
 </head>
 <body>
 
 <div class="hdr">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="30" height="30" style="flex-shrink:0">
+    <defs><linearGradient id="ig" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs>
+    <rect width="36" height="36" rx="9" fill="url(#ig)"/>
+    <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
+  </svg>
   <h1>GSATWORD</h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
@@ -476,28 +495,28 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <!-- Stats -->
     <div id="panel-stats" class="panel">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:20px">
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">每日複習量（最近 30 天）</p>
+        <div class="stat-card">
+          <p>每日複習量（最近 30 天）</p>
           <canvas id="chart-daily"></canvas>
         </div>
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">每日答對率（最近 30 天）</p>
+        <div class="stat-card">
+          <p>每日答對率（最近 30 天）</p>
           <canvas id="chart-acc"></canvas>
         </div>
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">單字累積數</p>
+        <div class="stat-card">
+          <p>單字累積數</p>
           <canvas id="chart-growth"></canvas>
         </div>
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">未來 14 天待複習預測</p>
+        <div class="stat-card">
+          <p>未來 14 天待複習預測</p>
           <canvas id="chart-forecast"></canvas>
         </div>
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">單字狀態分佈</p>
+        <div class="stat-card">
+          <p>單字狀態分佈</p>
           <canvas id="chart-status" style="max-width:280px;margin:0 auto;display:block"></canvas>
         </div>
-        <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-          <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">連對次數分佈</p>
+        <div class="stat-card">
+          <p>連對次數分佈</p>
           <canvas id="chart-streak"></canvas>
         </div>
       </div>
