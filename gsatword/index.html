@@ -534,6 +534,38 @@ function fsrsElapsed(card){
   if(!last) return 0;
   return Math.max(0,Math.round((new Date(today())-new Date(last))/86400000));
 }
+// Replay review history to backfill FSRS state for legacy cards
+function fsrsMigrateCard(card){
+  const rv=(card.reviews||[]).filter(r=>r.reviewed_at);
+  if(!rv.length) return null;
+  let st={sm_stability:null,sm_difficulty:null,sm_reps:0};
+  let prevDate=null;
+  for(const r of rv){
+    const grade=r.result==='y'?3:r.result==='too_easy'?4:1;
+    const elapsed=prevDate?Math.max(0,Math.round((new Date(r.reviewed_at)-new Date(prevDate))/86400000)):0;
+    const sched=fsrsSchedule(st,grade,elapsed);
+    st={sm_stability:sched.sm_stability,sm_difficulty:sched.sm_difficulty,sm_reps:sched.sm_reps};
+    prevDate=r.reviewed_at;
+  }
+  return st;
+}
+async function fsrsMigrateOldCards(){
+  const toMigrate=vocab.filter(v=>(!v.sm_reps||v.sm_reps===0)&&v.sm_stability==null&&(v.reviews||[]).length>0);
+  if(!toMigrate.length) return;
+  const updates=[];
+  for(const card of toMigrate){
+    const st=fsrsMigrateCard(card);
+    if(!st) continue;
+    const vi=vocab.findIndex(v=>v.id===card.id);
+    if(vi>=0) Object.assign(vocab[vi],st);
+    updates.push({id:card.id,...st});
+  }
+  // DB writes in background
+  for(const u of updates){
+    try{await sbPatch('vocabulary',`id=eq.${u.id}`,{sm_stability:u.sm_stability,sm_difficulty:u.sm_difficulty,sm_reps:u.sm_reps});}
+    catch(e){}
+  }
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let mode=''; // 'student' | 'teacher'
@@ -598,6 +630,7 @@ async function loadStudentView(token){
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
     await loadStudentIntervals(student.id);
     await refreshVocab();
+    fsrsMigrateOldCards(); // 背景補齊舊卡 FSRS 狀態，不擋 UI
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
