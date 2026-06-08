@@ -870,7 +870,7 @@ async function loadStudentView(token){
     await loadStudentIntervals(student.id);
     await refreshVocab();
     fsrsMigrateOldCards(); // 背景補齊舊卡 FSRS 狀態，不擋 UI
-    fsrsBumpOverdue();     // 過期卡 next_review 更新為今天
+    await fsrsBumpOverdue();     // 過期卡 next_review 更新為今天
     sbPost('student_sessions',{student_id:studentId}).catch(()=>{}); // 記錄登入
     showCheckinModal(student.id).catch(()=>{});
     hide('loading-screen');
