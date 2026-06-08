@@ -189,6 +189,27 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 .act-btn-sm{padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.75rem;color:#555;font-family:inherit}
 .act-btn-sm.danger{border-color:#ffcdd2;color:#c62828}
 .act-btn-sm.danger:hover{background:#ffebee}
+/* Student activity */
+.sc-status{display:flex;align-items:center;gap:6px;font-size:.78rem;margin:6px 0 4px}
+.sc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sc-dot.green{background:#2e7d32}.sc-dot.yellow{background:#f57f17}.sc-dot.red{background:#c62828}
+.sc-act-row{display:flex;align-items:center;gap:6px;margin-top:10px}
+.sc-act-btn{padding:4px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;font-size:.76rem;cursor:pointer;font-family:inherit}
+.sc-act-btn:hover{background:#f5f5f5}
+/* Activity modal */
+.act-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.act-modal{background:#fff;border-radius:14px;padding:28px 24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.act-modal h3{font-size:1.05rem;font-weight:700;margin:0 0 18px}
+.act-section{margin-bottom:20px}
+.act-section h4{font-size:.72rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+.act-kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.act-kpi{flex:1;min-width:100px;background:#f9f9f9;border-radius:8px;padding:10px 12px;text-align:center}
+.act-kpi .kv{font-size:1.4rem;font-weight:700;color:#1a1a1a}
+.act-kpi .kl{font-size:.72rem;color:#888;margin-top:2px}
+.heatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:4px}
+.hm-cell{aspect-ratio:1;border-radius:3px;cursor:default;position:relative}
+.hm-cell:hover::after{content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:.68rem;white-space:nowrap;padding:3px 7px;border-radius:4px;pointer-events:none;z-index:10}
+.session-list{font-size:.8rem;color:#555;line-height:1.9;max-height:140px;overflow-y:auto}
 
 /* Setup */
 #setup-screen{display:none;max-width:480px;margin:60px auto}
@@ -652,6 +673,7 @@ async function loadStudentView(token){
     await refreshVocab();
     fsrsMigrateOldCards(); // 背景補齊舊卡 FSRS 狀態，不擋 UI
     fsrsBumpOverdue();     // 過期卡 next_review 更新為今天
+    sbPost('student_sessions',{student_id:studentId}).catch(()=>{}); // 記錄登入
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -1447,9 +1469,30 @@ function showFormMsg(id,msg,ok){
 // ── Teacher View ──────────────────────────────────────────────────────────────
 async function loadTeacherView(){
   try{
-    const students=await sbGet('students','select=id,name,token&order=name');
     const t=today();
-    const allVocab=await sbGet('vocabulary','select=student_id,mastered,next_review&order=word');
+    const ago30=plusDays(t,-30);
+    const [students,allVocab,sessions,recentRevs]=await Promise.all([
+      sbGet('students','select=id,name,token&order=name'),
+      sbGet('vocabulary','select=id,student_id,mastered,next_review'),
+      sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
+      sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`)
+    ]);
+    // Build maps
+    const vocabSid={};
+    for(const v of allVocab) vocabSid[v.id]=v.student_id;
+    // sessions per student
+    const sessMap={};
+    for(const s of sessions){
+      if(!sessMap[s.student_id]) sessMap[s.student_id]=[];
+      sessMap[s.student_id].push(s.logged_in_at);
+    }
+    // reviews per student
+    const revMap={};
+    for(const r of recentRevs){
+      const sid=vocabSid[r.vocab_id]; if(!sid) continue;
+      if(!revMap[sid]) revMap[sid]=[];
+      revMap[sid].push(r);
+    }
     hide('loading-screen');
     show('teacher-view');
     const grid=document.getElementById('teacher-grid');
@@ -1460,15 +1503,29 @@ async function loadTeacherView(){
       const mastered=sv.filter(v=>v.mastered).length;
       const total=sv.length;
       const link=`${baseUrl}?s=${encodeURIComponent(s.token)}`;
+      // Activity
+      const srvs=revMap[s.id]||[];
+      const ssns=sessMap[s.id]||[];
+      const lastSess=ssns[0]||null;
+      const lastRev=srvs[0]?.reviewed_at||null;
+      const lastActive=lastSess||lastRev;
+      const daysSince=lastActive?Math.floor((new Date(t)-new Date(lastActive.slice(0,10)))/86400000):999;
+      const weekRevs=srvs.filter(r=>r.reviewed_at>=plusDays(t,-7)).length;
+      const dotCls=daysSince===0?'green':daysSince<=3?'yellow':'red';
+      const activeLabel=daysSince===0?'今天活躍':daysSince===1?'昨天':daysSince<999?`${daysSince} 天未登入`:'從未登入';
       return `<div style="background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 3px 12px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.07)'" onclick="showStudentDetail('${s.id}','${esc(s.name)}')">
         <div class="sc-name">${esc(s.name)}</div>
+        <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+        <div class="sc-act-row">
           <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
           <button class="sm" style="flex-shrink:0" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
+          <button class="sc-act-btn" onclick="event.stopPropagation();showStudentActivity('${s.id}','${esc(s.name)}')">📊</button>
         </div>
       </div>`;
     }).join('');
+    // Cache for activity modal
+    window._tcache={students,allVocab,sessMap,revMap,vocabSid};
   }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
 }
 
@@ -1594,6 +1651,68 @@ async function showStudentDetail(sid,name){
   updateList();
 }
 
+function closeActModal(){document.getElementById('act-modal-overlay').style.display='none';}
+function showStudentActivity(sid,name){
+  const c=window._tcache||{}; if(!c.allVocab) return;
+  const t=today();
+  const srvs=(c.revMap||{})[sid]||[];
+  const ssns=(c.sessMap||{})[sid]||[];
+  // KPIs
+  const total30=srvs.length;
+  const correct30=srvs.filter(r=>r.result==='y').length;
+  const acc=total30?Math.round(correct30/total30*100):0;
+  // Days with at least 1 review in last 30 days
+  const activeDays=new Set(srvs.map(r=>r.reviewed_at.slice(0,10)));
+  const avgPerDay=activeDays.size?Math.round(total30/activeDays.size):0;
+  // Consecutive streak (from today backwards)
+  let streak=0;
+  for(let i=0;i<60;i++){const d=plusDays(t,-i);if(activeDays.has(d))streak++;else if(i>0)break;}
+  // Vocab stats
+  const sv=(c.allVocab||[]).filter(v=>v.student_id===sid);
+  const due=sv.filter(v=>!v.mastered&&v.next_review&&v.next_review<=t).length;
+  const mastered=sv.filter(v=>v.mastered).length;
+  // Heatmap: last 30 days
+  const dayCount={};
+  for(const r of srvs) dayCount[r.reviewed_at.slice(0,10)]=(dayCount[r.reviewed_at.slice(0,10)]||0)+1;
+  const heatCells=[];
+  for(let i=29;i>=0;i--){
+    const d=plusDays(t,-i);
+    const n=dayCount[d]||0;
+    const bg=n===0?'#f0f0f0':n<=3?'#c8e6c9':n<=7?'#66bb6a':'#2e7d32';
+    heatCells.push(`<div class="hm-cell" style="background:${bg}" data-tip="${d.slice(5)}: ${n}次"></div>`);
+  }
+  // Sessions list
+  const sessHtml=ssns.length
+    ?ssns.slice(0,15).map(s=>`${s.slice(0,10)} ${s.slice(11,16)}`).join('<br>')
+    :'（無登入記錄）';
+  document.getElementById('act-modal-title').textContent=`${name} 學習報告`;
+  document.getElementById('act-modal-body').innerHTML=`
+    <div class="act-section">
+      <h4>近 30 天概況</h4>
+      <div class="act-kpi-row">
+        <div class="act-kpi"><div class="kv">${total30}</div><div class="kl">複習次數</div></div>
+        <div class="act-kpi"><div class="kv">${acc}%</div><div class="kl">答對率</div></div>
+        <div class="act-kpi"><div class="kv">${activeDays.size}</div><div class="kl">活躍天數</div></div>
+        <div class="act-kpi"><div class="kv">${streak}</div><div class="kl">連續複習天</div></div>
+      </div>
+      <div class="act-kpi-row">
+        <div class="act-kpi"><div class="kv">${avgPerDay}</div><div class="kl">每活躍日平均</div></div>
+        <div class="act-kpi"><div class="kv">${due}</div><div class="kl">今日積欠</div></div>
+        <div class="act-kpi"><div class="kv">${mastered}</div><div class="kl">已精熟</div></div>
+        <div class="act-kpi"><div class="kv">${sv.length}</div><div class="kl">單字總數</div></div>
+      </div>
+    </div>
+    <div class="act-section">
+      <h4>30 天複習熱力圖</h4>
+      <div style="font-size:.68rem;color:#aaa;margin-bottom:6px">30 天前 → 今天（顏色越深=複習越多）</div>
+      <div class="heatmap">${heatCells.join('')}</div>
+    </div>
+    <div class="act-section">
+      <h4>最近登入紀錄</h4>
+      <div class="session-list">${sessHtml}</div>
+    </div>`;
+  document.getElementById('act-modal-overlay').style.display='flex';
+}
 function showTeacherOverview(){
   hide('student-view');
   hide('main-nav');
@@ -1758,6 +1877,15 @@ async function renderStats(){
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
 </script>
+
+<!-- Student activity modal -->
+<div id="act-modal-overlay" class="act-modal-overlay" style="display:none" onclick="if(event.target===this)closeActModal()">
+  <div class="act-modal">
+    <h3 id="act-modal-title">學生活動報告</h3>
+    <div id="act-modal-body"></div>
+    <button class="sc-close" onclick="closeActModal()">關閉</button>
+  </div>
+</div>
 
 <!-- Shortcut settings modal -->
 <div id="shortcut-modal" class="sc-overlay" style="display:none" onclick="if(event.target===this)closeShortcutModal()">
