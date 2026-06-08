@@ -1551,8 +1551,8 @@ function copyLink(link,btn){
 }
 
 async function addStudentPrompt(){
-  const name=prompt('學生名稱（英數字、底線、連字號）：'); if(!name) return;
-  if(!/^[\w\-]+$/.test(name)){alert('名稱只能包含英數字、底線、連字號。');return;}
+  const name=(prompt('學生名稱：')||'').trim(); if(!name) return;
+  if(!/^[\w\u4e00-\u9fff\u3400-\u4dbf\-\s]+$/.test(name)){alert('名稱不能包含特殊符號。');return;}
   try{
     const existing=await sbGet('students',`name=eq.${encodeURIComponent(name)}&select=id,token`);
     if(existing.length){
