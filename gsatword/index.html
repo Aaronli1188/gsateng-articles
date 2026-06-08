@@ -711,8 +711,8 @@ async function sbPatch(table,filter,body){return sbFetch(`/rest/v1/${table}?${fi
 async function sbDelete(table,filter){return sbFetch(`/rest/v1/${table}?${filter}`,{method:'DELETE'});}
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
-function today(){return new Date().toISOString().slice(0,10);}
-function plusDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
+function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});}
+function plusDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function consecutiveCorrect(reviews){let c=0;for(let i=reviews.length-1;i>=0;i--){if(reviews[i].result==='y')c++;else break;}return c;}
@@ -776,6 +776,7 @@ function fsrsMigrateCard(card){
 async function fsrsBumpOverdue(){
   const t=today();
   const overdue=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review<t);
+  console.log('[overdue] today=',t,'overdue count=',overdue.length, overdue.map(v=>({id:v.id,word:v.word,next_review:v.next_review})));
   for(const v of overdue){
     // Record delay before bumping so renderCard can still show the warning
     const days=Math.round((new Date(t)-new Date(v.next_review))/864e5);
