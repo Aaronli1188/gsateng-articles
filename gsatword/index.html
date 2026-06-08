@@ -777,6 +777,9 @@ async function fsrsBumpOverdue(){
   const t=today();
   const overdue=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review<t);
   for(const v of overdue){
+    // Record delay before bumping so renderCard can still show the warning
+    const days=Math.round((new Date(t)-new Date(v.next_review))/864e5);
+    _overdueDelayMap[v.id]={days,original:v.next_review};
     try{
       await sbPatch('vocabulary',`id=eq.${v.id}`,{next_review:t});
       const vi=vocab.findIndex(x=>x.id===v.id);
@@ -810,6 +813,7 @@ let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
 let sortCol=null, sortDir=1;
 const _defSortDir={word:1,zh_meaning:1,streak:-1,next_review:1,first_seen:-1,mastered:-1};
 let reviewActive=false, teacherCurrentSid='', teacherCurrentName='', lastImportIds=[];
+const _overdueDelayMap={}; // id → days overdue before bump
 let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 let INTERVALS={...GLOBAL_INTERVALS};
 
@@ -988,20 +992,18 @@ function renderCard(){
   }
   reviewActive=true;
   const e=dueQueue[revIdx];
-  const _today=today();
-  // Overdue info for this card
-  const _daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/(864e5));
-  const _cardDelay=e.next_review&&e.next_review<_today?_daysBetween(e.next_review,_today):0;
-  const _cardOverdueHtml=_cardDelay>0
+  // Overdue info — use pre-bump delay map (cards already bumped to today)
+  const _od=_overdueDelayMap[e.id];
+  const _cardOverdueHtml=_od&&_od.days>0
     ?`<div style="background:#fff3e0;border-left:3px solid #e65100;border-radius:4px;padding:6px 10px;margin-bottom:8px;font-size:.78rem;color:#bf360c">
-        ⚠️ 本卡片預計在 <b>${e.next_review}</b> 完成，已推遲 <b>${_cardDelay}</b> 天
+        ⚠️ 本卡片預計在 <b>${_od.original}</b> 完成，已推遲 <b>${_od.days}</b> 天
       </div>`:'';
-  // Overdue summary banner (shown once, on first card)
+  // Summary banner on first card
   let _summaryHtml='';
   if(revIdx===0){
-    const _overdueCards=dueQueue.filter(c=>c.next_review&&c.next_review<_today);
+    const _overdueCards=dueQueue.filter(c=>_overdueDelayMap[c.id]);
     if(_overdueCards.length>0){
-      const _avgDelay=Math.round(_overdueCards.reduce((s,c)=>s+_daysBetween(c.next_review,_today),0)/_overdueCards.length);
+      const _avgDelay=Math.round(_overdueCards.reduce((s,c)=>s+(_overdueDelayMap[c.id]?.days||0),0)/_overdueCards.length);
       _summaryHtml=`<div style="background:#fbe9e7;border:1px solid #ffab91;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.8rem;color:#b71c1c;line-height:1.6">
         ⏰ <b>目前共有 ${_overdueCards.length} 張卡片</b>平均推遲了 <b>${_avgDelay} 天</b>未完成，請盡快完成！
       </div>`;
