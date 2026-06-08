@@ -225,6 +225,37 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
 .cfg-msg{margin-top:10px;padding:9px 13px;border-radius:7px;font-size:.85rem}
 .cfg-msg.err{background:#ffebee;color:#c62828}
 .cfg-msg.ok{background:#e8f5e9;color:#2e7d32}
+
+/* ── Check-in modal ─────────────────────────────────────────────────── */
+.ci-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px}
+.ci-card{background:#111;border-radius:28px;padding:36px 28px 28px;width:100%;max-width:340px;text-align:center;color:#fff;position:relative;overflow:hidden;animation:ci-pop .35s cubic-bezier(.34,1.56,.64,1) forwards}
+.ci-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,107,53,.18) 0%,transparent 70%);pointer-events:none}
+.ci-fire{font-size:3.8rem;display:block;margin-bottom:4px;animation:ci-bounce .7s ease-in-out infinite alternate;filter:drop-shadow(0 0 12px rgba(255,160,0,.7))}
+.ci-streak-num{font-size:5.5rem;font-weight:900;line-height:1;background:linear-gradient(135deg,#ff6b35 30%,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em}
+.ci-streak-unit{font-size:1.1rem;font-weight:700;color:#ff9f3f;letter-spacing:.08em;margin-bottom:6px}
+.ci-msg{font-size:.88rem;color:#aaa;margin:10px 0 20px;line-height:1.6;min-height:2.4em}
+.ci-stats-row{display:flex;gap:12px;margin-bottom:22px}
+.ci-stat{flex:1;background:#1e1e1e;border-radius:12px;padding:12px 8px}
+.ci-stat-n{font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ci-stat-l{font-size:.7rem;color:#666;margin-top:2px;letter-spacing:.04em}
+.ci-calendar-wrap{margin-bottom:22px}
+.ci-cal-title{font-size:.68rem;color:#555;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.ci-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.ci-cal-hd{font-size:.6rem;color:#444;text-align:center;padding-bottom:3px}
+.ci-cal-day{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#444;background:#1a1a1a}
+.ci-cal-day.has-login{background:linear-gradient(135deg,#ff6b35,#ffd700);color:#000;font-weight:800}
+.ci-cal-day.today{box-shadow:0 0 0 2px #ffd700;color:#ffd700}
+.ci-cal-day.today.has-login{color:#000}
+.ci-cal-day.empty{background:none}
+.ci-btn{width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#ff6b35,#ffd700);color:#000;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.04em;box-shadow:0 4px 20px rgba(255,107,53,.4);transition:transform .1s,box-shadow .1s}
+.ci-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(255,107,53,.5)}
+.ci-btn:active{transform:translateY(0)}
+.ci-milestone{position:absolute;top:12px;right:14px;background:linear-gradient(135deg,#ffd700,#ff6b35);color:#000;font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+/* confetti */
+.ci-confetti-piece{position:fixed;width:8px;height:10px;border-radius:2px;top:-12px;pointer-events:none;animation:ci-confetti-fall linear forwards}
+@keyframes ci-confetti-fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes ci-pop{from{opacity:0;transform:scale(.75) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes ci-bounce{from{transform:translateY(0) scale(1)}to{transform:translateY(-10px) scale(1.05)}}
 </style>
 </head>
 <body>
@@ -674,6 +705,7 @@ async function loadStudentView(token){
     fsrsMigrateOldCards(); // 背景補齊舊卡 FSRS 狀態，不擋 UI
     fsrsBumpOverdue();     // 過期卡 next_review 更新為今天
     sbPost('student_sessions',{student_id:studentId}).catch(()=>{}); // 記錄登入
+    showCheckinModal(student.id).catch(()=>{});
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -1919,6 +1951,115 @@ async function renderStats(){
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
+
+// ── Check-in modal ──────────────────────────────────────────────────
+const CI_MSGS = [
+  [1,1,'歡迎！踏出第一步，開始你的單字旅程 🌱'],
+  [2,3,'連續 {n} 天！好的開始是成功的一半 🎯'],
+  [4,6,'連續 {n} 天！學習節奏已經建立起來了 ⚡'],
+  [7,13,'整整一週！這股氣勢，繼續保持下去 🌟'],
+  [14,20,'兩週了！你的單字量一定已經大幅提升 📈'],
+  [21,29,'三週連打！紀律和堅持是你的超能力 💎'],
+  [30,49,'一個月！你是我見過最有毅力的學習者 👑'],
+  [50,99,'五十天！距離英文高手只差臨門一腳 🏆'],
+  [100,9999,'百日傳說！你就是傳說 🔥🏆🔥'],
+];
+const CI_MILESTONES = new Set([7,14,21,30,50,100,200,365]);
+
+function ciMsg(n){
+  for(const [lo,hi,m] of CI_MSGS){
+    if(n>=lo&&n<=hi) return m.replace('{n}',n);
+  }
+  return `連續 ${n} 天！你太強了 🚀`;
+}
+
+function ciConfetti(){
+  const colors=['#ff6b35','#ffd700','#a78bfa','#60a5fa','#34d399','#f472b6'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');
+    el.className='ci-confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${colors[i%colors.length]};animation-duration:${1.2+Math.random()*1.6}s;animation-delay:${Math.random()*.8}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),(3000+Math.random()*1600));
+  }
+}
+
+function ciCalendar(loginDays, todayStr){
+  const [y,m] = todayStr.split('-').map(Number);
+  const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  document.getElementById('ci-cal-title').textContent = `${y} 年 ${monthNames[m-1]}`;
+  const firstDay = new Date(y,m-1,1).getDay(); // 0=Sun
+  const daysInMonth = new Date(y,m,0).getDate();
+  const monthPrefix = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}`;
+  const cells = [];
+  // Header
+  ['日','一','二','三','四','五','六'].forEach(d=>{
+    cells.push(`<div class="ci-cal-hd">${d}</div>`);
+  });
+  for(let i=0;i<firstDay;i++) cells.push('<div class="ci-cal-day empty"></div>');
+  for(let d=1;d<=daysInMonth;d++){
+    const ds = `${monthPrefix}-${String(d).padStart(2,'0')}`;
+    const hasLogin = loginDays.has(ds);
+    const isToday = ds === todayStr;
+    let cls = 'ci-cal-day';
+    if(hasLogin) cls += ' has-login';
+    if(isToday) cls += ' today';
+    cells.push(`<div class="${cls}">${d}</div>`);
+  }
+  document.getElementById('ci-calendar').innerHTML = cells.join('');
+}
+
+async function showCheckinModal(sid){
+  const todayStr = today();
+  const ck = `gsatword_ci_${sid}`;
+  if(localStorage.getItem(ck) === todayStr) return;
+  localStorage.setItem(ck, todayStr);
+
+  // Fetch last 120 days of sessions
+  const ago120 = plusDays(todayStr,-120);
+  let sessions = [];
+  try{ sessions = await sbGet('student_sessions',`student_id=eq.${sid}&logged_in_at=gte.${ago120}&select=logged_in_at`); }catch(e){ return; }
+
+  const loginDays = new Set(sessions.map(s=>s.logged_in_at.slice(0,10)));
+  loginDays.add(todayStr); // include today's fresh login
+
+  // Streak (consecutive days ending today)
+  let streak = 0;
+  for(let i=0;i<120;i++){
+    if(loginDays.has(plusDays(todayStr,-i))) streak++;
+    else if(i>0) break;
+  }
+
+  // Monthly count
+  const mp = todayStr.slice(0,7);
+  const monthCount = [...loginDays].filter(d=>d.startsWith(mp)).length;
+
+  // Total unique days
+  const totalDays = loginDays.size;
+
+  // Render
+  document.getElementById('ci-streak-num').textContent = streak;
+  document.getElementById('ci-msg').textContent = ciMsg(streak);
+  document.getElementById('ci-month-count').textContent = monthCount;
+  document.getElementById('ci-total-days').textContent = totalDays;
+  ciCalendar(loginDays, todayStr);
+
+  const badge = document.getElementById('ci-milestone-badge');
+  if(CI_MILESTONES.has(streak)){
+    badge.textContent = `🏅 ${streak} 天里程碑！`;
+    badge.style.display = '';
+    setTimeout(ciConfetti, 400);
+  } else {
+    badge.style.display = 'none';
+  }
+
+  document.getElementById('ci-overlay').style.display = 'flex';
+}
+
+function closeCi(){
+  document.getElementById('ci-overlay').style.display = 'none';
+}
+
 </script>
 
 <!-- Student activity modal -->
@@ -1936,6 +2077,32 @@ init();
     <h3>⌨️ 自訂快捷鍵</h3>
     <div id="sc-rows"></div>
     <button class="sc-close" onclick="closeShortcutModal()">關閉</button>
+  </div>
+</div>
+
+<!-- ── Check-in modal ─────────────────────────────────────────────── -->
+<div class="ci-overlay" id="ci-overlay" style="display:none" onclick="if(event.target===this)closeCi()">
+  <div class="ci-card" id="ci-card">
+    <div id="ci-milestone-badge" class="ci-milestone" style="display:none"></div>
+    <span class="ci-fire">🔥</span>
+    <div class="ci-streak-num" id="ci-streak-num">1</div>
+    <div class="ci-streak-unit">天連續打卡</div>
+    <div class="ci-msg" id="ci-msg"></div>
+    <div class="ci-stats-row">
+      <div class="ci-stat">
+        <div class="ci-stat-n" id="ci-month-count">1</div>
+        <div class="ci-stat-l">本月天數</div>
+      </div>
+      <div class="ci-stat">
+        <div class="ci-stat-n" id="ci-total-days">1</div>
+        <div class="ci-stat-l">累計天數</div>
+      </div>
+    </div>
+    <div class="ci-calendar-wrap">
+      <div class="ci-cal-title" id="ci-cal-title"></div>
+      <div class="ci-calendar" id="ci-calendar"></div>
+    </div>
+    <button class="ci-btn" onclick="closeCi()">繼續學習 →</button>
   </div>
 </div>
 </body>
