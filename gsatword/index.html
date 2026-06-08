@@ -1086,7 +1086,7 @@ function updateList(){
       <td class="ctx" data-full="${esc(e.context||'')}" onclick="toggleCtx(this)">${esc(ctx)}</td>
       <td style="max-width:200px;font-size:.8rem">${exHtml}</td>
       <td>${e.streak??0}</td>
-      <td>${e.next_review?(e.next_review<t?`<span style="color:#c62828;font-weight:600">今日</span>`:e.next_review):'—'}</td>
+      <td>${e.next_review?(e.next_review<t?`<span style="color:#c62828;font-weight:600">今日</span>`:e.next_review===t?`<span style="color:#e65100;font-weight:600">今日</span>`:e.next_review):'—'}</td>
       <td>${e.first_seen||'—'}</td>
       <td>${badge}</td>
       <td>
