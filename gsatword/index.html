@@ -549,6 +549,17 @@ function fsrsMigrateCard(card){
   }
   return st;
 }
+async function fsrsBumpOverdue(){
+  const t=today();
+  const overdue=vocab.filter(v=>!v.mastered&&v.next_review&&v.next_review<t);
+  for(const v of overdue){
+    try{
+      await sbPatch('vocabulary',`id=eq.${v.id}`,{next_review:t});
+      const vi=vocab.findIndex(x=>x.id===v.id);
+      if(vi>=0) vocab[vi].next_review=t;
+    }catch(e){}
+  }
+}
 async function fsrsMigrateOldCards(){
   const toMigrate=vocab.filter(v=>(!v.sm_reps||v.sm_reps===0)&&v.sm_stability==null&&(v.reviews||[]).length>0);
   if(!toMigrate.length) return;
@@ -631,6 +642,7 @@ async function loadStudentView(token){
     await loadStudentIntervals(student.id);
     await refreshVocab();
     fsrsMigrateOldCards(); // 背景補齊舊卡 FSRS 狀態，不擋 UI
+    fsrsBumpOverdue();     // 過期卡 next_review 更新為今天
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -1043,7 +1055,7 @@ function updateList(){
       <td class="ctx" data-full="${esc(e.context||'')}" onclick="toggleCtx(this)">${esc(ctx)}</td>
       <td style="max-width:200px;font-size:.8rem">${exHtml}</td>
       <td>${e.streak??0}</td>
-      <td>${e.next_review||'—'}</td>
+      <td>${e.next_review?(e.next_review<t?`<span style="color:#c62828;font-weight:600">今日</span>`:e.next_review):'—'}</td>
       <td>${e.first_seen||'—'}</td>
       <td>${badge}</td>
       <td>
