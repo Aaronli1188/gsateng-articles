@@ -222,8 +222,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
         <div class="mode-bar">
           <button class="rev-mode-btn active" onclick="setRevMode('normal',this)">今日複習</button>
           <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">全部練習（無痕）</button>
-          <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">測驗模式</button>
-          <button class="rev-mode-btn" onclick="setRevMode('quiz_incognito',this)">測驗（無痕）</button>
+          <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">選擇日期測驗</button>
         </div>
         <div id="quiz-picker" style="display:none">
           <div class="quiz-dates">
@@ -596,7 +595,7 @@ function setRevMode(m,btn){
   reviewMode=m;
   document.querySelectorAll('.rev-mode-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const isQuiz=m==='quiz'||m==='quiz_incognito';
+  const isQuiz=m==='quiz';
   document.getElementById('quiz-picker').style.display=isQuiz?'block':'none';
   if(isQuiz) renderQuizPicker(); else initReview();
 }
@@ -629,7 +628,7 @@ function startQuiz(){
 
 function initReview(){
   reviewActive=false;
-  const isQuiz=reviewMode==='quiz'||reviewMode==='quiz_incognito';
+  const isQuiz=reviewMode==='quiz';
   if(isQuiz){renderQuizPicker();return;}
   const t=today();
   const pool=reviewMode==='incognito'?[...vocab]:vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
@@ -640,10 +639,10 @@ function initReview(){
 
 function renderCard(){
   const wrap=document.getElementById('rev-wrap');
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
   if(!dueQueue.length){
     reviewActive=false;
-    const isQuiz=reviewMode==='quiz'||reviewMode==='quiz_incognito';
+    const isQuiz=reviewMode==='quiz';
     if(isQuiz){wrap.innerHTML='<div class="done"><h2>沒有符合的單字</h2><p>選取的日期沒有任何單字。</p></div>';return;}
     if(incognito){wrap.innerHTML='<div class="done"><h2>沒有任何單字</h2><p>請先匯入單字。</p></div>';return;}
     const nxt=vocab.filter(e=>!e.mastered&&e.next_review).map(e=>e.next_review).sort()[0];
@@ -656,7 +655,7 @@ function renderCard(){
     const easy=dueQueue.filter(e=>e._r==='easy').length;
     const n=dueQueue.length-y-easy;
     const note=incognito?'<p style="color:#7b1fa2;font-size:.82rem;margin-top:8px">進度未寫入</p>':'';
-    wrap.innerHTML=`<div class="done"><h2>${incognito?'練習完成（無痕）':'複習完成'}</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p>${note}</div>`;
+    wrap.innerHTML=`<div class="done"><h2>${reviewMode==='quiz'?'測驗完成':incognito?'練習完成（無痕）':'複習完成'}</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p>${note}</div>`;
     return;
   }
   reviewActive=true;
@@ -664,33 +663,45 @@ function renderCard(){
   const hi=e.context
     ?e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
     :`<span class="whi">${esc(e.word)}</span>（無例句）`;
-  const modeLabel=reviewMode==='quiz'?'測驗':reviewMode==='quiz_incognito'?'測驗（無痕）':incognito?'無痕':'';
+  const modeLabel=reviewMode==='quiz'?'選擇日期測驗':incognito?'無痕':'';
   const badge=modeLabel?`<span class="incognito-badge">${modeLabel}</span>`:'';
   const markCls=e.marked?'act-btn act-mark marked':'act-btn act-mark';
-  const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'';
+  const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'<div class="zh-hint" style="color:#bbb;font-size:.82rem">（尚無解釋）</div>';
   wrap.innerHTML=`
     <div class="prog">${revIdx+1} / ${dueQueue.length}${badge}</div>
     <div class="flash-card">
       <div class="sentence">${hi}</div>
-      ${zhBlock}
-      <div class="rev-btns">
-        <button class="btn-y" id="by" onclick="doReview('y')">認識 <kbd>Y</kbd></button>
-        <button class="btn-n" id="bn" onclick="doReview('n')">不認識 <kbd>N</kbd></button>
+      <div id="reveal-btn-wrap">
+        <button class="btn-reveal" onclick="revealAnswer()">顯示解釋 ▾</button>
       </div>
-      <div class="feedback" id="fb"></div>
-      <div class="card-actions">
-        <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
-        <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
-        <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
-      </div>
-      <div class="memo-area">
-        <textarea id="memo-input" placeholder="備忘（可留空）">${esc(e.memo||'')}</textarea>
-        <div class="memo-row">
-          <button class="act-btn act-memo" onclick="saveMemo('${e.id}')">儲存備忘</button>
-          <span id="memo-msg" class="memo-ok"></span>
+      <div class="reveal-section" id="reveal-section" style="display:none">
+        ${zhBlock}
+        <div class="rev-btns">
+          <button class="btn-y" id="by" onclick="doReview('y')">認識 <kbd>Y</kbd></button>
+          <button class="btn-n" id="bn" onclick="doReview('n')">不認識 <kbd>N</kbd></button>
+        </div>
+        <div class="feedback" id="fb"></div>
+        <div class="card-actions">
+          <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
+          <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
+          <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
+        </div>
+        <div class="memo-area">
+          <textarea id="memo-input" placeholder="備忘（可留空）">${esc(e.memo||'')}</textarea>
+          <div class="memo-row">
+            <button class="act-btn act-memo" onclick="saveMemo('${e.id}')">儲存備忘</button>
+            <span id="memo-msg" class="memo-ok"></span>
+          </div>
         </div>
       </div>
     </div>`;
+}
+function revealAnswer(){
+  const s=document.getElementById('reveal-section');
+  const b=document.getElementById('reveal-btn-wrap');
+  if(s){s.style.display='';}
+  if(b){b.style.display='none';}
+  document.getElementById('by')?.focus();
 }
 
 async function doReview(result){
@@ -698,7 +709,7 @@ async function doReview(result){
   const by=document.getElementById('by'),bn=document.getElementById('bn');
   if(by) by.disabled=true; if(bn) bn.disabled=true;
   const e=dueQueue[revIdx]; e._r=result;
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
   const fb=document.getElementById('fb');
   if(!incognito){
     try{
@@ -736,7 +747,7 @@ async function cardDelete(vid,word){
 }
 
 async function cardTooEasy(vid,word){
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz_incognito';
+  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
   const e=dueQueue[revIdx]; if(e) e._r='easy';
   const fb=document.getElementById('fb');
   if(fb){fb.textContent=incognito?'⚡ 跳過（不計入進度）':'⚡ 已設為 30 天後複習';fb.style.color='#2e7d32';}
@@ -780,6 +791,9 @@ async function saveMemo(vid){
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('panel-review').classList.contains('active')) return;
   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  const revealed=document.getElementById('reveal-section')?.style.display!=='none';
+  if(e.key===' '||e.key==='Enter'){if(!revealed){revealAnswer();e.preventDefault();return;}}
+  if(!revealed) return;
   if(e.key==='y'||e.key==='Y') doReview('y');
   if(e.key==='n'||e.key==='N') doReview('n');
 });
