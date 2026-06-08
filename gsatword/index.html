@@ -1339,7 +1339,7 @@ async function callGemini(messages, maxTokens=256){
   const contents=messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
   const res=await fetch(proxyUrl,{
     method:'POST',
-    headers:{'content-type':'application/json'},
+    headers:{'content-type':'application/json','Authorization':'Bearer '+sbKey,'apikey':sbKey},
     body:JSON.stringify({provider:'gemini',model:'gemini-2.0-flash-lite',contents,generationConfig:{maxOutputTokens:maxTokens}})
   });
   if(!res.ok){const t=await res.text();throw new Error('Gemini proxy '+res.status+': '+t.slice(0,200));}
