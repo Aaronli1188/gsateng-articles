@@ -68,6 +68,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .zh-hint{margin:10px 0 6px;padding:10px 14px;background:#f5f5f5;border-radius:8px;border-left:3px solid #bdbdbd}
 .zh-meaning{font-size:1rem;color:#333;font-weight:600;margin-bottom:4px}
 .zh-context{font-size:.9rem;color:#666;font-style:italic}
+.btn-reveal{display:block;width:60%;max-width:260px;padding:16px 0;margin:24px auto 0;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.02em;text-align:center}
+.btn-reveal:hover{background:#333}
+.sc-btn{width:42px;border:none;border-left:1px solid #ddd;background:#fff;cursor:pointer;font-size:1rem;color:#999;flex-shrink:0}
+.sc-btn:hover{background:#f5f5f5;color:#333}
+.sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
+.sc-modal{background:#fff;border-radius:12px;padding:28px 24px;min-width:300px;max-width:400px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.sc-modal h3{font-size:1rem;font-weight:700;margin:0 0 16px;color:#1a1a1a}
+.sc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f0}
+.sc-row:last-of-type{border-bottom:none}
+.sc-label{flex:1;font-size:.9rem;color:#333}
+.sc-key{display:inline-block;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:2px 10px;font-size:.82rem;font-family:monospace;min-width:44px;text-align:center}
+.sc-edit{padding:5px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;font-size:.78rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.sc-edit.listening{background:#e3f2fd;border-color:#1565c0;color:#1565c0}
+.sc-close{display:block;width:100%;margin-top:18px;padding:9px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.88rem}
 
 /* Quiz date picker */
 .quiz-dates{background:#fff;border-radius:8px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
@@ -223,6 +237,7 @@ input[type=checkbox]{cursor:pointer;width:15px;height:15px}
           <button class="rev-mode-btn active" onclick="setRevMode('normal',this)">今日複習</button>
           <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">全部練習（無痕）</button>
           <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">選擇日期測驗</button>
+          <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()">⌨</button>
         </div>
         <div id="quiz-picker" style="display:none">
           <div class="quiz-dates">
@@ -672,13 +687,13 @@ function renderCard(){
     <div class="flash-card">
       <div class="sentence">${hi}</div>
       <div id="reveal-btn-wrap">
-        <button class="btn-reveal" onclick="revealAnswer()">顯示解釋 ▾</button>
+        <button class="btn-reveal" onclick="revealAnswer()">顯示解釋 <span style="font-size:.78em;opacity:.55;font-weight:400">[${scKeyLabel(SHORTCUTS.reveal)}]</span></button>
       </div>
       <div class="reveal-section" id="reveal-section" style="display:none">
         ${zhBlock}
         <div class="rev-btns">
-          <button class="btn-y" id="by" onclick="doReview('y')">認識 <kbd>Y</kbd></button>
-          <button class="btn-n" id="bn" onclick="doReview('n')">不認識 <kbd>N</kbd></button>
+          <button class="btn-y" id="by" onclick="doReview('y')">認識</button>
+          <button class="btn-n" id="bn" onclick="doReview('n')">不認識</button>
         </div>
         <div class="feedback" id="fb"></div>
         <div class="card-actions">
@@ -788,14 +803,72 @@ async function saveMemo(vid){
   }catch(err){}
 }
 
+// ── Shortcuts ─────────────────────────────────────────────────────────────────
+const SC_DEFAULTS={reveal:' ',yes:'y',no:'n',del:'d',easy:'e',mark:'m'};
+let SHORTCUTS={...SC_DEFAULTS,...JSON.parse(localStorage.getItem('gsatword_shortcuts')||'{}')};
+const SC_LABELS={reveal:'顯示解釋',yes:'認識',no:'不認識',del:'刪除',easy:'太簡單',mark:'標記'};
+function scKeyLabel(k){return k===' '?'Space':k==='Enter'?'Enter':k==='Escape'?'Esc':(k&&k.length===1?k.toUpperCase():k||'—');}
+function saveShortcuts(){localStorage.setItem('gsatword_shortcuts',JSON.stringify(SHORTCUTS));}
+
+function openShortcutModal(){
+  const rows=document.getElementById('sc-rows');
+  rows.innerHTML=Object.entries(SC_LABELS).map(([id,label])=>`
+    <div class="sc-row">
+      <span class="sc-label">${label}</span>
+      <span class="sc-key" id="sc-key-${id}">${scKeyLabel(SHORTCUTS[id]??SC_DEFAULTS[id])}</span>
+      <button class="sc-edit" id="sc-btn-${id}" onclick="listenShortcut('${id}')">修改</button>
+    </div>`).join('');
+  document.getElementById('shortcut-modal').style.display='flex';
+}
+function closeShortcutModal(){
+  document.getElementById('shortcut-modal').style.display='none';
+  _scListening=null;
+}
+let _scListening=null;
+function listenShortcut(id){
+  if(_scListening){
+    const p=document.getElementById('sc-btn-'+_scListening);
+    if(p){p.textContent='修改';p.classList.remove('listening');}
+  }
+  _scListening=id;
+  const btn=document.getElementById('sc-btn-'+id);
+  if(btn){btn.textContent='按下新鍵…';btn.classList.add('listening');}
+}
+document.addEventListener('keydown',function scCapture(e){
+  if(!_scListening) return;
+  e.preventDefault();e.stopPropagation();
+  if(e.key==='Escape'){
+    const b=document.getElementById('sc-btn-'+_scListening);
+    if(b){b.textContent='修改';b.classList.remove('listening');}
+    _scListening=null;return;
+  }
+  SHORTCUTS[_scListening]=e.key;
+  saveShortcuts();
+  const ks=document.getElementById('sc-key-'+_scListening);
+  if(ks) ks.textContent=scKeyLabel(e.key);
+  const b=document.getElementById('sc-btn-'+_scListening);
+  if(b){b.textContent='修改';b.classList.remove('listening');}
+  _scListening=null;
+  // re-render card to update button label
+  if(document.getElementById('reveal-btn-wrap')) renderCard();
+},true);
+
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('panel-review').classList.contains('active')) return;
+  if(document.getElementById('shortcut-modal')?.style.display!=='none') return;
   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
   const revealed=document.getElementById('reveal-section')?.style.display!=='none';
-  if(e.key===' '||e.key==='Enter'){if(!revealed){revealAnswer();e.preventDefault();return;}}
+  const k=e.key;
+  const match=(a)=>!a?false:k===a||(a.length===1&&k.toLowerCase()===a.toLowerCase());
+  if(match(SHORTCUTS.reveal)){if(!revealed){revealAnswer();e.preventDefault();return;}}
   if(!revealed) return;
-  if(e.key==='y'||e.key==='Y') doReview('y');
-  if(e.key==='n'||e.key==='N') doReview('n');
+  const card=dueQueue[revIdx];
+  if(!card) return;
+  if(match(SHORTCUTS.yes)){e.preventDefault();doReview('y');}
+  else if(match(SHORTCUTS.no)){e.preventDefault();doReview('n');}
+  else if(match(SHORTCUTS.del)){e.preventDefault();cardDelete(card.id,card.word);}
+  else if(match(SHORTCUTS.easy)){e.preventDefault();cardTooEasy(card.id,card.word);}
+  else if(match(SHORTCUTS.mark)){e.preventDefault();cardMark(card.id,card.word);}
 });
 
 // ── List ──────────────────────────────────────────────────────────────────────
@@ -1539,5 +1612,14 @@ async function renderStats(){
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
 </script>
+
+<!-- Shortcut settings modal -->
+<div id="shortcut-modal" class="sc-overlay" style="display:none" onclick="if(event.target===this)closeShortcutModal()">
+  <div class="sc-modal">
+    <h3>⌨️ 自訂快捷鍵</h3>
+    <div id="sc-rows"></div>
+    <button class="sc-close" onclick="closeShortcutModal()">關閉</button>
+  </div>
+</div>
 </body>
 </html>
