@@ -839,9 +839,8 @@ async function init(){
   else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
   else { SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||''; }
   try{
-    const cfgRows=await sbGet('app_config','key=in.(anthropic_key,review_intervals)&select=key,value');
+    const cfgRows=await sbGet('app_config','key=eq.review_intervals&select=key,value');
     for(const r of cfgRows){
-      if(r.key==='anthropic_key') ANT_KEY=(r.value||'').trim();
       if(r.key==='review_intervals') try{const p=JSON.parse(r.value);GLOBAL_INTERVALS={...GLOBAL_INTERVALS,...p};INTERVALS={...GLOBAL_INTERVALS};}catch(e){}
     }
   }catch(e){}
