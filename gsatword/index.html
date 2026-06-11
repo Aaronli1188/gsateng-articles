@@ -610,6 +610,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <div class="setup-field"><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxx.supabase.co（不要加 /rest/v1）"></div>
     <div class="setup-field"><label>Supabase Anon Key</label><input id="cfg-key" placeholder="eyJ..."></div>
     <div class="setup-field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
+    <div class="setup-field"><label>Service Role Key（老師用，繞過 RLS，可在 Supabase > Settings > API 取得）</label><input id="cfg-svckey" placeholder="eyJ...service_role..."></div>
     <div class="setup-field"><label>Anthropic API Key（選填，用於匯入生單字）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
     <button class="btn-dark" onclick="saveConfig()">儲存並繼續</button>
     <div id="cfg-msg"></div>
@@ -682,23 +683,25 @@ function saveConfig(){
   const url=document.getElementById('cfg-url').value.trim().replace(/\/+$/,'').replace(/\/rest\/v1$/,'');
   const key=document.getElementById('cfg-key').value.trim();
   const teacher=document.getElementById('cfg-teacher').value.trim();
+  const svckey=document.getElementById('cfg-svckey').value.trim();
   const ant=document.getElementById('cfg-ant').value.trim();
   if(!url||!key){showCfgMsg('請填寫 URL 和 Key','err');return;}
-  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,ant}));
+  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,svckey,ant}));
   showCfgMsg('已儲存，重新載入…','ok');
   setTimeout(()=>location.reload(),800);
 }
 function showCfgMsg(t,c){const e=document.getElementById('cfg-msg');e.textContent=t;e.className='cfg-msg '+c;}
 
 /// ── Supabase ──────────────────────────────────────────────────────────────────
-let SB_URL='',SB_KEY='',ANT_KEY='';
+let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',STUDENT_TOKEN='';
 async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
   const _url=SB_URL||DEFAULT_SB_URL;
   const sep=path.includes('?')?'&':'?';
   const {headers:_h,..._rest}=opts;
+  const _extraHdrs=STUDENT_TOKEN?{'x-student-token':STUDENT_TOKEN}:{};
   const res=await fetch(_url+path+sep+'apikey='+_key,{
-    headers:{'Content-Type':'application/json','Prefer':'return=representation',...(_h||{})},
+    headers:{'Content-Type':'application/json','Prefer':'return=representation',..._extraHdrs,...(_h||{})},
     ..._rest
   });
   if(!res.ok){const t=await res.text();throw new Error(t);}
@@ -835,9 +838,9 @@ async function init(){
   const sToken=params.get('s'), tToken=params.get('teacher');
   const cfg=getConfig();
   // Student links always use defaults — never show setup screen
-  if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; }
+  if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; STUDENT_TOKEN=sToken; }
   else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
-  else { SB_URL=cfg.url; SB_KEY=cfg.key; ANT_KEY=cfg.ant||''; }
+  else { SB_URL=cfg.url; SB_KEY=cfg.svckey||cfg.key; SB_SVC_KEY=cfg.svckey||''; ANT_KEY=cfg.ant||''; }
   try{
     const cfgRows=await sbGet('app_config','key=eq.review_intervals&select=key,value');
     for(const r of cfgRows){
