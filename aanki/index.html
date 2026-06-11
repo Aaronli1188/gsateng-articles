@@ -675,6 +675,13 @@ tr:hover td{background:rgba(124,58,237,.025)}
 </div>
 
 <script>
+/// ── Migrate old gsatword localStorage keys → aanki (runs once) ───────────────
+(function(){
+  const pairs=[['gsatword_config','aanki_config'],['gsatword_shortcuts','aanki_shortcuts']];
+  pairs.forEach(([o,n])=>{if(localStorage.getItem(o)!==null&&localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(o));});
+  Object.keys(localStorage).filter(k=>k.startsWith('gsatword_ci_')).forEach(k=>{const nk=k.replace('gsatword_ci_','aanki_ci_');if(localStorage.getItem(nk)===null)localStorage.setItem(nk,localStorage.getItem(k));});
+})();
+
 /// ── Config ────────────────────────────────────────────────────────────────────
 const CONFIG_KEY = 'aanki_config';
 const DEFAULT_SB_URL = 'https://tfixkvvlcalsmjhphowv.supabase.co';

@@ -4,14 +4,10 @@
 <meta charset="UTF-8">
 <title>重導向至 Aanki…</title>
 <script>
-  location.replace('/aanki/' + location.search);
+  location.replace(location.href.replace('/gsatword/', '/aanki/'));
 </script>
 </head>
 <body>
-  <p>正在重導向至 <a id="l">Aanki</a>…</p>
-  <script>
-    const u='/aanki/'+location.search;
-    document.getElementById('l').href=u;
-  </script>
+  <p>正在重導向至 Aanki…</p>
 </body>
 </html>
