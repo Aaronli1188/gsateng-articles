@@ -1820,7 +1820,7 @@ async function loadTeacherView(){
     }).join('');
     // Cache for activity modal
     window._tcache={students,allVocab,sessMap,revMap,vocabSid,costMap};
-  }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message+' | svckey='+(SB_SVC_KEY?'SET':'NOT SET'));}
+  }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
 }
 
 function copyLink(link,btn){
