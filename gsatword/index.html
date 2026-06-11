@@ -722,7 +722,7 @@ async function sbFetch(path,opts={}){
   const {headers:_h,..._rest}=opts;
   const _extraHdrs=STUDENT_TOKEN?{'x-student-token':STUDENT_TOKEN}:{};
   const res=await fetch(_url+path+sep+'apikey='+_key,{
-    headers:{'Content-Type':'application/json','Prefer':'return=representation',..._extraHdrs,...(_h||{})},
+    headers:{'Content-Type':'application/json','Prefer':'return=representation','Authorization':'Bearer '+_key,..._extraHdrs,...(_h||{})},
     ..._rest
   });
   if(!res.ok){const t=await res.text();throw new Error(t);}
@@ -1820,7 +1820,7 @@ async function loadTeacherView(){
     }).join('');
     // Cache for activity modal
     window._tcache={students,allVocab,sessMap,revMap,vocabSid,costMap};
-  }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
+  }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message+' | svckey='+(SB_SVC_KEY?'SET':'NOT SET'));}
 }
 
 function copyLink(link,btn){
