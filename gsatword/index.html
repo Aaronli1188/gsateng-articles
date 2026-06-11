@@ -617,6 +617,16 @@ tr:hover td{background:rgba(124,58,237,.025)}
   </div>
 </div>
 
+<!-- ── Service Role Key prompt (teacher first-time setup) ────────────────── -->
+<div id="svckey-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <h3 style="margin:0 0 8px">設定 Service Role Key</h3>
+    <p style="color:#666;font-size:.85rem;margin:0 0 20px">老師介面需要 Service Role Key 才能讀取所有學生資料。<br>到 Supabase → Settings → API → service_role 複製後貼入。<br><b>此 Key 只存在你的瀏覽器，不會進入原始碼。</b></p>
+    <input id="svckey-input" type="password" placeholder="eyJ...service_role..." style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:16px">
+    <button onclick="saveSvcKey()" style="background:#1a1a2e;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:.9rem;cursor:pointer;width:100%">儲存並繼續</button>
+  </div>
+</div>
+
 <!-- ── Bulk action bar ───────────────────────────────────────────────────── -->
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-count" id="bulk-count">已選 0 個</span>
@@ -691,6 +701,17 @@ function saveConfig(){
   setTimeout(()=>location.reload(),800);
 }
 function showCfgMsg(t,c){const e=document.getElementById('cfg-msg');e.textContent=t;e.className='cfg-msg '+c;}
+function showSvcKeyPrompt(){
+  document.getElementById('svckey-modal').style.display='flex';
+}
+async function saveSvcKey(){
+  const k=document.getElementById('svckey-input').value.trim();
+  if(!k){alert('請貼上 Service Role Key');return;}
+  const cfg=getConfig();
+  cfg.svckey=k;
+  localStorage.setItem(CONFIG_KEY,JSON.stringify(cfg));
+  location.reload();
+}
 
 /// ── Supabase ──────────────────────────────────────────────────────────────────
 let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',STUDENT_TOKEN='';
@@ -854,6 +875,7 @@ async function init(){
     const validTeacher=cfg.teacher||DEFAULT_TEACHER;
     if(tToken!==validTeacher){hide('loading-screen');showError('存取被拒','Teacher token 不正確。');return;}
     mode='teacher';
+    if(!SB_SVC_KEY){hide('loading-screen');showSvcKeyPrompt();return;}
     await loadTeacherView();
   } else {
     hide('loading-screen');
