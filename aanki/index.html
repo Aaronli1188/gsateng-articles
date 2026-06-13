@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script>
+<script src="vocab7000.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1111,7 +1112,9 @@ function renderCard(){
           <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
           <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
           <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
+          <button class="act-btn" onclick="show7000Check('${e.id}')">📖 7000</button>
         </div>
+        <div id="v7k-result" style="display:none;margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:.82rem;line-height:1.7"></div>
         <div class="memo-area">
           <textarea id="memo-input" placeholder="備忘（可留空）">${esc(e.memo||'')}</textarea>
           <div class="memo-row">
@@ -1208,6 +1211,25 @@ async function cardMark(vid,word){
     const btn=document.getElementById('mark-btn');
     if(btn){btn.className=`act-btn act-mark${newMark?' marked':''}`;btn.textContent=`🔖 ${newMark?'已標記':'標記'}`;}
   }catch(err){}
+}
+
+function show7000Check(vid){
+  const card=vocab.find(v=>v.id===vid); if(!card) return;
+  const sentence=card.context||card.word;
+  // Extract English words, lowercase, remove punctuation
+  const words=sentence.match(/[a-zA-Z]+(?:'[a-zA-Z]+)*/g)||[];
+  const unique=[...new Set(words.map(w=>w.toLowerCase()))];
+  // Common stop words to skip
+  const stop=new Set(['a','an','the','is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','can','could','may','might','must','to','of','in','for','on','at','by','with','from','as','into','about','and','but','or','not','no','so','if','it','its','i','me','my','we','us','our','you','your','he','him','his','she','her','they','them','their','this','that','these','those','what','which','who','whom','whose']);
+  const filtered=unique.filter(w=>!stop.has(w)&&w.length>1);
+  const inList=filtered.filter(w=>VOCAB_7000.has(w));
+  const notInList=filtered.filter(w=>!VOCAB_7000.has(w));
+  const el=document.getElementById('v7k-result');
+  el.innerHTML=
+    `<b>7000 單字比對</b>（${sentence.length>60?sentence.slice(0,60)+'…':sentence}）<br>`+
+    (inList.length?`<span style="color:#2e7d32">✓ 在 7000 內：</span> ${inList.map(w=>`<span style="color:#2e7d32;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
+    (notInList.length?`<span style="color:#c62828">✗ 不在 7000 內：</span> ${notInList.map(w=>`<span style="color:#c62828;font-weight:600">${w}</span>`).join('、')}`:`<span style="color:#2e7d32">全部都在 7000 內！</span>`);
+  el.style.display='block';
 }
 
 async function saveMemo(vid){
