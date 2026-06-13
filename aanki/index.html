@@ -591,9 +591,11 @@ tr:hover td{background:rgba(124,58,237,.025)}
 <div id="teacher-view">
   <div class="main">
     <div id="teacher-overview">
+      <div id="refresh-banner" style="display:none;background:#e8f5e9;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.82rem;color:#2e7d32"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <p style="font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">所有學生</p>
         <div style="display:flex;gap:8px">
+          <button class="btn-outline" onclick="manualRefreshSentences()">🔄 換例句</button>
           <button class="btn-outline" onclick="openIntervals()">⚙ 複習間隔</button>
           <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
           <button class="btn-outline" onclick="document.getElementById('restore-input').click()">回復備份</button>
@@ -1786,13 +1788,25 @@ async function loadTeacherView(){
     const ago30=plusDays(t,-30);
     // 清理 90 天前的登入紀錄（fire and forget）
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
-    const [students,allVocab,sessions,recentRevs,allCosts]=await Promise.all([
+    const [students,allVocab,sessions,recentRevs,allCosts,refreshInfo]=await Promise.all([
       sbGet('students','select=id,name,token&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
       sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
-      sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc')
+      sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc'),
+      sbGet('app_config','key=eq.last_sentence_refresh&select=value').catch(()=>[])
     ]);
+    // Show refresh banner
+    const rb=document.getElementById('refresh-banner');
+    if(refreshInfo.length){
+      try{
+        const ri=JSON.parse(refreshInfo[0].value);
+        const ts=new Date(ri.timestamp).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'});
+        const costTWD=(ri.cost_usd*32).toFixed(2);
+        rb.innerHTML=`🔄 例句自動置換（${ri.date}）：已替換 ${ri.refreshed} 張卡片${ri.errors?' / '+ri.errors+' 個錯誤':''}，費用 NT$${costTWD}（${ts}）`;
+        rb.style.display='block';
+      }catch(e){}
+    }
     // costs per student
     const costMap={};
     for(const c of allCosts){
@@ -1857,6 +1871,26 @@ async function loadTeacherView(){
 
 function copyLink(link,btn){
   navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
+}
+
+async function manualRefreshSentences(){
+  if(!confirm('手動觸發今日例句置換？（會對所有今天到期且已複習過的卡片生成新例句）')) return;
+  const btn=event.target; btn.disabled=true; btn.textContent='⏳ 執行中…';
+  try{
+    const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
+    const key=SB_KEY||DEFAULT_SB_KEY;
+    const res=await fetch(base+'/functions/v1/refresh-sentences?apikey='+key,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:'{}'
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const costTWD=(data.cost_usd*32).toFixed(2);
+    alert(`完成！替換 ${data.refreshed} 張卡片，${data.errors||0} 個錯誤，費用 NT$${costTWD}`);
+    await loadTeacherView();
+  }catch(e){alert('錯誤：'+e.message);}
+  btn.disabled=false; btn.textContent='🔄 換例句';
 }
 
 async function addStudentPrompt(){
