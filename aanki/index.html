@@ -402,6 +402,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
   <h1>Aanki</h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
+  <button id="daystart-btn" onclick="openDayStartModal()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⏰ 日切</button>
   <span id="student-badge" class="student-badge"></span>
   <div class="hdr-stats" id="hdr-stats"></div>
 </div>
@@ -503,10 +504,11 @@ tr:hover td{background:rgba(124,58,237,.025)}
             <label>單字清單（每行一個）</label>
             <textarea id="bulk-words" rows="9" placeholder="apple&#10;banana&#10;peach&#10;..."></textarea>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
             <span style="font-size:.78rem;color:#aaa">或上傳 .docx</span>
             <input type="file" accept=".docx" id="bulk-file-input" onchange="loadBulkDocx(this)" style="font-size:.8rem;flex:1">
           </div>
+          <p style="font-size:.72rem;color:#bbb;margin:0 0 12px">Pages 使用者請先輸出為 .docx</p>
           <div class="field"><label>上課日期</label><input id="bulk-date" type="date"></div>
           <div class="field"><label>第一次複習日期</label><input id="bulk-rev" type="date"></div>
           <button class="btn-pri" id="bulk-gen-btn" onclick="doBulkAdd()" style="width:100%">✨ 生成並新增全部</button>
@@ -564,6 +566,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
         </div>
         <div id="s-file-area" style="display:none">
           <div class="field"><label>.docx 檔案</label><input id="s-file" type="file" accept=".docx"></div>
+          <p style="font-size:.75rem;color:#999;margin:-6px 0 8px">使用 Pages？請先在 Pages 選「檔案 → 輸出為 → Word」，再上傳 .docx。</p>
         </div>
         <div class="field"><label>上課日期</label><input id="s-date" type="date"></div>
         <div class="field"><label>第一次複習日期</label><input id="s-rev" type="date"></div>
@@ -625,6 +628,21 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <p style="color:#666;font-size:.85rem;margin:0 0 20px">老師介面需要 Service Role Key 才能讀取所有學生資料。<br>到 Supabase → Settings → API → service_role 複製後貼入。<br><b>此 Key 只存在你的瀏覽器，不會進入原始碼。</b></p>
     <input id="svckey-input" type="password" placeholder="eyJ...service_role..." style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:16px">
     <button onclick="saveSvcKey()" style="background:#1a1a2e;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:.9rem;cursor:pointer;width:100%">儲存並繼續</button>
+  </div>
+</div>
+
+<!-- ── Day start setting modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="daystart-modal">
+  <div class="modal" style="width:340px">
+    <h3>日切時間</h3>
+    <p style="font-size:.8rem;color:#888;margin-bottom:14px">新的一天從幾點開始？深夜複習不會被算到隔天。和 Anki 的「next day starts at」相同。</p>
+    <label>開始時間（0–23）</label>
+    <input type="number" id="daystart-input" min="0" max="23" style="width:100%" oninput="updateDayStartPreview()">
+    <div id="daystart-preview" style="font-size:.8rem;color:#666;margin:8px 0"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeDayStart()">取消</button>
+      <button class="modal-ok" onclick="saveDayStart()">儲存</button>
+    </div>
   </div>
 </div>
 
@@ -742,9 +760,14 @@ async function sbPost(table,body){return sbFetch(`/rest/v1/${table}`,{method:'PO
 async function sbPatch(table,filter,body){return sbFetch(`/rest/v1/${table}?${filter}`,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=representation'}});}
 async function sbDelete(table,filter){return sbFetch(`/rest/v1/${table}?${filter}`,{method:'DELETE'});}
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
-function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});}
-function plusDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});}
+// ── Day boundary (Anki-style "next day starts at") ────────────────────────────
+let DAY_START_HOUR=parseInt(localStorage.getItem('aanki_daystart'))||7;
+function today(){
+  const tw=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+  tw.setHours(tw.getHours()-DAY_START_HOUR);
+  return tw.toISOString().slice(0,10);
+}
+function plusDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function consecutiveCorrect(reviews){let c=0;for(let i=reviews.length-1;i>=0;i--){if(reviews[i].result==='y')c++;else break;}return c;}
@@ -920,6 +943,7 @@ async function loadStudentView(token){
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
+    show('daystart-btn');
     updateStats();
     initReview();
     setInterval(syncVocab,30000);
@@ -2068,6 +2092,27 @@ async function loadStudentIntervals(sid){
     else INTERVALS={...GLOBAL_INTERVALS};
   }catch(e){ INTERVALS={...GLOBAL_INTERVALS}; }
 }
+// ── Day start modal ───────────────────────────────────────────────────────────
+function openDayStartModal(){
+  document.getElementById('daystart-input').value=DAY_START_HOUR;
+  updateDayStartPreview();
+  document.getElementById('daystart-modal').classList.add('open');
+}
+function closeDayStart(){document.getElementById('daystart-modal').classList.remove('open');}
+function updateDayStartPreview(){
+  const h=parseInt(document.getElementById('daystart-input').value)||0;
+  document.getElementById('daystart-preview').textContent=
+    `${h}:00 前的複習算「前一天」。目前設定：${DAY_START_HOUR}:00`;
+}
+function saveDayStart(){
+  const h=parseInt(document.getElementById('daystart-input').value);
+  if(isNaN(h)||h<0||h>23){alert('請輸入 0–23');return;}
+  DAY_START_HOUR=h;
+  localStorage.setItem('aanki_daystart',String(h));
+  closeDayStart();
+  location.reload();
+}
+
 function openIntervals(){
   const isPerStudent=!!teacherCurrentSid;
   document.getElementById('iv-context').textContent=isPerStudent
