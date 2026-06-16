@@ -287,6 +287,7 @@ body{background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 55%,#f0fdf4 100%);back
 .flash-card:hover{box-shadow:0 12px 44px rgba(124,58,237,.14),0 2px 8px rgba(0,0,0,.04)}
 .sentence{font-size:1.3rem;line-height:2.3;color:#1e1b4b;letter-spacing:.01em}
 .whi{background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;font-style:normal}
+ruby{ruby-align:center}ruby rt{font-size:.55em;color:#7c3aed;font-weight:400}
 .prog{font-size:.88rem;color:var(--acc);font-weight:700;letter-spacing:.04em;margin-bottom:18px}
 
 /* Progress bar */
@@ -653,7 +654,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-count" id="bulk-count">已選 0 個</span>
   <button class="bulk-btn" onclick="doBulkExplain()">✨ 加入意思</button>
-  <button class="bulk-btn" onclick="doBulk7000()">📖 批量 7000</button>
+  <button class="bulk-btn" onclick="doBulk7000()" id="bulk-7000-btn">📖 批量 7000</button>
   <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
   <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
   <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
@@ -878,7 +879,7 @@ async function fsrsMigrateOldCards(){
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let mode=''; // 'student' | 'teacher'
-let studentId='', vocab=[], dueQueue=[], revIdx=0;
+let studentId='', studentLang='en', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
 let sortCol=null, sortDir=1;
@@ -924,11 +925,12 @@ function showError(title,msg){document.getElementById('err-title').textContent=t
 // ── Student view ──────────────────────────────────────────────────────────────
 async function loadStudentView(token){
   try{
-    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name`);
+    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language`);
     if(!students.length){hide('loading-screen');showError('找不到學生','請確認你的連結是否正確。');return;}
     const student=students[0];
     studentId=student.id;
-    document.getElementById('student-badge').textContent=student.name;
+    studentLang=student.language||'en';
+    document.getElementById('student-badge').textContent=student.name+(studentLang==='ja'?' 🇯🇵':'');
     document.getElementById('student-badge').style.display='inline-block';
     document.title=`Aanki · ${student.name}`;
     // Set default dates
@@ -948,6 +950,7 @@ async function loadStudentView(token){
     show('student-view');
     show('main-nav','flex');
     show('daystart-btn');
+    if(studentLang==='ja'){const b=document.getElementById('bulk-7000-btn');if(b)b.textContent='📖 批量 JLPT';}
     updateStats();
     initReview();
     setInterval(syncVocab,30000);
@@ -955,7 +958,7 @@ async function loadStudentView(token){
 }
 
 async function refreshVocab(){
-  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000&order=word`);
+  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000,reading,jlpt_level,pitch_accent&order=word`);
   if(!rows.length){vocab=[];return;}
   const ids=rows.map(r=>r.id);
   const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
@@ -1081,13 +1084,26 @@ function renderCard(){
       </div>`;
     }
   }
-  const hi=e.context
-    ?e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
-    :`<span class="whi">${esc(e.word)}</span>（無例句）`;
+  const isJa=studentLang==='ja';
+  let hi;
+  if(isJa){
+    // Japanese: highlight word in context (no word boundary \b for CJK)
+    const wRe=new RegExp(escRe(e.word),'gi');
+    const furiWord=e.reading?`<ruby>${esc(e.word)}<rt>${esc(e.reading)}</rt></ruby>`:`<span class="whi">${esc(e.word)}</span>`;
+    hi=e.context
+      ?e.context.replace(wRe,m=>`<span class="whi">${esc(m)}</span>`)
+      :furiWord+'（例文なし）';
+  } else {
+    hi=e.context
+      ?e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
+      :`<span class="whi">${esc(e.word)}</span>（無例句）`;
+  }
   const modeLabel=reviewMode==='quiz'?'選擇日期測驗':incognito?'無痕':'';
   const badge=modeLabel?`<span class="incognito-badge">${modeLabel}</span>`:'';
   const markCls=e.marked?'act-btn act-mark marked':'act-btn act-mark';
-  const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'<div class="zh-hint" style="color:#bbb;font-size:.82rem">（尚無解釋）</div>';
+  // Japanese extra info block
+  const jaExtra=isJa?`${e.reading?`<div style="font-size:1rem;color:#1565c0;margin-bottom:4px">📖 ${esc(e.reading)}</div>`:''}${e.pitch_accent?`<div style="font-size:.88rem;color:#6a1b9a;margin-bottom:4px">🎵 ${esc(e.pitch_accent)}</div>`:''}${e.jlpt_level?`<div style="font-size:.82rem;margin-bottom:4px"><span style="background:#e8eaf6;color:#283593;padding:2px 8px;border-radius:4px;font-weight:700">${esc(e.jlpt_level)}</span></div>`:''}`:'';
+  const zhBlock=(e.zh_meaning||e.context_zh)?`<div class="zh-hint">${jaExtra}${e.zh_meaning?`<div class="zh-meaning">${esc(e.zh_meaning)}</div>`:''} ${e.context_zh?`<div class="zh-context">${esc(e.context_zh)}</div>`:''}</div>`:'<div class="zh-hint" style="color:#bbb;font-size:.82rem">'+(isJa?'（まだ説明がありません）':'（尚無解釋）')+'</div>';
   const _pct=dueQueue.length>0?Math.round(revIdx/dueQueue.length*100):0;
   const _stab=e.sm_stability||0;
   const _diffCls=_stab===0?'diff-new':_stab<7?'diff-hard':_stab<21?'diff-mid':'diff-easy';
@@ -1113,7 +1129,7 @@ function renderCard(){
           <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
           <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
           <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
-          <button class="act-btn" onclick="show7000Check('${e.id}')">${e.in_7000===true?'✅':e.in_7000===false?'❌':'📖'} 7000</button>
+          <button class="act-btn" onclick="show7000Check('${e.id}')">${isJa?(e.jlpt_level||'📖 JLPT'):(e.in_7000===true?'✅':e.in_7000===false?'❌':'📖')+' 7000'}</button>
         </div>
         <div id="v7k-result" style="display:none;margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:.82rem;line-height:1.7"></div>
         <div class="memo-area">
@@ -1308,20 +1324,98 @@ async function batch7000Check(wordIds){
   }
 }
 
-// Show 7000 check on review card (uses saved data + sentence analysis + re-check)
+// Batch JLPT check for Japanese words
+async function batchJlptCheck(wordIds){
+  const words=wordIds.map(id=>vocab.find(v=>v.id===id)).filter(Boolean);
+  if(!words.length) return {levels:{},cost:0};
+  try{
+    const prompt=`以下の日本語単語のJLPTレベル、読み（ひらがな）、ピッチアクセントを判定してください。\n形式: "単語 → JLPT読み,ピッチ" 例: "食べる → N5,たべる,た↗べ↘る"\n\n単語: ${words.map(w=>w.word).join('、')}`;
+    const data=await callGemini([{role:'user',content:prompt}],512,'gemini-2.5-flash-lite');
+    const text=data.content?.[0]?.text||'';
+    const levels={};
+    for(const line of text.split('\n')){
+      const m=line.match(/^(.+?)\s*[→->]+\s*(N[1-5])\s*[,，]\s*(.+?)\s*[,，]\s*(.+)$/);
+      if(m){
+        const word=m[1].trim(), jlpt=m[2].trim(), reading=m[3].trim(), pitch=m[4].trim();
+        const card=words.find(w=>w.word===word);
+        if(card){
+          const vi=vocab.findIndex(v=>v.id===card.id);
+          if(vi>=0){vocab[vi].jlpt_level=jlpt;vocab[vi].reading=reading;vocab[vi].pitch_accent=pitch;}
+          sbPatch('vocabulary',`id=eq.${card.id}`,{jlpt_level:jlpt,reading,pitch_accent:pitch}).catch(()=>{});
+          levels[jlpt]=(levels[jlpt]||0)+1;
+        }
+      }
+    }
+    const u=data.usage||{};
+    const cost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+    logAiCost(cost,'jlpt_batch');
+    return {levels,cost};
+  }catch(e){
+    return {levels:{},cost:0,error:e.message};
+  }
+}
+
+// Show 7000/JLPT check on review card
 async function show7000Check(vid, forceRecheck){
   const card=vocab.find(v=>v.id===vid); if(!card) return;
   const el=document.getElementById('v7k-result');
   el.style.display='block';
-  // Show saved result for the card's own word
+  const isJa=studentLang==='ja';
+
+  if(isJa){
+    // JLPT mode for Japanese
+    const jlpt=card.jlpt_level;
+    const jlptBadge=jlpt
+      ?`<span style="background:#e8eaf6;color:#283593;padding:4px 12px;border-radius:6px;font-weight:700;font-size:.95rem">${esc(jlpt)}</span>`
+      :`<span style="color:#888">JLPT 級別尚未判定</span>`;
+    const extraInfo=[
+      card.reading?`📖 読み：<b>${esc(card.reading)}</b>`:'',
+      card.pitch_accent?`🎵 アクセント：<b>${esc(card.pitch_accent)}</b>`:''
+    ].filter(Boolean).join('<br>');
+    const recheckBtn=`<button class="act-btn" style="margin-top:6px;font-size:.75rem" onclick="show7000Check('${vid}',true)">🔄 重新判定（AI）</button>`;
+    el.innerHTML=jlptBadge+(extraInfo?'<div style="margin-top:8px;font-size:.84rem;line-height:1.8">'+extraInfo+'</div>':'')+recheckBtn;
+
+    if(forceRecheck || !jlpt){
+      el.innerHTML=jlptBadge+`<div style="color:#888;font-size:.78rem;margin-top:4px">🔍 AI 判定中…</div>`;
+      try{
+        const prompt=`日本語単語: "${card.word}"\n以下の形式で正確に回答（余計なものなし）:\nJLPT: [N5/N4/N3/N2/N1]\nREADING: [ひらがな読み]\nPITCH: [ピッチアクセントパターン、例：「あ↗た↘ま」]`;
+        const data=await callGemini([{role:'user',content:prompt}],64,'gemini-2.5-flash-lite');
+        const text=data.content?.[0]?.text||'';
+        let nJlpt='',nReading='',nPitch='';
+        for(const line of text.split('\n')){
+          if(line.startsWith('JLPT:')) nJlpt=line.slice(5).trim();
+          else if(line.startsWith('READING:')) nReading=line.slice(8).trim();
+          else if(line.startsWith('PITCH:')) nPitch=line.slice(6).trim();
+        }
+        const patch={};
+        if(nJlpt){patch.jlpt_level=nJlpt; const vi=vocab.findIndex(v=>v.id===vid); if(vi>=0)vocab[vi].jlpt_level=nJlpt;}
+        if(nReading){patch.reading=nReading; const vi=vocab.findIndex(v=>v.id===vid); if(vi>=0)vocab[vi].reading=nReading;}
+        if(nPitch){patch.pitch_accent=nPitch; const vi=vocab.findIndex(v=>v.id===vid); if(vi>=0)vocab[vi].pitch_accent=nPitch;}
+        if(Object.keys(patch).length) sbPatch('vocabulary',`id=eq.${vid}`,patch).catch(()=>{});
+        const u=data.usage||{};
+        const cost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+        logAiCost(cost,'jlpt_check');
+        const newBadge=nJlpt?`<span style="background:#e8eaf6;color:#283593;padding:4px 12px;border-radius:6px;font-weight:700;font-size:.95rem">${esc(nJlpt)}</span>`:`<span style="color:#888">判定失敗</span>`;
+        const newExtra=[
+          nReading?`📖 読み：<b>${esc(nReading)}</b>`:'',
+          nPitch?`🎵 アクセント：<b>${esc(nPitch)}</b>`:''
+        ].filter(Boolean).join('<br>');
+        el.innerHTML=newBadge+(newExtra?'<div style="margin-top:8px;font-size:.84rem;line-height:1.8">'+newExtra+'</div>':'')+
+          `<span style="color:#888;font-size:.72rem;margin-left:8px">💰 $${cost.toFixed(4)}</span>`+recheckBtn;
+      }catch(e){
+        el.innerHTML=jlptBadge+`<div style="color:#c62828;font-size:.78rem">⚠️ ${e.message}</div>`+recheckBtn;
+      }
+    }
+    return;
+  }
+
+  // English 7000 mode
   const wordStatus=card.in_7000;
   const wordBadge=wordStatus===true
     ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
     :wordStatus===false
       ?`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`
       :`<span style="color:#888">「${esc(card.word)}」尚未比對</span>`;
-
-  // Sentence analysis (local only, free)
   const sentence=card.context||'';
   const v7k=getV7kNorm();
   const words=sentence.match(/[a-zA-Z]+(?:'[a-zA-Z]+)*/g)||[];
@@ -1336,8 +1430,6 @@ async function show7000Check(vid, forceRecheck){
     `</div>`:'';
   const recheckBtn=`<button class="act-btn" style="margin-top:6px;font-size:.75rem" onclick="show7000Check('${vid}',true)">🔄 重新比對（AI）</button>`;
   el.innerHTML=wordBadge+sentInfo+recheckBtn;
-
-  // Re-check with AI if forced or never checked
   if(forceRecheck || wordStatus===null || wordStatus===undefined){
     el.innerHTML=wordBadge+sentInfo+`<div style="color:#888;font-size:.78rem;margin-top:4px">🔍 AI 比對中…</div>`;
     const result=await check7000Word(card.word);
@@ -1602,21 +1694,39 @@ async function generateExplanation(vid){
   const e=vocab.find(v=>String(v.id)===sidStr); if(!e) return;
   const btn=document.getElementById('aibtn-'+esc(vid));
   if(btn){btn.textContent='…';btn.disabled=true;}
-  const prompt='Word: "'+e.word+'"\nContext: "'+(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')+'"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]';
+  const isJa=studentLang==='ja';
+  const prompt=isJa
+    ?`日本語単語: "${e.word}"\n文脈: "${(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')}"\n\n以下の形式で正確に回答してください（各行ラベル付き、余計なものなし）:\nREADING: [ひらがな読み]\nZH: [繁體中文の簡潔な定義、例：「（動詞）食べる；食事する」]\nCTX: [この文脈での用法を繁體中文で1文で説明]\nPITCH: [ピッチアクセントパターン、例：「あ↗た↘ま」または「⓪平板型」]\nCONJ: [動詞/い形容詞/な形容詞の場合のみ活用表：て形、た形、ない形、可能形、受身形をカンマ区切りで。名詞や副詞なら「-」]\nJLPT: [N5/N4/N3/N2/N1]`
+    :'Word: "'+e.word+'"\nContext: "'+(e.context||'').replace(/"/g,"'").replace(/[\r\n]+/g,' ')+'"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]';
   try{
-    const data=await callGemini([{role:'user',content:prompt}]);
+    const data=await callGemini([{role:'user',content:prompt}],isJa?512:256);
     const text=data.content?.[0]?.text||'';
-    let zh='',ctx='',use='';
+    let zh='',ctx='',use='',reading='',pitch='',conj='',jlpt='';
     for(const line of text.split('\n')){
       if(line.startsWith('ZH:')) zh=line.slice(3).trim();
       else if(line.startsWith('CTX:')) ctx=line.slice(4).trim();
       else if(line.startsWith('USE:')) use=line.slice(4).trim();
+      else if(line.startsWith('READING:')) reading=line.slice(8).trim();
+      else if(line.startsWith('PITCH:')) pitch=line.slice(6).trim();
+      else if(line.startsWith('CONJ:')) conj=line.slice(5).trim();
+      else if(line.startsWith('JLPT:')) jlpt=line.slice(5).trim();
     }
     if(!zh) throw new Error('解析失敗：'+text);
-    const ctxFull=ctx+(use?'\n用法：'+use:'');
-    await sbPatch('vocabulary','id=eq.'+sidStr,{zh_meaning:zh,context_zh:ctxFull});
+    const ctxFull=isJa
+      ?ctx+(conj&&conj!=='-'?'\n活用：'+conj:'')
+      :ctx+(use?'\n用法：'+use:'');
+    const patch={zh_meaning:zh,context_zh:ctxFull};
+    if(isJa){
+      if(reading) patch.reading=reading;
+      if(pitch) patch.pitch_accent=pitch;
+      if(jlpt) patch.jlpt_level=jlpt;
+    }
+    await sbPatch('vocabulary','id=eq.'+sidStr,patch);
     const vi=vocab.findIndex(v=>String(v.id)===sidStr);
-    if(vi!==-1){vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;}
+    if(vi!==-1){
+      vocab[vi].zh_meaning=zh;vocab[vi].context_zh=ctxFull;
+      if(isJa){if(reading)vocab[vi].reading=reading;if(pitch)vocab[vi].pitch_accent=pitch;if(jlpt)vocab[vi].jlpt_level=jlpt;}
+    }
     const u=data.usage||{};
     // gemini-2.5-flash-lite: $0.25 input / $1.50 output per MTok
     const costUSD=(((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6);
@@ -1719,13 +1829,22 @@ async function doBulkExplain(){
 async function doBulk7000(){
   const ids=[...selectedIds];
   if(!ids.length) return;
-  if(!confirm(`對選取的 ${ids.length} 個單字重新比對 7000？`)) return;
+  const isJa=studentLang==='ja';
+  const label=isJa?'JLPT 判定':'7000 比對';
+  if(!confirm(`對選取的 ${ids.length} 個單字進行${label}？`)) return;
   const bar=document.getElementById('bulk-count');
-  bar.textContent=`7000 比對中…`;
-  const r=await batch7000Check(ids);
-  const msg=`${r.local} 個直接匹配，${r.ai||0} 個 AI 匹配${r.notIn?'，'+r.notIn+' 個不在 7000':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`;
-  bar.textContent=`已選 ${ids.length} 個 · ${msg}`;
-  alert(`7000 比對完成！\n${msg}`);
+  bar.textContent=`${label}中…`;
+  if(isJa){
+    const r=await batchJlptCheck(ids);
+    const msg=Object.entries(r.levels||{}).map(([k,v])=>k+':'+v).join(' ')||'無結果';
+    bar.textContent=`已選 ${ids.length} 個 · ${msg}`;
+    alert(`${label}完成！\n${msg}${r.cost?'\n💰 $'+r.cost.toFixed(4):''}`);
+  } else {
+    const r=await batch7000Check(ids);
+    const msg=`${r.local} 個直接匹配，${r.ai||0} 個 AI 匹配${r.notIn?'，'+r.notIn+' 個不在 7000':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`;
+    bar.textContent=`已選 ${ids.length} 個 · ${msg}`;
+    alert(`${label}完成！\n${msg}`);
+  }
   updateList();
 }
 
@@ -1760,14 +1879,16 @@ async function doAdd(){
   const w=document.getElementById('a-word').value.trim();
   if(!w){showFormMsg('add-msg','請輸入單字',false);return;}
   try{
-    await sbPost('vocabulary',{
+    const addPayload={
       student_id:studentId,word:w,
       context:document.getElementById('a-ctx').value.trim(),
       zh_meaning:document.getElementById('a-zh').value.trim(),
       context_zh:_addCtxZh,
       first_seen:document.getElementById('a-date').value,
       next_review:document.getElementById('a-rev').value
-    });
+    };
+    if(window._addJaExtra){Object.assign(addPayload,window._addJaExtra);window._addJaExtra=null;}
+    await sbPost('vocabulary',addPayload);
     showFormMsg('add-msg',`已新增「${w}」`,true);
     document.getElementById('a-word').value='';
     document.getElementById('a-ctx').value='';
@@ -1784,7 +1905,12 @@ async function generateForAdd(){
   const btn=document.getElementById('add-gen-btn');
   if(btn){btn.textContent='…';btn.disabled=true;}
   let prompt;
-  if(ctx){
+  const isJa=studentLang==='ja';
+  if(isJa){
+    prompt=ctx
+      ?`日本語単語: "${word}"\n文脈: "${ctx.replace(/"/g,"'").replace(/[\r\n]+/g,' ')}"\n\n以下の形式で回答:\nREADING: [ひらがな読み]\nZH: [繁體中文の定義]\nCTX: [文脈での用法を繁體中文で説明]\nPITCH: [ピッチアクセントパターン]\nCONJ: [活用がある場合：て形,た形,ない形,可能形。なければ「-」]\nJLPT: [N5/N4/N3/N2/N1]`
+      :`日本語単語: "${word}"\n\n以下の形式で回答:\nSENT: [この単語を使った自然な日本語例文]\nREADING: [ひらがな読み]\nZH: [繁體中文の定義]\nCTX: [例文での用法を繁體中文で説明]\nPITCH: [ピッチアクセントパターン]\nCONJ: [活用がある場合：て形,た形,ない形,可能形。なければ「-」]\nJLPT: [N5/N4/N3/N2/N1]`;
+  } else if(ctx){
     prompt=`Word: "${word}"\nContext: "${ctx.replace(/"/g,"'").replace(/[\r\n]+/g,' ')}"\n\nReply in exactly 3 lines, nothing else:\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the given context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
   } else {
     prompt=`Word: "${word}"\n\nReply in exactly 4 lines, nothing else:\nSENT: [one natural English example sentence using this word]\nZH: [concise Traditional Chinese definition, e.g. "（動詞）建立；設立"]\nCTX: [one sentence Traditional Chinese explaining the word in the sentence context]\nUSE: [one short English usage pattern, e.g. "insist on sth / that + clause"]`;
@@ -1792,17 +1918,23 @@ async function generateForAdd(){
   try{
     const data=await callGemini([{role:'user',content:prompt}]);
     const text=data.content?.[0]?.text||'';
-    let sent='',zh='',ctxZh='',use='';
+    let sent='',zh='',ctxZh='',use='',reading='',pitch='',conj='',jlpt='';
     for(const line of text.split('\n')){
       if(line.startsWith('SENT:')) sent=line.slice(5).trim();
       else if(line.startsWith('ZH:')) zh=line.slice(3).trim();
       else if(line.startsWith('CTX:')) ctxZh=line.slice(4).trim();
       else if(line.startsWith('USE:')) use=line.slice(4).trim();
+      else if(line.startsWith('READING:')) reading=line.slice(8).trim();
+      else if(line.startsWith('PITCH:')) pitch=line.slice(6).trim();
+      else if(line.startsWith('CONJ:')) conj=line.slice(5).trim();
+      else if(line.startsWith('JLPT:')) jlpt=line.slice(5).trim();
     }
     if(!zh) throw new Error('解析失敗：'+text);
     if(sent&&!ctx) document.getElementById('a-ctx').value=sent;
     document.getElementById('a-zh').value=zh;
-    _addCtxZh=ctxZh+(use?'\n用法：'+use:'');
+    _addCtxZh=isJa?(ctxZh+(conj&&conj!=='-'?'\n活用：'+conj:'')):(ctxZh+(use?'\n用法：'+use:''));
+    // Store JA extra fields for doAdd to include
+    window._addJaExtra=isJa?{reading,pitch_accent:pitch,jlpt_level:jlpt}:null;
     const u=data.usage||{};
     const costUSD=(((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6);
     const costTWD=(costUSD*32).toFixed(4);
@@ -1864,7 +1996,14 @@ async function doSync(){
 
     // Decode HTML entities before extracting words (prevents &nbsp; → "nbsp" prefix)
     function _decEnt(s){return s.replace(/&[a-z]+;/gi,' ').replace(/&#\d+;/g,' ').replace(/&#x[0-9a-f]+;/gi,' ');}
-    function _addWords(raw){_decEnt(raw).trim().split(/[\s\u00a0]+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});}
+    function _addWords(raw){
+      if(studentLang==='ja'){
+        // Japanese: keep full text as-is (may contain kanji+kana), split by whitespace or treat as single word
+        _decEnt(raw).trim().split(/[\s\u00a0、，]+/).forEach(w=>{const c=w.trim();if(c.length>0)boldWords.add(c);});
+      } else {
+        _decEnt(raw).trim().split(/[\s\u00a0]+/).forEach(w=>{const c=w.replace(/[^a-zA-Z]/g,'');if(c.length>2)boldWords.add(c.toLowerCase());});
+      }
+    }
 
     // Strategy 1: <b> / <strong> tags (mammoth output)
     const bsRe=/<(?:b|strong)(?:\s[^>]*)?>([^<]+)<\/(?:b|strong)>/gi;
@@ -1890,9 +2029,12 @@ async function doSync(){
     let im;while((im=inlineRe.exec(text))!==null){_addWords(im[1]);}
 
 
-    const sentences=fullText.split(/(?<=[.!?])(?:\s+|(?=[A-Z]))/);
+    const sentences=fullText.split(studentLang==='ja'?/(?<=[。！？．])/:/(?<=[.!?])(?:\s+|(?=[A-Z]))/);
     for(const word of boldWords){
-      const re=new RegExp('(?<![a-zA-Z])'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![a-zA-Z])','i');
+      const escaped=word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const re=studentLang==='ja'
+        ?new RegExp(escaped)
+        :new RegExp('(?<![a-zA-Z])'+escaped+'(?![a-zA-Z])','i');
       const ctx=sentences.find(s=>re.test(s))||'';
       extracted.push({word,context:ctx.trim(),zh_meaning:'',context_zh:''});
     }
@@ -1927,11 +2069,17 @@ async function doSync(){
     appendSyncLog('解釋生成完成！');
     updateList();
   }
-  // 7000 vocab check for new words
+  // 7000/JLPT check for new words
   if(lastImportIds.length){
-    appendSyncLog(`開始 7000 單字比對（${lastImportIds.length} 個）…`);
-    const r=await batch7000Check(lastImportIds);
-    appendSyncLog(`7000 比對完成：${r.local} 個直接匹配，${r.ai||0} 個 AI 還原匹配${r.notIn?'，'+r.notIn+' 個不在 7000 內':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`);
+    if(studentLang==='ja'){
+      appendSyncLog(`開始 JLPT 級別判定（${lastImportIds.length} 個）…`);
+      const r=await batchJlptCheck(lastImportIds);
+      appendSyncLog(`JLPT 判定完成：${Object.entries(r.levels||{}).map(([k,v])=>k+':'+v).join(' ')}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`);
+    } else {
+      appendSyncLog(`開始 7000 單字比對（${lastImportIds.length} 個）…`);
+      const r=await batch7000Check(lastImportIds);
+      appendSyncLog(`7000 比對完成：${r.local} 個直接匹配，${r.ai||0} 個 AI 還原匹配${r.notIn?'，'+r.notIn+' 個不在 7000 內':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`);
+    }
     updateList();
   }
 }
@@ -1953,7 +2101,7 @@ async function loadTeacherView(){
     // 清理 90 天前的登入紀錄（fire and forget）
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
     const [students,allVocab,sessions,recentRevs,allCosts,refreshInfo]=await Promise.all([
-      sbGet('students','select=id,name,token&order=name'),
+      sbGet('students','select=id,name,token,language&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
       sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
@@ -2017,7 +2165,7 @@ async function loadTeacherView(){
       const totalTWD=sCosts.reduce((a,c)=>a+c.cost_usd,0)*32;
       const costLabel=totalTWD>0?`NT$${totalTWD.toFixed(2)}`:'NT$0';
       return `<div style="background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 3px 12px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.07)'" onclick="showStudentDetail('${s.id}','${esc(s.name)}')">
-        <div class="sc-name">${esc(s.name)}</div>
+        <div class="sc-name">${esc(s.name)}${s.language==='ja'?' <span style="font-size:.7rem;background:#e8eaf6;color:#283593;padding:1px 6px;border-radius:4px;vertical-align:middle">🇯🇵 日文</span>':''}</div>
         <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
         <div style="font-size:.77rem;color:#888;margin:5px 0 2px">累計 AI 費用：<span style="color:#e65100;font-weight:600">${costLabel}</span></div>
@@ -2059,7 +2207,9 @@ async function manualRefreshSentences(){
 
 async function addStudentPrompt(){
   const name=(prompt('學生名稱：')||'').trim(); if(!name) return;
-  if(!/^[\w\u4e00-\u9fff\u3400-\u4dbf\-\s]+$/.test(name)){alert('名稱不能包含特殊符號。');return;}
+  if(!/^[\w\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\-\s]+$/.test(name)){alert('名稱不能包含特殊符號。');return;}
+  const lang=(prompt('學習語言（en=英文, ja=日文）：','en')||'en').trim().toLowerCase();
+  if(lang!=='en'&&lang!=='ja'){alert('語言只能是 en 或 ja');return;}
   try{
     const existing=await sbGet('students',`name=eq.${encodeURIComponent(name)}&select=id,token`);
     if(existing.length){
@@ -2068,11 +2218,11 @@ async function addStudentPrompt(){
         navigator.clipboard.writeText(link);
       return;
     }
-    const rows=await sbPost('students',{name});
+    const rows=await sbPost('students',{name,language:lang});
     const token=(rows[0]||rows).token;
     const link=`${location.origin+location.pathname}?s=${encodeURIComponent(token)}`;
     navigator.clipboard.writeText(link).catch(()=>{});
-    alert(`已新增學生「${name}」！\n\n學生連結（已複製到剪貼簿）：\n${link}`);
+    alert(`已新增${lang==='ja'?'日文':'英文'}學生「${name}」！\n\n學生連結（已複製到剪貼簿）：\n${link}`);
     await loadTeacherView();
   }catch(e){alert('新增失敗：'+e.message);}
 }
@@ -2146,6 +2296,8 @@ async function showStudentDetail(sid,name){
   teacherCurrentSid=sid;
   teacherCurrentName=name;
   studentId=sid;
+  // Detect student language
+  try{const sRows=await sbGet('students',`id=eq.${sid}&select=language`);studentLang=(sRows[0]&&sRows[0].language)||'en';}catch(e){studentLang='en';}
   // Show student-view with nav, hide teacher-view
   hide('teacher-view');
   show('student-view');
