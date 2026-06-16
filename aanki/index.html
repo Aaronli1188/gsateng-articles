@@ -1780,7 +1780,7 @@ async function doSync(){
     let im;while((im=inlineRe.exec(text))!==null){_addWords(im[1]);}
 
 
-    const sentences=fullText.split(/(?<=[.!?])\s+/);
+    const sentences=fullText.split(/(?<=[.!?])(?:\s+|(?=[A-Z]))/);
     for(const word of boldWords){
       const re=new RegExp('(?<![a-zA-Z])'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![a-zA-Z])','i');
       const ctx=sentences.find(s=>re.test(s))||'';
