@@ -6,10 +6,10 @@
 <title>Aanki</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://tfixkvvlcalsmjhphowv.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script>
 <script src="vocab7000.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh}
@@ -699,6 +699,12 @@ tr:hover td{background:rgba(124,58,237,.025)}
 </div>
 
 <script>
+// ── Lazy-load heavy libs ─────────────────────────────────────────────────────
+function _loadScript(src){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=fail;document.head.appendChild(s);})}
+let _mammothP,_chartP;
+function ensureMammoth(){return _mammothP||(_mammothP=_loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js'));}
+function ensureChart(){return _chartP||(_chartP=_loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'));}
+
 /// ── Migrate old gsatword localStorage keys → aanki (runs once) ───────────────
 (function(){
   const pairs=[['gsatword_config','aanki_config'],['gsatword_shortcuts','aanki_shortcuts']];
@@ -940,12 +946,7 @@ async function loadStudentView(token){
     document.getElementById('bulk-reset-date').value=t;
     document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
-    await loadStudentIntervals(student.id);
-    await refreshVocab();
-    fsrsMigrateOldCards().catch(e=>console.error('[fsrsMigrate]',e)); // 背景補齊舊卡 FSRS 狀態，不擋 UI
-    try{ await fsrsBumpOverdue(); }catch(e){ console.error('[fsrsBumpOverdue]',e); }     // 過期卡 next_review 更新為今天
-    sbPost('student_sessions',{student_id:studentId}).catch(()=>{}); // 記錄登入
-    showCheckinModal(student.id).catch(()=>{});
+    await Promise.all([loadStudentIntervals(student.id), refreshVocab()]);
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -954,6 +955,11 @@ async function loadStudentView(token){
     updateStats();
     initReview();
     setInterval(syncVocab,30000);
+    // Background tasks — don't block UI
+    sbPost('student_sessions',{student_id:studentId}).catch(()=>{});
+    showCheckinModal(student.id).catch(()=>{});
+    fsrsMigrateOldCards().catch(e=>console.error('[fsrsMigrate]',e));
+    fsrsBumpOverdue().then(()=>{updateStats();initReview();}).catch(e=>console.error('[fsrsBumpOverdue]',e));
   }catch(e){hide('loading-screen');showError('載入失敗',e.message);}
 }
 
@@ -1979,6 +1985,7 @@ async function doSync(){
     appendSyncLog('正在解析 .docx…');
     try{
       const ab=await file.arrayBuffer();
+      await ensureMammoth();
       const result=await mammoth.convertToHtml({arrayBuffer:ab});
       text=result.value;
       appendSyncLog(`解析完成（${text.length} 字元）`);
@@ -2523,6 +2530,7 @@ async function undoLastImport(){
 let statsCharts={};
 
 async function renderStats(){
+  await ensureChart();
   // Collect all reviews from vocab
   const allReviews=vocab.flatMap(v=>(v.reviews||[]).map(r=>({...r,reviewed_at:r.reviewed_at})));
   // For daily stats, fetch reviews with dates directly from Supabase
@@ -2726,6 +2734,7 @@ async function loadBulkDocx(input){
   const file=input.files[0]; if(!file) return;
   try{
     const ab=await file.arrayBuffer();
+    await ensureMammoth();
     const result=await mammoth.extractRawText({arrayBuffer:ab});
     const words=result.value.split(/\r?\n/).map(w=>w.trim()).filter(w=>w.length>0);
     document.getElementById('bulk-words').value=words.join('\n');
