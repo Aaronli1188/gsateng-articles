@@ -1313,7 +1313,7 @@ async function batch7000Check(wordIds){
     const text=data.content?.[0]?.text||'';
     const rootMap={};
     for(const line of text.split('\n')){
-      const m=line.match(/^(\w+)\s*[→->]+\s*(.+)$/);
+      const m=line.match(/^(\w+)\s*(?:→|->)+\s*(.+)$/);
       if(m){
         const roots=m[2].split(/[,，\s]+/).map(r=>r.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
         rootMap[m[1].toLowerCase()]=roots;
@@ -1348,7 +1348,7 @@ async function batchJlptCheck(wordIds){
     const text=data.content?.[0]?.text||'';
     const levels={};
     for(const line of text.split('\n')){
-      const m=line.match(/^(.+?)\s*[→->]+\s*(N[1-5])\s*[,，]\s*(.+?)\s*[,，]\s*(.+)$/);
+      const m=line.match(/^(.+?)\s*(?:→|->)+\s*(N[1-5])\s*[,，]\s*(.+?)\s*[,，]\s*(.+)$/);
       if(m){
         const word=m[1].trim(), jlpt=m[2].trim(), reading=m[3].trim(), pitch=m[4].trim();
         const card=words.find(w=>w.word===word);
