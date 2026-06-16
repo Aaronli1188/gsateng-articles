@@ -401,7 +401,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.3</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.4</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -621,6 +621,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <div class="setup-field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
     <div class="setup-field"><label>Service Role Key（老師用，繞過 RLS，可在 Supabase > Settings > API 取得）</label><input id="cfg-svckey" placeholder="eyJ...service_role..."></div>
     <div class="setup-field"><label>Anthropic API Key（選填，用於匯入生單字）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
+    <div class="setup-field"><label>OpenAI API Key（選填，高品質語音朗讀）</label><input id="cfg-oai" placeholder="sk-..."></div>
     <button class="btn-dark" onclick="saveConfig()">儲存並繼續</button>
     <div id="cfg-msg"></div>
   </div>
@@ -733,8 +734,9 @@ function saveConfig(){
   const teacher=document.getElementById('cfg-teacher').value.trim();
   const svckey=document.getElementById('cfg-svckey').value.trim();
   const ant=document.getElementById('cfg-ant').value.trim();
+  const oai=document.getElementById('cfg-oai').value.trim();
   if(!url||!key){showCfgMsg('請填寫 URL 和 Key','err');return;}
-  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,svckey,ant}));
+  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,svckey,ant,oai}));
   showCfgMsg('已儲存，重新載入…','ok');
   setTimeout(()=>location.reload(),800);
 }
@@ -752,7 +754,7 @@ async function saveSvcKey(){
 }
 
 /// ── Supabase ──────────────────────────────────────────────────────────────────
-let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',STUDENT_TOKEN='';
+let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',OAI_KEY='',STUDENT_TOKEN='';
 async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
   const _url=SB_URL||DEFAULT_SB_URL;
@@ -908,6 +910,7 @@ async function init(){
   const sToken=params.get('s'), tToken=params.get('teacher');
   const cfg=getConfig();
   // Student links always use defaults — never show setup screen
+  OAI_KEY=cfg.oai||'';
   if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; STUDENT_TOKEN=sToken; }
   else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
   else { SB_URL=cfg.url; SB_KEY=cfg.svckey||cfg.key; SB_SVC_KEY=cfg.svckey||''; ANT_KEY=cfg.ant||''; }
@@ -1136,7 +1139,7 @@ function renderCard(){
     <div class="prog">${revIdx+1} / ${dueQueue.length}${badge} <span class="diff-badge ${_diffCls}">${_diffLbl}</span></div>
     ${_cardOverdueHtml}
     <div class="flash-card">
-      <div class="sentence">${hi}</div>
+      <div class="sentence">${hi} <button onclick="ttsSpeak('${esc(e.word)}','${studentLang}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;vertical-align:middle;padding:0 4px" title="朗讀單字">🔊</button></div>
       <div id="reveal-btn-wrap">
         <button class="btn-reveal" onclick="revealAnswer()">顯示解釋 <span style="font-size:.78em;opacity:.55;font-weight:400">[${scKeyLabel(SHORTCUTS.reveal)}]</span></button>
       </div>
@@ -1152,6 +1155,7 @@ function renderCard(){
           <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
           <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
           <button class="act-btn" onclick="show7000Check('${e.id}')">${isJa?(e.jlpt_level||'📖 JLPT'):(e.in_7000===true?'✅':e.in_7000===false?'❌':'📖')+' 7000'}</button>
+          ${e.context?`<button class="act-btn" onclick="ttsSpeak(\`${esc(e.context).replace(/`/g,"'")}\`,'${studentLang}')">🔊 朗讀例句</button>`:''}
         </div>
         <div id="v7k-result" style="display:none;margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:.82rem;line-height:1.7"></div>
         <div class="memo-area">
@@ -1751,6 +1755,40 @@ async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'
   const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
   const u=json.usageMetadata||{};
   return {content:[{text}],usage:{input_tokens:u.promptTokenCount||0,output_tokens:u.candidatesTokenCount||0}};
+}
+
+// ── TTS (OpenAI) ─────────────────────────────────────────────────────────────
+let _ttsAudio=null;
+async function ttsSpeak(text,lang){
+  if(!text) return;
+  if(_ttsAudio){_ttsAudio.pause();_ttsAudio=null;}
+  if(!OAI_KEY){
+    // Fallback: browser Speech API
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang==='ja'?'ja-JP':'en-US';
+    u.rate=0.9;
+    speechSynthesis.speak(u);
+    return;
+  }
+  try{
+    const voice=lang==='ja'?'nova':'nova';
+    const res=await fetch('https://api.openai.com/v1/audio/speech',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+OAI_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({model:'tts-1',voice,input:text,speed:lang==='ja'?0.95:1.0})
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const blob=await res.blob();
+    const cost=text.length*15/1e6; // $15/1M chars
+    logAiCost(cost,'tts');
+    _ttsAudio=new Audio(URL.createObjectURL(blob));
+    _ttsAudio.play();
+  }catch(e){console.error('[TTS]',e);
+    // Fallback on error
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang==='ja'?'ja-JP':'en-US';
+    speechSynthesis.speak(u);
+  }
 }
 
 function logAiCost(costUsd,action){
