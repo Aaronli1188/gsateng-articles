@@ -384,11 +384,11 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .panel.active{display:block}
 .rev-outer{max-width:780px;margin:0 auto}
 #panel-list .list-toolbar,#panel-list .tbl-wrap{max-width:1100px;margin-left:auto;margin-right:auto}
-#list-pager{text-align:center;padding:14px 0 8px;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-#list-pager button{background:#f3f0ff;border:1px solid #e0d6f9;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.82rem}
-#list-pager button:hover{background:#ede7fe}
-#list-pager button.pg-cur{background:var(--acc,#7c3aed);color:#fff;border-color:var(--acc,#7c3aed);font-weight:600}
-#list-pager .pg-info{color:#888;font-size:.78rem;margin:0 6px}
+#list-pager,#list-pager-top{text-align:center;padding:14px 0 8px;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+#list-pager button,#list-pager-top button{background:#f3f0ff;border:1px solid #e0d6f9;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.82rem}
+#list-pager button:hover,#list-pager-top button:hover{background:#ede7fe}
+#list-pager button.pg-cur,#list-pager-top button.pg-cur{background:var(--acc,#7c3aed);color:#fff;border-color:var(--acc,#7c3aed);font-weight:600}
+#list-pager .pg-info,#list-pager-top .pg-info{color:#888;font-size:.78rem;margin:0 6px}
 .changelog{display:flex;flex-direction:column;gap:0}
 .cl-entry{border-left:3px solid var(--acc,#7c3aed);padding:0 0 20px 18px;position:relative;margin-left:6px}
 .cl-entry:last-child{border-left-color:transparent}
@@ -474,6 +474,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
         </div>
       </div>
       <div class="tbl-wrap">
+        <div id="list-pager-top" style="display:none"></div>
         <table>
           <thead><tr>
             <th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th>
@@ -1731,10 +1732,11 @@ function updateList(){
   const allRows=sortedVocab(filteredVocab());
   const tbody=document.getElementById('tbl-body');
   const pager=document.getElementById('list-pager');
+  const pagerTop=document.getElementById('list-pager-top');
   if(!allRows.length){
     tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
     document.getElementById('chk-all').checked=false;
-    pager.style.display='none';
+    pager.style.display='none';pagerTop.style.display='none';
     return;
   }
   const totalPages=Math.ceil(allRows.length/PAGE_SIZE);
@@ -1752,7 +1754,8 @@ function updateList(){
     for(let i=ps;i<=pe;i++) ph+='<button class="'+(i===listPage?'pg-cur':'')+'" onclick="goPage('+i+')">'+(i+1)+'</button>';
     if(listPage<totalPages-1) ph+='<button onclick="goPage('+(listPage+1)+')">下一頁 ›</button><button onclick="goPage('+(totalPages-1)+')">末頁</button>';
     pager.innerHTML=ph;pager.style.display='flex';
-  }else{pager.style.display='none';}
+    pagerTop.innerHTML=ph;pagerTop.style.display='flex';
+  }else{pager.style.display='none';pagerTop.style.display='none';}
   tbody.innerHTML=rows.map(e=>{
     const badge=e.mastered?'<span class="badge bm">精熟</span>':e.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
     const ctx=e.context?(e.context.length>50?e.context.slice(0,50)+'…':e.context):'—';
