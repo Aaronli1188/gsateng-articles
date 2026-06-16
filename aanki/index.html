@@ -653,6 +653,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-count" id="bulk-count">已選 0 個</span>
   <button class="bulk-btn" onclick="doBulkExplain()">✨ 加入意思</button>
+  <button class="bulk-btn" onclick="doBulk7000()">📖 批量 7000</button>
   <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
   <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
   <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
@@ -1712,6 +1713,19 @@ async function doBulkExplain(){
   const costLine=bulkCostTWD>0?`\n總花費：NT$${bulkCostTWD.toFixed(4)}`:'';
   bar.textContent=`已選 ${ids.length} 個${bulkCostTWD>0?' · NT$'+bulkCostTWD.toFixed(4):''}`;
   if(failed) alert(`${done-failed}/${done} 成功，${failed} 個失敗：${costLine}\n\n${errors.join('\n')}`);
+  updateList();
+}
+
+async function doBulk7000(){
+  const ids=[...selectedIds];
+  if(!ids.length) return;
+  if(!confirm(`對選取的 ${ids.length} 個單字重新比對 7000？`)) return;
+  const bar=document.getElementById('bulk-count');
+  bar.textContent=`7000 比對中…`;
+  const r=await batch7000Check(ids);
+  const msg=`${r.local} 個直接匹配，${r.ai||0} 個 AI 匹配${r.notIn?'，'+r.notIn+' 個不在 7000':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`;
+  bar.textContent=`已選 ${ids.length} 個 · ${msg}`;
+  alert(`7000 比對完成！\n${msg}`);
   updateList();
 }
 
