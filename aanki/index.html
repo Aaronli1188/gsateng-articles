@@ -413,7 +413,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.5</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.6</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -575,11 +575,18 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
           <div class="cl-entry">
+            <div class="cl-ver">v1.6</div><div class="cl-date">2026-06-17</div>
+            <ul>
+              <li>分頁列同時顯示於列表頂部和底部</li>
+              <li>新增「更新日誌」頁面</li>
+              <li>批量匯入自動跳過已存在單字，避免浪費 AI 費用</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
             <div class="cl-ver">v1.5</div><div class="cl-date">2026-06-17</div>
             <ul>
               <li>高品質語音朗讀：改用 Google Cloud WaveNet，英文/日文自然發音</li>
               <li>單字列表分頁：每頁 500 字，超過自動分頁</li>
-              <li>新增「更新日誌」頁面</li>
             </ul>
           </div>
           <div class="cl-entry">
