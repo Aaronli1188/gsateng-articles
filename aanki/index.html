@@ -401,9 +401,10 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.2</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.3</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
+  <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
   <button id="daystart-btn" onclick="openDayStartModal()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⏰ 日切</button>
   <span id="student-badge" class="student-badge"></span>
   <div class="hdr-stats" id="hdr-stats"></div>
@@ -2179,7 +2180,7 @@ async function loadTeacherView(){
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
       sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
-      sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc'),
+      sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc&limit=10000'),
       sbGet('app_config','key=eq.last_sentence_refresh&select=value').catch(()=>[])
     ]);
     // Show refresh banner
@@ -2277,6 +2278,18 @@ async function manualRefreshSentences(){
     await loadTeacherView();
   }catch(e){alert('錯誤：'+e.message);}
   btn.disabled=false; btn.textContent='🔄 換例句';
+}
+
+async function renameStudent(){
+  if(!teacherCurrentSid) return;
+  const newName=(prompt(`將「${teacherCurrentName}」改名為：`,teacherCurrentName)||'').trim();
+  if(!newName||newName===teacherCurrentName) return;
+  try{
+    await sbPatch('students',`id=eq.${teacherCurrentSid}`,{name:newName});
+    teacherCurrentName=newName;
+    document.getElementById('student-badge').textContent=newName;
+    alert(`已改名為「${newName}」`);
+  }catch(e){alert('改名失敗：'+e.message);}
 }
 
 async function addStudentPrompt(){
@@ -2380,6 +2393,7 @@ async function showStudentDetail(sid,name){
   show('teacher-iv-btn');
   document.getElementById('student-badge').textContent=name;
   document.getElementById('student-badge').style.display='inline-block';
+  show('rename-student-btn');
   // Hide 複習 and 統計 tabs for teacher
   document.querySelectorAll('.nav button').forEach(btn=>{
     if(btn.dataset.panel==='review'||btn.dataset.panel==='stats') btn.style.display='none';
@@ -2503,6 +2517,7 @@ function showTeacherOverview(){
   INTERVALS={...GLOBAL_INTERVALS};
   loadTeacherView(); // refresh billing + activity data
   hide('teacher-iv-btn');
+  hide('rename-student-btn');
   // Restore all nav tabs for next student
   document.querySelectorAll('.nav button').forEach(btn=>btn.style.display='');
   show('teacher-view');
