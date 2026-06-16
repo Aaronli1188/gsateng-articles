@@ -954,7 +954,7 @@ async function loadStudentView(token){
 }
 
 async function refreshVocab(){
-  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps&order=word`);
+  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000&order=word`);
   if(!rows.length){vocab=[];return;}
   const ids=rows.map(r=>r.id);
   const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
@@ -1112,7 +1112,7 @@ function renderCard(){
           <button class="act-btn act-del" onclick="cardDelete('${e.id}','${esc(e.word)}')">🗑 刪除</button>
           <button class="act-btn act-easy" onclick="cardTooEasy('${e.id}','${esc(e.word)}')">⚡ 太簡單</button>
           <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
-          <button class="act-btn" onclick="show7000Check('${e.id}')">📖 7000</button>
+          <button class="act-btn" onclick="show7000Check('${e.id}')">${e.in_7000===true?'✅':e.in_7000===false?'❌':'📖'} 7000</button>
         </div>
         <div id="v7k-result" style="display:none;margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:.82rem;line-height:1.7"></div>
         <div class="memo-area">
@@ -1237,62 +1237,119 @@ function getV7kNorm(){
   return _v7kNorm;
 }
 
-async function show7000Check(vid){
-  const card=vocab.find(v=>v.id===vid); if(!card) return;
-  const sentence=card.context||card.word;
+// Check a single word against 7000 (with AI root-form resolution)
+// Returns {in7000: bool, detail: string}
+async function check7000Word(word){
   const v7k=getV7kNorm();
-  // Extract English words, lowercase, remove punctuation
+  const lo=word.toLowerCase().replace(/[^a-z]/g,'');
+  if(v7k.has(lo)) return {in7000:true, detail:lo+' ✓ 直接匹配'};
+  // AI: get root forms (not just lemma — also derivation roots)
+  try{
+    const prompt=`Word: "${lo}"\nReturn ALL possible root/base dictionary forms by removing suffixes (-s, -es, -ed, -ing, -ly, -er, -est, -tion, -sion, -ment, -ness, -ful, -less, -ous, -ive, -al, -able, -ible, -ity, -ence, -ance, etc). Include the simplest root.\nFormat: one word per line, nothing else.`;
+    const data=await callGemini([{role:'user',content:prompt}],64,'gemini-2.5-flash-lite');
+    const roots=data.content?.[0]?.text?.split('\n').map(s=>s.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean)||[];
+    const matched=roots.find(r=>v7k.has(r));
+    const u=data.usage||{};
+    const cost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+    return {in7000:!!matched, detail:matched?`${lo}→${matched}`:lo+' ✗', cost, roots};
+  }catch(e){
+    return {in7000:null, detail:lo+' (AI 錯誤)', cost:0};
+  }
+}
+
+// Batch check words against 7000, save results to DB
+async function batch7000Check(wordIds){
+  const v7k=getV7kNorm();
+  // Split: local-matchable vs needs-AI
+  const needAI=[];
+  const localMatch=[];
+  for(const id of wordIds){
+    const card=vocab.find(v=>v.id===id); if(!card) continue;
+    const lo=card.word.toLowerCase().replace(/[^a-z]/g,'');
+    if(v7k.has(lo)){
+      localMatch.push(id);
+      const vi=vocab.findIndex(v=>v.id===id); if(vi>=0) vocab[vi].in_7000=true;
+      sbPatch('vocabulary',`id=eq.${id}`,{in_7000:true}).catch(()=>{});
+    } else {
+      needAI.push({id, word:card.word});
+    }
+  }
+  if(!needAI.length) return {local:localMatch.length, ai:0, cost:0};
+  // Batch AI call for all words needing root resolution
+  try{
+    const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${needAI.map(w=>w.word).join(', ')}`;
+    const data=await callGemini([{role:'user',content:prompt}],256,'gemini-2.5-flash-lite');
+    const text=data.content?.[0]?.text||'';
+    const rootMap={};
+    for(const line of text.split('\n')){
+      const m=line.match(/^(\w+)\s*[→->]+\s*(.+)$/);
+      if(m){
+        const roots=m[2].split(/[,，\s]+/).map(r=>r.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
+        rootMap[m[1].toLowerCase()]=roots;
+      }
+    }
+    let aiMatched=0;
+    for(const item of needAI){
+      const lo=item.word.toLowerCase().replace(/[^a-z]/g,'');
+      const roots=rootMap[lo]||[];
+      const hit=roots.some(r=>v7k.has(r));
+      const vi=vocab.findIndex(v=>v.id===item.id);
+      if(vi>=0) vocab[vi].in_7000=hit;
+      sbPatch('vocabulary',`id=eq.${item.id}`,{in_7000:hit}).catch(()=>{});
+      if(hit) aiMatched++;
+    }
+    const u=data.usage||{};
+    const cost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+    logAiCost(cost,'7000_batch');
+    return {local:localMatch.length, ai:aiMatched, notIn:needAI.length-aiMatched, cost};
+  }catch(e){
+    return {local:localMatch.length, ai:0, cost:0, error:e.message};
+  }
+}
+
+// Show 7000 check on review card (uses saved data + sentence analysis + re-check)
+async function show7000Check(vid, forceRecheck){
+  const card=vocab.find(v=>v.id===vid); if(!card) return;
+  const el=document.getElementById('v7k-result');
+  el.style.display='block';
+  // Show saved result for the card's own word
+  const wordStatus=card.in_7000;
+  const wordBadge=wordStatus===true
+    ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
+    :wordStatus===false
+      ?`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`
+      :`<span style="color:#888">「${esc(card.word)}」尚未比對</span>`;
+
+  // Sentence analysis (local only, free)
+  const sentence=card.context||'';
+  const v7k=getV7kNorm();
   const words=sentence.match(/[a-zA-Z]+(?:'[a-zA-Z]+)*/g)||[];
   const unique=[...new Set(words.map(w=>w.toLowerCase()))];
-  // Common stop words to skip
   const stop=new Set(['a','an','the','is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','can','could','may','might','must','to','of','in','for','on','at','by','with','from','as','into','about','and','but','or','not','no','so','if','it','its','i','me','my','we','us','our','you','your','he','him','his','she','her','they','them','their','this','that','these','those','what','which','who','whom','whose']);
   const filtered=unique.filter(w=>!stop.has(w)&&w.length>1);
   const inList=filtered.filter(w=>v7k.has(w));
-  let notInList=filtered.filter(w=>!v7k.has(w));
-  const el=document.getElementById('v7k-result');
-  function render7k(extra){
-    el.innerHTML=
-      `<b>7000 單字比對</b>（${sentence.length>60?sentence.slice(0,60)+'…':sentence}）<br>`+
-      (inList.length?`<span style="color:#2e7d32">✓ 在 7000 內：</span> ${inList.map(w=>`<span style="color:#2e7d32;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
-      (notInList.length?`<span style="color:#c62828">✗ 不在 7000 內：</span> ${notInList.map(w=>`<span style="color:#c62828;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
-      (!notInList.length&&!extra?`<span style="color:#2e7d32">全部都在 7000 內！</span>`:'')+
-      (extra||'');
-    el.style.display='block';
-  }
-  render7k(notInList.length?'<span style="color:#888;font-size:.78rem">🔍 AI 還原原形中…</span>':'');
-  // AI lemmatization for unmatched words
-  if(notInList.length){
-    try{
-      const prompt=`Given these English words, return ONLY their dictionary base form (lemma). One word per line, format: "inflected → lemma"\n\nWords: ${notInList.join(', ')}`;
-      const data=await callGemini([{role:'user',content:prompt}],128);
-      const text=data.content?.[0]?.text||'';
-      const lemmaMap={};
-      for(const line of text.split('\n')){
-        const m=line.match(/(\w+)\s*[→->]+\s*(\w+)/);
-        if(m) lemmaMap[m[1].toLowerCase()]=m[2].toLowerCase();
-      }
-      // Re-check lemmas against 7000
-      const rescued=[];
-      const stillOut=[];
-      for(const w of notInList){
-        const lemma=lemmaMap[w];
-        if(lemma && v7k.has(lemma)){
-          inList.push(w);
-          rescued.push({word:w,lemma});
-        } else {
-          stillOut.push(w);
-        }
-      }
-      notInList=stillOut;
-      const u=data.usage||{};
-      const costUSD=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
-      logAiCost(costUSD,'7000_check');
-      const costInfo=`<span style="color:#888;font-size:.75rem">💰 AI 費用：$${costUSD.toFixed(4)}</span>`;
-      const rescuedInfo=rescued.length?`<br><span style="color:#1565c0;font-size:.8rem">🔄 AI 還原：${rescued.map(r=>`<b>${r.word}</b>→${r.lemma}`).join('、')}</span>`:'';
-      render7k(rescuedInfo+'<br>'+costInfo);
-    }catch(e){
-      render7k(`<br><span style="color:#888;font-size:.75rem">⚠️ AI 還原失敗：${e.message}</span>`);
-    }
+  const notInList=filtered.filter(w=>!v7k.has(w));
+  const sentInfo=sentence?`<div style="margin-top:6px;font-size:.8rem;line-height:1.7">`+
+    (inList.length?`<span style="color:#2e7d32">✓ 句中在 7000：</span> ${inList.map(w=>`<b>${w}</b>`).join('、')}<br>`:'')+
+    (notInList.length?`<span style="color:#c62828">✗ 句中不在 7000：</span> ${notInList.map(w=>`<b>${w}</b>`).join('、')}`:'')+
+    `</div>`:'';
+  const recheckBtn=`<button class="act-btn" style="margin-top:6px;font-size:.75rem" onclick="show7000Check('${vid}',true)">🔄 重新比對（AI）</button>`;
+  el.innerHTML=wordBadge+sentInfo+recheckBtn;
+
+  // Re-check with AI if forced or never checked
+  if(forceRecheck || wordStatus===null || wordStatus===undefined){
+    el.innerHTML=wordBadge+sentInfo+`<div style="color:#888;font-size:.78rem;margin-top:4px">🔍 AI 比對中…</div>`;
+    const result=await check7000Word(card.word);
+    const vi=vocab.findIndex(v=>v.id===vid);
+    if(vi>=0) vocab[vi].in_7000=result.in7000;
+    if(result.in7000!==null) sbPatch('vocabulary',`id=eq.${vid}`,{in_7000:result.in7000}).catch(()=>{});
+    if(result.cost) logAiCost(result.cost,'7000_check');
+    const newBadge=result.in7000
+      ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
+      :`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`;
+    const detailInfo=`<span style="color:#888;font-size:.75rem;margin-left:6px">(${result.detail})</span>`;
+    const costInfo=result.cost?`<span style="color:#888;font-size:.72rem;margin-left:8px">💰 $${result.cost.toFixed(4)}</span>`:'';
+    el.innerHTML=newBadge+detailInfo+costInfo+sentInfo+recheckBtn;
   }
 }
 
@@ -1511,7 +1568,7 @@ async function callAnthropic(messages, maxTokens=256){
   return res.json();
 }
 
-async function callGemini(messages, maxTokens=256){
+async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'){
   const sbKey=SB_KEY||DEFAULT_SB_KEY;
   const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
   const proxyUrl=base+'/functions/v1/ai-proxy?apikey='+sbKey;
@@ -1519,7 +1576,7 @@ async function callGemini(messages, maxTokens=256){
   const res=await fetch(proxyUrl,{
     method:'POST',
     headers:{'content-type':'application/json','Authorization':'Bearer '+sbKey,'apikey':sbKey},
-    body:JSON.stringify({provider:'gemini',model:'gemini-3.1-flash-lite',contents,generationConfig:{maxOutputTokens:maxTokens}})
+    body:JSON.stringify({provider:'gemini',model,contents,generationConfig:{maxOutputTokens:maxTokens}})
   });
   if(!res.ok){const t=await res.text();throw new Error('Gemini proxy '+res.status+': '+t.slice(0,200));}
   const json=await res.json();
@@ -1854,6 +1911,13 @@ async function doSync(){
       await generateExplanation(vid);
     }
     appendSyncLog('解釋生成完成！');
+    updateList();
+  }
+  // 7000 vocab check for new words
+  if(lastImportIds.length){
+    appendSyncLog(`開始 7000 單字比對（${lastImportIds.length} 個）…`);
+    const r=await batch7000Check(lastImportIds);
+    appendSyncLog(`7000 比對完成：${r.local} 個直接匹配，${r.ai||0} 個 AI 還原匹配${r.notIn?'，'+r.notIn+' 個不在 7000 內':''}${r.cost?'（💰 $'+r.cost.toFixed(4)+'）':''}`);
     updateList();
   }
 }
