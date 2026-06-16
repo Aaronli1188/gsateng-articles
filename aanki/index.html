@@ -572,7 +572,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <div class="field"><label>上課日期</label><input id="s-date" type="date"></div>
         <div class="field"><label>第一次複習日期</label><input id="s-rev" type="date"></div>
         <div class="field" style="flex-direction:row;align-items:center;gap:10px">
-          <input type="checkbox" id="s-autoexplain" style="width:auto;margin:0">
+          <input type="checkbox" id="s-autoexplain" checked style="width:auto;margin:0">
           <label for="s-autoexplain" style="margin:0;font-weight:400;cursor:pointer">匯入後自動用 AI 生成詳細解釋</label>
         </div>
         <button class="btn-pri" onclick="doSync()">匯入</button>
@@ -1213,17 +1213,42 @@ async function cardMark(vid,word){
   }catch(err){}
 }
 
+// Build normalized 7000 lookup (lazy init)
+let _v7kNorm;
+function getV7kNorm(){
+  if(_v7kNorm) return _v7kNorm;
+  _v7kNorm=new Set();
+  for(const raw of VOCAB_7000){
+    const lo=raw.toLowerCase();
+    // Base form: strip parenthetical and everything after slash
+    const base=lo.replace(/\s*\(.*?\)/g,'').replace(/\s*\/.*$/,'').trim();
+    if(base) _v7kNorm.add(base);
+    // Expand slash alternatives: actor/actress → actor, actress
+    if(lo.includes('/')){
+      lo.split('/').forEach(p=>{
+        const clean=p.replace(/\(.*?\)/g,'').trim();
+        if(clean) _v7kNorm.add(clean);
+      });
+    }
+    // Expand parenthetical suffix: accomplish(ment) → accomplishment
+    const m=lo.match(/^([a-z]+)\(([a-z]+)\)$/);
+    if(m) _v7kNorm.add(m[1]+m[2]);
+  }
+  return _v7kNorm;
+}
+
 function show7000Check(vid){
   const card=vocab.find(v=>v.id===vid); if(!card) return;
   const sentence=card.context||card.word;
+  const v7k=getV7kNorm();
   // Extract English words, lowercase, remove punctuation
   const words=sentence.match(/[a-zA-Z]+(?:'[a-zA-Z]+)*/g)||[];
   const unique=[...new Set(words.map(w=>w.toLowerCase()))];
   // Common stop words to skip
   const stop=new Set(['a','an','the','is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','can','could','may','might','must','to','of','in','for','on','at','by','with','from','as','into','about','and','but','or','not','no','so','if','it','its','i','me','my','we','us','our','you','your','he','him','his','she','her','they','them','their','this','that','these','those','what','which','who','whom','whose']);
   const filtered=unique.filter(w=>!stop.has(w)&&w.length>1);
-  const inList=filtered.filter(w=>VOCAB_7000.has(w));
-  const notInList=filtered.filter(w=>!VOCAB_7000.has(w));
+  const inList=filtered.filter(w=>v7k.has(w));
+  const notInList=filtered.filter(w=>!v7k.has(w));
   const el=document.getElementById('v7k-result');
   el.innerHTML=
     `<b>7000 單字比對</b>（${sentence.length>60?sentence.slice(0,60)+'…':sentence}）<br>`+
