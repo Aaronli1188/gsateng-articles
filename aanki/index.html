@@ -1446,17 +1446,50 @@ async function show7000Check(vid, forceRecheck){
   el.innerHTML=wordBadge+sentInfo+recheckBtn;
   if(forceRecheck || wordStatus===null || wordStatus===undefined){
     el.innerHTML=wordBadge+sentInfo+`<div style="color:#888;font-size:.78rem;margin-top:4px">🔍 AI 比對中…</div>`;
-    const result=await check7000Word(card.word);
-    const vi=vocab.findIndex(v=>v.id===vid);
-    if(vi>=0) vocab[vi].in_7000=result.in7000;
-    if(result.in7000!==null) sbPatch('vocabulary',`id=eq.${vid}`,{in_7000:result.in7000}).catch(()=>{});
-    if(result.cost) logAiCost(result.cost,'7000_check');
-    const newBadge=result.in7000
-      ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
-      :`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`;
-    const detailInfo=`<span style="color:#888;font-size:.75rem;margin-left:6px">(${result.detail})</span>`;
-    const costInfo=result.cost?`<span style="color:#888;font-size:.72rem;margin-left:8px">💰 $${result.cost.toFixed(4)}</span>`:'';
-    el.innerHTML=newBadge+detailInfo+costInfo+sentInfo+recheckBtn;
+    // Batch: main word + context words not in 7000
+    const allWords=[card.word, ...notInList];
+    const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${allWords.join(', ')}`;
+    let totalCost=0;
+    try{
+      const data=await callGemini([{role:'user',content:prompt}],256,'gemini-2.5-flash-lite');
+      const text=data.content?.[0]?.text||'';
+      const u=data.usage||{};
+      totalCost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+      logAiCost(totalCost,'7000_check');
+      const rootMap={};
+      for(const line of text.split('\n')){
+        const m=line.match(/^(\w+)\s*(?:→|->)+\s*(.+)$/);
+        if(m) rootMap[m[1].toLowerCase()]=m[2].split(/[,，\s]+/).map(r=>r.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
+      }
+      // Check main word
+      const lo=card.word.toLowerCase().replace(/[^a-z]/g,'');
+      const mainRoots=rootMap[lo]||[];
+      const mainMatch=mainRoots.find(r=>v7k.has(r));
+      const mainIn7k=v7k.has(lo)||!!mainMatch;
+      const vi=vocab.findIndex(v=>v.id===vid);
+      if(vi>=0) vocab[vi].in_7000=mainIn7k;
+      sbPatch('vocabulary',`id=eq.${vid}`,{in_7000:mainIn7k}).catch(()=>{});
+      const newBadge=mainIn7k
+        ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
+        :`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`;
+      const detailInfo=`<span style="color:#888;font-size:.75rem;margin-left:6px">(${mainMatch?lo+'→'+mainMatch:lo+(mainIn7k?' ✓ 直接匹配':' ✗')})</span>`;
+      // Re-classify context words with AI roots
+      const newInList=[...inList];
+      const newNotInList=[];
+      for(const w of notInList){
+        const roots=rootMap[w]||[];
+        if(roots.some(r=>v7k.has(r))) newInList.push(w);
+        else newNotInList.push(w);
+      }
+      const newSentInfo=sentence?`<div style="margin-top:6px;font-size:.8rem;line-height:1.7">`+
+        (newInList.length?`<span style="color:#2e7d32">✓ 句中在 7000：</span> ${newInList.map(w=>`<b>${w}</b>`).join('、')}<br>`:'')+
+        (newNotInList.length?`<span style="color:#c62828">✗ 句中不在 7000：</span> ${newNotInList.map(w=>`<b>${w}</b>`).join('、')}`:'')+
+        `</div>`:'';
+      const costInfo=`<span style="color:#888;font-size:.72rem;margin-left:8px">💰 $${totalCost.toFixed(4)}</span>`;
+      el.innerHTML=newBadge+detailInfo+costInfo+newSentInfo+recheckBtn;
+    }catch(e){
+      el.innerHTML=wordBadge+`<div style="color:#c62828;font-size:.78rem">⚠️ ${e.message}</div>`+sentInfo+recheckBtn;
+    }
   }
 }
 
