@@ -384,6 +384,18 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .panel.active{display:block}
 .rev-outer{max-width:780px;margin:0 auto}
 #panel-list .list-toolbar,#panel-list .tbl-wrap{max-width:1100px;margin-left:auto;margin-right:auto}
+#list-pager{text-align:center;padding:14px 0 8px;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+#list-pager button{background:#f3f0ff;border:1px solid #e0d6f9;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.82rem}
+#list-pager button:hover{background:#ede7fe}
+#list-pager button.pg-cur{background:var(--acc,#7c3aed);color:#fff;border-color:var(--acc,#7c3aed);font-weight:600}
+#list-pager .pg-info{color:#888;font-size:.78rem;margin:0 6px}
+.changelog{display:flex;flex-direction:column;gap:0}
+.cl-entry{border-left:3px solid var(--acc,#7c3aed);padding:0 0 20px 18px;position:relative;margin-left:6px}
+.cl-entry:last-child{border-left-color:transparent}
+.cl-entry::before{content:'';position:absolute;left:-7px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--acc,#7c3aed)}
+.cl-ver{font-weight:700;font-size:1.05rem;color:var(--acc,#7c3aed)}
+.cl-date{font-size:.78rem;color:#999;margin-bottom:6px}
+.cl-entry ul{margin:0;padding-left:18px;font-size:.88rem;line-height:1.7;color:#444}
 #panel-stats>div{max-width:1100px;margin:0 auto}
 #panel-stats .stat-card{background:#fff;border-radius:var(--r,16px);padding:20px 24px;box-shadow:var(--card-sh,0 4px 20px rgba(124,58,237,.08));border:1px solid rgba(124,58,237,.07)}
 #panel-stats .stat-card p{font-size:.73rem;font-weight:700;color:var(--acc,#7c3aed);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
@@ -401,7 +413,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.4</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.5</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -416,6 +428,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
   <button data-panel="add" onclick="switchPanel(this)">新增</button>
   <button data-panel="sync" onclick="switchPanel(this)">匯入</button>
   <button data-panel="stats" onclick="switchPanel(this)">統計</button>
+  <button data-panel="changelog" onclick="switchPanel(this)">更新日誌</button>
 </div>
 
 <div id="loading-screen"><div style="text-align:center"><div>載入中…</div><div id="loading-detail" style="font-size:.75rem;margin-top:8px;color:#999"></div></div></div>
@@ -476,6 +489,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
+        <div id="list-pager" style="display:none"></div>
       </div>
     </div>
 
@@ -554,6 +568,53 @@ tr:hover td{background:rgba(124,58,237,.025)}
       </div>
     </div>
 
+    <!-- Changelog -->
+    <div id="panel-changelog" class="panel">
+      <div style="max-width:700px;margin:0 auto">
+        <h2 style="margin-bottom:18px">更新日誌</h2>
+        <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.5</div><div class="cl-date">2026-06-17</div>
+            <ul>
+              <li>高品質語音朗讀：改用 Google Cloud WaveNet，英文/日文自然發音</li>
+              <li>單字列表分頁：每頁 500 字，超過自動分頁</li>
+              <li>新增「更新日誌」頁面</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
+            <div class="cl-ver">v1.4</div><div class="cl-date">2026-06-16</div>
+            <ul>
+              <li>學生改名功能（老師介面）</li>
+              <li>修復 2000+ 單字載入失敗問題（批次查詢）</li>
+              <li>修復 AI 費用紀錄被截斷問題（提高查詢上限）</li>
+              <li>多字詞組 7000 比對：自動拆分個別單字檢查</li>
+              <li>重新比對時同步檢查例句中的單字</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
+            <div class="cl-ver">v1.3</div><div class="cl-date">2026-06-15</div>
+            <ul>
+              <li>效能優化：延遲載入、平行初始化、預連線</li>
+              <li>版本號顯示</li>
+              <li>修復正則表達式造成頁面無法載入的問題</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
+            <div class="cl-ver">v1.0 – v1.2</div><div class="cl-date">2026-06 初</div>
+            <ul>
+              <li>核心複習系統（間隔重複、連對追蹤）</li>
+              <li>7000 單字比對功能</li>
+              <li>AI 生成解釋與例句</li>
+              <li>Google Doc / .docx 匯入</li>
+              <li>統計圖表（每日複習量、答對率、成長曲線）</li>
+              <li>標記、備忘、批量操作</li>
+              <li>老師/學生雙角色系統</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Sync -->
     <div id="panel-sync" class="panel">
       <div class="form-sec">
@@ -621,7 +682,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <div class="setup-field"><label>Teacher Token（自訂，老師專用）</label><input id="cfg-teacher" placeholder="my-secret-token"></div>
     <div class="setup-field"><label>Service Role Key（老師用，繞過 RLS，可在 Supabase > Settings > API 取得）</label><input id="cfg-svckey" placeholder="eyJ...service_role..."></div>
     <div class="setup-field"><label>Anthropic API Key（選填，用於匯入生單字）</label><input id="cfg-ant" placeholder="sk-ant-..."></div>
-    <div class="setup-field"><label>OpenAI API Key（選填，高品質語音朗讀）</label><input id="cfg-oai" placeholder="sk-..."></div>
+    <div class="setup-field"><label>Google Cloud API Key（選填，高品質語音朗讀）</label><input id="cfg-gcloud" placeholder="AIza..."></div>
     <button class="btn-dark" onclick="saveConfig()">儲存並繼續</button>
     <div id="cfg-msg"></div>
   </div>
@@ -718,6 +779,7 @@ function ensureChart(){return _chartP||(_chartP=_loadScript('https://cdn.jsdeliv
 const CONFIG_KEY = 'aanki_config';
 const DEFAULT_SB_URL = 'https://tfixkvvlcalsmjhphowv.supabase.co';
 const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmaXhrdnZsY2Fsc21qaHBob3d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNDg3NTIsImV4cCI6MjA5NTYyNDc1Mn0.koKlWoXShhHR7G4ZxA0smCeXmwB6ULHGDEPVwKWnqM0';
+const DEFAULT_GCLOUD_KEY = 'AIzaSyD1fxshPuFYJdQGx2-_na_VOrmC4m8eAWg';
 const DEFAULT_TEACHER = 'aarongsateng';
 function getConfig(){
   try{
@@ -725,6 +787,7 @@ function getConfig(){
     /// Backfill defaults if not set
     if(!cfg.url) cfg.url=DEFAULT_SB_URL;
     if(!cfg.key) cfg.key=DEFAULT_SB_KEY;
+    if(cfg.oai&&!cfg.gcloud){cfg.gcloud=cfg.oai;delete cfg.oai;}
     return cfg;
   }catch(e){return {url:DEFAULT_SB_URL,key:DEFAULT_SB_KEY};}
 }
@@ -734,9 +797,9 @@ function saveConfig(){
   const teacher=document.getElementById('cfg-teacher').value.trim();
   const svckey=document.getElementById('cfg-svckey').value.trim();
   const ant=document.getElementById('cfg-ant').value.trim();
-  const oai=document.getElementById('cfg-oai').value.trim();
+  const gcloud=document.getElementById('cfg-gcloud').value.trim();
   if(!url||!key){showCfgMsg('請填寫 URL 和 Key','err');return;}
-  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,svckey,ant,oai}));
+  localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,teacher,svckey,ant,gcloud}));
   showCfgMsg('已儲存，重新載入…','ok');
   setTimeout(()=>location.reload(),800);
 }
@@ -754,7 +817,7 @@ async function saveSvcKey(){
 }
 
 /// ── Supabase ──────────────────────────────────────────────────────────────────
-let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',OAI_KEY='',STUDENT_TOKEN='';
+let SB_URL='',SB_KEY='',SB_SVC_KEY='',ANT_KEY='',GCLOUD_KEY='',STUDENT_TOKEN='';
 async function sbFetch(path,opts={}){
   const _key=SB_KEY||DEFAULT_SB_KEY;
   const _url=SB_URL||DEFAULT_SB_URL;
@@ -896,7 +959,8 @@ let mode=''; // 'student' | 'teacher'
 let studentId='', studentLang='en', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
-let sortCol=null, sortDir=1;
+let sortCol=null, sortDir=1, listPage=0;
+const PAGE_SIZE=500;
 const _defSortDir={word:1,zh_meaning:1,streak:-1,next_review:1,first_seen:-1,mastered:-1};
 let reviewActive=false, teacherCurrentSid='', teacherCurrentName='', lastImportIds=[];
 const _overdueDelayMap={}; // id → days overdue before bump
@@ -910,7 +974,7 @@ async function init(){
   const sToken=params.get('s'), tToken=params.get('teacher');
   const cfg=getConfig();
   // Student links always use defaults — never show setup screen
-  OAI_KEY=cfg.oai||'';
+  GCLOUD_KEY=cfg.gcloud||DEFAULT_GCLOUD_KEY;
   if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; STUDENT_TOKEN=sToken; }
   else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
   else { SB_URL=cfg.url; SB_KEY=cfg.svckey||cfg.key; SB_SVC_KEY=cfg.svckey||''; ANT_KEY=cfg.ant||''; }
@@ -1605,7 +1669,7 @@ document.addEventListener('keydown',e=>{
 
 // ── List ──────────────────────────────────────────────────────────────────────
 function setFilter(f,btn){
-  listFilter=f;
+  listFilter=f; listPage=0;
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   selectedIds.clear(); lastCheckedId=null; updateBulkBar();
@@ -1615,6 +1679,7 @@ function setFilter(f,btn){
 function setSortCol(col){
   if(sortCol===col){sortDir*=-1;}
   else{sortCol=col;sortDir=_defSortDir[col]??1;}
+  listPage=0;
   updateSortHeaders();
   updateList();
 }
@@ -1663,13 +1728,31 @@ function filteredVocab(){
 
 function updateList(){
   const t=today();
-  const rows=sortedVocab(filteredVocab());
+  const allRows=sortedVocab(filteredVocab());
   const tbody=document.getElementById('tbl-body');
-  if(!rows.length){
+  const pager=document.getElementById('list-pager');
+  if(!allRows.length){
     tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
     document.getElementById('chk-all').checked=false;
+    pager.style.display='none';
     return;
   }
+  const totalPages=Math.ceil(allRows.length/PAGE_SIZE);
+  if(listPage>=totalPages) listPage=totalPages-1;
+  if(listPage<0) listPage=0;
+  const start=listPage*PAGE_SIZE;
+  const rows=allRows.slice(start,start+PAGE_SIZE);
+  // Render pagination
+  if(totalPages>1){
+    let ph='<span class="pg-info">共 '+allRows.length+' 字</span>';
+    if(listPage>0) ph+='<button onclick="goPage(0)">首頁</button><button onclick="goPage('+(listPage-1)+')">‹ 上一頁</button>';
+    const maxBtns=7,half=Math.floor(maxBtns/2);
+    let ps=Math.max(0,listPage-half),pe=Math.min(totalPages-1,ps+maxBtns-1);
+    if(pe-ps<maxBtns-1) ps=Math.max(0,pe-maxBtns+1);
+    for(let i=ps;i<=pe;i++) ph+='<button class="'+(i===listPage?'pg-cur':'')+'" onclick="goPage('+i+')">'+(i+1)+'</button>';
+    if(listPage<totalPages-1) ph+='<button onclick="goPage('+(listPage+1)+')">下一頁 ›</button><button onclick="goPage('+(totalPages-1)+')">末頁</button>';
+    pager.innerHTML=ph;pager.style.display='flex';
+  }else{pager.style.display='none';}
   tbody.innerHTML=rows.map(e=>{
     const badge=e.mastered?'<span class="badge bm">精熟</span>':e.next_review<=t?'<span class="badge bd">今日到期</span>':'<span class="badge bu">未來</span>';
     const ctx=e.context?(e.context.length>50?e.context.slice(0,50)+'…':e.context):'—';
@@ -1712,6 +1795,8 @@ function updateList(){
   const allChk=rows.every(e=>selectedIds.has(e.id));
   document.getElementById('chk-all').checked=rows.length>0&&allChk;
 }
+
+function goPage(p){listPage=p;updateList();document.querySelector('#panel-list .tbl-wrap')?.scrollTo(0,0);}
 
 function toggleExp(span){
   const isExpanded=span.dataset.expanded==='1';
@@ -1757,13 +1842,12 @@ async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'
   return {content:[{text}],usage:{input_tokens:u.promptTokenCount||0,output_tokens:u.candidatesTokenCount||0}};
 }
 
-// ── TTS (OpenAI) ─────────────────────────────────────────────────────────────
+// ── TTS (Google Cloud WaveNet) ────────────────────────────────────────────────
 let _ttsAudio=null;
 async function ttsSpeak(text,lang){
   if(!text) return;
   if(_ttsAudio){_ttsAudio.pause();_ttsAudio=null;}
-  if(!OAI_KEY){
-    // Fallback: browser Speech API
+  if(!GCLOUD_KEY){
     const u=new SpeechSynthesisUtterance(text);
     u.lang=lang==='ja'?'ja-JP':'en-US';
     u.rate=0.9;
@@ -1771,20 +1855,28 @@ async function ttsSpeak(text,lang){
     return;
   }
   try{
-    const voice=lang==='ja'?'nova':'nova';
-    const res=await fetch('https://api.openai.com/v1/audio/speech',{
+    const voice=lang==='ja'?'ja-JP-Wavenet-B':'en-US-Wavenet-D';
+    const lc=lang==='ja'?'ja-JP':'en-US';
+    const res=await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key='+GCLOUD_KEY,{
       method:'POST',
-      headers:{'Authorization':'Bearer '+OAI_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({model:'tts-1',voice,input:text,speed:lang==='ja'?0.95:1.0})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        input:{text},
+        voice:{languageCode:lc,name:voice},
+        audioConfig:{audioEncoding:'MP3',speakingRate:lang==='ja'?0.95:1.0}
+      })
     });
     if(!res.ok) throw new Error(await res.text());
-    const blob=await res.blob();
-    const cost=text.length*15/1e6; // $15/1M chars
+    const json=await res.json();
+    const raw=atob(json.audioContent);
+    const buf=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i);
+    const blob=new Blob([buf],{type:'audio/mpeg'});
+    const cost=text.length*4/1e6; // WaveNet $4/1M chars
     logAiCost(cost,'tts');
     _ttsAudio=new Audio(URL.createObjectURL(blob));
     _ttsAudio.play();
   }catch(e){console.error('[TTS]',e);
-    // Fallback on error
     const u=new SpeechSynthesisUtterance(text);
     u.lang=lang==='ja'?'ja-JP':'en-US';
     speechSynthesis.speak(u);
