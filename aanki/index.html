@@ -1048,7 +1048,7 @@ async function loadStudentView(token){
 }
 
 async function refreshVocab(){
-  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000,reading,jlpt_level,pitch_accent&order=word`);
+  const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000,reading,jlpt_level,pitch_accent&order=word&limit=10000`);
   if(!rows.length){vocab=[];return;}
   const ids=rows.map(r=>r.id);
   // Batch reviews query to avoid URL length limit (500 IDs per batch)
@@ -1056,7 +1056,7 @@ async function refreshVocab(){
   const allRevs=[];
   for(let i=0;i<ids.length;i+=BATCH){
     const chunk=ids.slice(i,i+BATCH);
-    const revs=await sbGet('reviews',`vocab_id=in.(${chunk.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
+    const revs=await sbGet('reviews',`vocab_id=in.(${chunk.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc&limit=10000`);
     allRevs.push(...revs);
   }
   const revMap={};
@@ -2317,9 +2317,9 @@ async function loadTeacherView(){
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
     const [students,allVocab,sessions,recentRevs,allCosts,refreshInfo]=await Promise.all([
       sbGet('students','select=id,name,token,language&order=name'),
-      sbGet('vocabulary','select=id,student_id,mastered,next_review'),
-      sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
-      sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
+      sbGet('vocabulary','select=id,student_id,mastered,next_review&limit=50000'),
+      sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc&limit=10000`),
+      sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc&limit=50000`),
       sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc&limit=10000'),
       sbGet('app_config','key=eq.last_sentence_refresh&select=value').catch(()=>[])
     ]);
@@ -2457,8 +2457,8 @@ async function addStudentPrompt(){
 async function exportBackup(){
   try{
     const students=await sbGet('students','select=id,name,token&order=name');
-    const vocab=await sbGet('vocabulary','select=*&order=word');
-    const reviews=await sbGet('reviews','select=*&order=reviewed_at');
+    const vocab=await sbGet('vocabulary','select=*&order=word&limit=50000');
+    const reviews=await sbGet('reviews','select=*&order=reviewed_at&limit=100000');
     const data={exported_at:new Date().toISOString(),students,vocab,reviews};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a');
