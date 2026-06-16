@@ -2960,8 +2960,14 @@ async function loadBulkDocx(input){
 
 async function doBulkAdd(){
   const raw=document.getElementById('bulk-words').value;
-  const words=[...new Set(raw.split(/\r?\n/).map(w=>w.trim()).filter(w=>/[a-zA-Z]/.test(w)))];
-  if(!words.length){showFormMsg('bulk-msg','請輸入至少一個單字',false);return;}
+  const allWords=[...new Set(raw.split(/\r?\n/).map(w=>w.trim()).filter(w=>/[a-zA-Z]/.test(w)))];
+  if(!allWords.length){showFormMsg('bulk-msg','請輸入至少一個單字',false);return;}
+  // Filter out duplicates already in vocab
+  const existingSet=new Set(vocab.map(v=>v.word.toLowerCase()));
+  const words=allWords.filter(w=>!existingSet.has(w.toLowerCase()));
+  const skipped=allWords.length-words.length;
+  if(!words.length){showFormMsg('bulk-msg',`全部 ${allWords.length} 個單字都已存在，無需匯入`,false);return;}
+  if(skipped>0) showFormMsg('bulk-msg',`跳過 ${skipped} 個已存在，準備匯入 ${words.length} 個新單字…`,true);
   const date=document.getElementById('bulk-date').value;
   const rev=document.getElementById('bulk-rev').value;
   const btn=document.getElementById('bulk-gen-btn');
@@ -3025,9 +3031,10 @@ async function doBulkAdd(){
   document.getElementById('bulk-rpb').style.width='100%';
   btn.disabled=false;
   const costStr=totalCostUSD>0?' · NT$'+(totalCostUSD*32).toFixed(3):'';
+  const skipStr=skipped>0?`，跳過 ${skipped} 個已存在`:'';
   const failStr=failed.length?`，失敗 ${failed.length} 個：${failed.join('、')}`:'';
   const errStr=firstError?`\n錯誤：${firstError}`:'';
-  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${failStr}${costStr}${errStr}`,failed.length===0);
+  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${skipStr}${failStr}${costStr}${errStr}`,failed.length===0);
   if(added>0){ await refreshVocab(); updateStats(); }
 }
 
