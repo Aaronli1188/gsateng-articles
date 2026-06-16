@@ -1237,7 +1237,7 @@ function getV7kNorm(){
   return _v7kNorm;
 }
 
-function show7000Check(vid){
+async function show7000Check(vid){
   const card=vocab.find(v=>v.id===vid); if(!card) return;
   const sentence=card.context||card.word;
   const v7k=getV7kNorm();
@@ -1248,13 +1248,52 @@ function show7000Check(vid){
   const stop=new Set(['a','an','the','is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','can','could','may','might','must','to','of','in','for','on','at','by','with','from','as','into','about','and','but','or','not','no','so','if','it','its','i','me','my','we','us','our','you','your','he','him','his','she','her','they','them','their','this','that','these','those','what','which','who','whom','whose']);
   const filtered=unique.filter(w=>!stop.has(w)&&w.length>1);
   const inList=filtered.filter(w=>v7k.has(w));
-  const notInList=filtered.filter(w=>!v7k.has(w));
+  let notInList=filtered.filter(w=>!v7k.has(w));
   const el=document.getElementById('v7k-result');
-  el.innerHTML=
-    `<b>7000 單字比對</b>（${sentence.length>60?sentence.slice(0,60)+'…':sentence}）<br>`+
-    (inList.length?`<span style="color:#2e7d32">✓ 在 7000 內：</span> ${inList.map(w=>`<span style="color:#2e7d32;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
-    (notInList.length?`<span style="color:#c62828">✗ 不在 7000 內：</span> ${notInList.map(w=>`<span style="color:#c62828;font-weight:600">${w}</span>`).join('、')}`:`<span style="color:#2e7d32">全部都在 7000 內！</span>`);
-  el.style.display='block';
+  function render7k(extra){
+    el.innerHTML=
+      `<b>7000 單字比對</b>（${sentence.length>60?sentence.slice(0,60)+'…':sentence}）<br>`+
+      (inList.length?`<span style="color:#2e7d32">✓ 在 7000 內：</span> ${inList.map(w=>`<span style="color:#2e7d32;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
+      (notInList.length?`<span style="color:#c62828">✗ 不在 7000 內：</span> ${notInList.map(w=>`<span style="color:#c62828;font-weight:600">${w}</span>`).join('、')}<br>`:'')+
+      (!notInList.length&&!extra?`<span style="color:#2e7d32">全部都在 7000 內！</span>`:'')+
+      (extra||'');
+    el.style.display='block';
+  }
+  render7k(notInList.length?'<span style="color:#888;font-size:.78rem">🔍 AI 還原原形中…</span>':'');
+  // AI lemmatization for unmatched words
+  if(notInList.length){
+    try{
+      const prompt=`Given these English words, return ONLY their dictionary base form (lemma). One word per line, format: "inflected → lemma"\n\nWords: ${notInList.join(', ')}`;
+      const data=await callGemini([{role:'user',content:prompt}],128);
+      const text=data.content?.[0]?.text||'';
+      const lemmaMap={};
+      for(const line of text.split('\n')){
+        const m=line.match(/(\w+)\s*[→->]+\s*(\w+)/);
+        if(m) lemmaMap[m[1].toLowerCase()]=m[2].toLowerCase();
+      }
+      // Re-check lemmas against 7000
+      const rescued=[];
+      const stillOut=[];
+      for(const w of notInList){
+        const lemma=lemmaMap[w];
+        if(lemma && v7k.has(lemma)){
+          inList.push(w);
+          rescued.push({word:w,lemma});
+        } else {
+          stillOut.push(w);
+        }
+      }
+      notInList=stillOut;
+      const u=data.usage||{};
+      const costUSD=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
+      logAiCost(costUSD,'7000_check');
+      const costInfo=`<span style="color:#888;font-size:.75rem">💰 AI 費用：$${costUSD.toFixed(4)}</span>`;
+      const rescuedInfo=rescued.length?`<br><span style="color:#1565c0;font-size:.8rem">🔄 AI 還原：${rescued.map(r=>`<b>${r.word}</b>→${r.lemma}`).join('、')}</span>`:'';
+      render7k(rescuedInfo+'<br>'+costInfo);
+    }catch(e){
+      render7k(`<br><span style="color:#888;font-size:.75rem">⚠️ AI 還原失敗：${e.message}</span>`);
+    }
+  }
 }
 
 async function saveMemo(vid){
