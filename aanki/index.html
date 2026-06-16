@@ -417,7 +417,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
   <button data-panel="stats" onclick="switchPanel(this)">統計</button>
 </div>
 
-<div id="loading-screen">載入中…</div>
+<div id="loading-screen"><div style="text-align:center"><div>載入中…</div><div id="loading-detail" style="font-size:.75rem;margin-top:8px;color:#999"></div></div></div>
 <div id="error-screen">
   <h2 id="err-title">無效的連結</h2>
   <p id="err-msg">請確認你的專屬連結是否正確。</p>
@@ -758,13 +758,18 @@ async function sbFetch(path,opts={}){
   const sep=path.includes('?')?'&':'?';
   const {headers:_h,..._rest}=opts;
   const _extraHdrs=STUDENT_TOKEN?{'x-student-token':STUDENT_TOKEN}:{};
-  const res=await fetch(_url+path+sep+'apikey='+_key,{
-    headers:{'Content-Type':'application/json','Prefer':'return=representation','Authorization':'Bearer '+_key,..._extraHdrs,...(_h||{})},
-    ..._rest
-  });
-  if(!res.ok){const t=await res.text();throw new Error(t);}
-  const text=await res.text();
-  return text?JSON.parse(text):[];
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),15000);
+  try{
+    const res=await fetch(_url+path+sep+'apikey='+_key,{
+      headers:{'Content-Type':'application/json','Prefer':'return=representation','Authorization':'Bearer '+_key,..._extraHdrs,...(_h||{})},
+      signal:ctrl.signal,..._rest
+    });
+    clearTimeout(timer);
+    if(!res.ok){const t=await res.text();throw new Error(t);}
+    const text=await res.text();
+    return text?JSON.parse(text):[];
+  }catch(e){clearTimeout(timer);if(e.name==='AbortError')throw new Error('連線逾時（15秒），請檢查網路');throw e;}
 }
 async function sbGet(table,params=''){return sbFetch(`/rest/v1/${table}?${params}`);}
 async function sbPost(table,body){return sbFetch(`/rest/v1/${table}`,{method:'POST',body:JSON.stringify(body)});}
@@ -896,6 +901,7 @@ let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 let INTERVALS={...GLOBAL_INTERVALS};
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+function loadingMsg(s){const el=document.getElementById('loading-detail');if(el)el.textContent=s;}
 async function init(){
   const params=new URLSearchParams(location.search);
   const sToken=params.get('s'), tToken=params.get('teacher');
@@ -904,6 +910,7 @@ async function init(){
   if(sToken){ SB_URL=DEFAULT_SB_URL; SB_KEY=DEFAULT_SB_KEY; ANT_KEY=''; STUDENT_TOKEN=sToken; }
   else if(!cfg.url||!cfg.key){hide('loading-screen');show('setup-screen');return;}
   else { SB_URL=cfg.url; SB_KEY=cfg.svckey||cfg.key; SB_SVC_KEY=cfg.svckey||''; ANT_KEY=cfg.ant||''; }
+  loadingMsg('連線 Supabase…');
   try{
     const cfgRows=await sbGet('app_config','key=eq.review_intervals&select=key,value');
     for(const r of cfgRows){
@@ -931,6 +938,7 @@ function showError(title,msg){document.getElementById('err-title').textContent=t
 // ── Student view ──────────────────────────────────────────────────────────────
 async function loadStudentView(token){
   try{
+    loadingMsg('查詢學生資料…');
     const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language`);
     if(!students.length){hide('loading-screen');showError('找不到學生','請確認你的連結是否正確。');return;}
     const student=students[0];
@@ -939,13 +947,13 @@ async function loadStudentView(token){
     document.getElementById('student-badge').textContent=student.name+(studentLang==='ja'?' 🇯🇵':'');
     document.getElementById('student-badge').style.display='inline-block';
     document.title=`Aanki · ${student.name}`;
-    // Set default dates
     const t=today();
     ['a-date','s-date','bulk-date'].forEach(id=>{document.getElementById(id).value=t;});
     ['a-rev','s-rev','bulk-rev'].forEach(id=>{document.getElementById(id).value=plusDays(t,7);});
     document.getElementById('bulk-reset-date').value=t;
     document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
+    loadingMsg('載入單字與複習紀錄…');
     await Promise.all([loadStudentIntervals(student.id), refreshVocab()]);
     hide('loading-screen');
     show('student-view');
