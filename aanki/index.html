@@ -401,7 +401,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.1</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.2</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="daystart-btn" onclick="openDayStartModal()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⏰ 日切</button>
@@ -975,9 +975,16 @@ async function refreshVocab(){
   const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000,reading,jlpt_level,pitch_accent&order=word`);
   if(!rows.length){vocab=[];return;}
   const ids=rows.map(r=>r.id);
-  const reviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
+  // Batch reviews query to avoid URL length limit (500 IDs per batch)
+  const BATCH=500;
+  const allRevs=[];
+  for(let i=0;i<ids.length;i+=BATCH){
+    const chunk=ids.slice(i,i+BATCH);
+    const revs=await sbGet('reviews',`vocab_id=in.(${chunk.join(',')})&select=vocab_id,result,reviewed_at&order=reviewed_at.asc`);
+    allRevs.push(...revs);
+  }
   const revMap={};
-  for(const r of reviews){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
+  for(const r of allRevs){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
   vocab=rows.map(r=>({...r,reviews:revMap[r.id]||[],streak:consecutiveCorrect(revMap[r.id]||[])}));
 }
 
@@ -2597,8 +2604,10 @@ async function renderStats(){
   let fullReviews=[];
   try{
     const ids=vocab.map(v=>v.id);
-    if(ids.length){
-      fullReviews=await sbGet('reviews',`vocab_id=in.(${ids.join(',')})&select=vocab_id,reviewed_at,result&order=reviewed_at.asc`);
+    for(let i=0;i<ids.length;i+=500){
+      const chunk=ids.slice(i,i+500);
+      const revs=await sbGet('reviews',`vocab_id=in.(${chunk.join(',')})&select=vocab_id,reviewed_at,result&order=reviewed_at.asc`);
+      fullReviews.push(...revs);
     }
   }catch(e){}
 
