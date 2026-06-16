@@ -401,7 +401,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.0</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.1</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="daystart-btn" onclick="openDayStartModal()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⏰ 日切</button>
@@ -1272,19 +1272,35 @@ function getV7kNorm(){
 // Returns {in7000: bool, detail: string}
 async function check7000Word(word){
   const v7k=getV7kNorm();
-  const lo=word.toLowerCase().replace(/[^a-z]/g,'');
-  if(v7k.has(lo)) return {in7000:true, detail:lo+' ✓ 直接匹配'};
-  // AI: get root forms (not just lemma — also derivation roots)
+  // Split multi-word phrases into individual words
+  const parts=word.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z]/g,'')).filter(Boolean);
+  if(!parts.length) return {in7000:null, detail:'(空)', cost:0};
+  // Check each part locally first
+  const allLocal=parts.every(p=>v7k.has(p));
+  if(allLocal) return {in7000:true, detail:parts.join(', ')+' ✓ 直接匹配'};
+  // AI: get root forms for all parts
   try{
-    const prompt=`Word: "${lo}"\nReturn ALL possible root/base dictionary forms by removing suffixes (-s, -es, -ed, -ing, -ly, -er, -est, -tion, -sion, -ment, -ness, -ful, -less, -ous, -ive, -al, -able, -ible, -ity, -ence, -ance, etc). Include the simplest root.\nFormat: one word per line, nothing else.`;
-    const data=await callGemini([{role:'user',content:prompt}],64,'gemini-2.5-flash-lite');
-    const roots=data.content?.[0]?.text?.split('\n').map(s=>s.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean)||[];
-    const matched=roots.find(r=>v7k.has(r));
+    const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${parts.join(', ')}`;
+    const data=await callGemini([{role:'user',content:prompt}],128,'gemini-2.5-flash-lite');
+    const text=data.content?.[0]?.text||'';
+    const rootMap={};
+    for(const line of text.split('\n')){
+      const m=line.match(/^(\w+)\s*(?:→|->)+\s*(.+)$/);
+      if(m) rootMap[m[1].toLowerCase()]=m[2].split(/[,，\s]+/).map(r=>r.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
+    }
     const u=data.usage||{};
     const cost=((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
-    return {in7000:!!matched, detail:matched?`${lo}→${matched}`:lo+' ✗', cost, roots};
+    const results=parts.map(p=>{
+      if(v7k.has(p)) return {word:p, matched:p, in7k:true};
+      const roots=rootMap[p]||[];
+      const m=roots.find(r=>v7k.has(r));
+      return {word:p, matched:m||null, in7k:!!m};
+    });
+    const allIn=results.every(r=>r.in7k);
+    const detail=results.map(r=>r.in7k?(r.matched!==r.word?`${r.word}→${r.matched}`:r.word+' ✓'):r.word+' ✗').join(', ');
+    return {in7000:allIn, detail, cost, roots:Object.values(rootMap).flat()};
   }catch(e){
-    return {in7000:null, detail:lo+' (AI 錯誤)', cost:0};
+    return {in7000:null, detail:parts.join(', ')+' (AI 錯誤)', cost:0};
   }
 }
 
@@ -1296,19 +1312,20 @@ async function batch7000Check(wordIds){
   const localMatch=[];
   for(const id of wordIds){
     const card=vocab.find(v=>v.id===id); if(!card) continue;
-    const lo=card.word.toLowerCase().replace(/[^a-z]/g,'');
-    if(v7k.has(lo)){
+    const parts=card.word.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z]/g,'')).filter(Boolean);
+    if(parts.every(p=>v7k.has(p))){
       localMatch.push(id);
       const vi=vocab.findIndex(v=>v.id===id); if(vi>=0) vocab[vi].in_7000=true;
       sbPatch('vocabulary',`id=eq.${id}`,{in_7000:true}).catch(()=>{});
     } else {
-      needAI.push({id, word:card.word});
+      needAI.push({id, word:card.word, parts});
     }
   }
   if(!needAI.length) return {local:localMatch.length, ai:0, cost:0};
-  // Batch AI call for all words needing root resolution
+  // Batch AI call — flatten all parts that need checking
+  const allParts=[...new Set(needAI.flatMap(w=>w.parts.filter(p=>!v7k.has(p))))];
   try{
-    const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${needAI.map(w=>w.word).join(', ')}`;
+    const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${allParts.join(', ')}`;
     const data=await callGemini([{role:'user',content:prompt}],256,'gemini-2.5-flash-lite');
     const text=data.content?.[0]?.text||'';
     const rootMap={};
@@ -1321,9 +1338,7 @@ async function batch7000Check(wordIds){
     }
     let aiMatched=0;
     for(const item of needAI){
-      const lo=item.word.toLowerCase().replace(/[^a-z]/g,'');
-      const roots=rootMap[lo]||[];
-      const hit=roots.some(r=>v7k.has(r));
+      const hit=item.parts.every(p=>v7k.has(p)||(rootMap[p]||[]).some(r=>v7k.has(r)));
       const vi=vocab.findIndex(v=>v.id===item.id);
       if(vi>=0) vocab[vi].in_7000=hit;
       sbPatch('vocabulary',`id=eq.${item.id}`,{in_7000:hit}).catch(()=>{});
@@ -1446,8 +1461,9 @@ async function show7000Check(vid, forceRecheck){
   el.innerHTML=wordBadge+sentInfo+recheckBtn;
   if(forceRecheck || wordStatus===null || wordStatus===undefined){
     el.innerHTML=wordBadge+sentInfo+`<div style="color:#888;font-size:.78rem;margin-top:4px">🔍 AI 比對中…</div>`;
-    // Batch: main word + context words not in 7000
-    const allWords=[card.word, ...notInList];
+    // Batch: main word parts + context words not in 7000
+    const mainParts=card.word.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z]/g,'')).filter(Boolean);
+    const allWords=[...new Set([...mainParts, ...notInList])];
     const prompt=`For each word, list ALL possible root/base dictionary forms (remove -s/-es/-ed/-ing/-ly/-er/-est/-tion/-ment/-ness/-ful/-ous/-ive/-al/-able/-ity/-ence/-ance etc). Include the simplest root.\nFormat: "word → root1, root2"\n\nWords: ${allWords.join(', ')}`;
     let totalCost=0;
     try{
@@ -1461,18 +1477,21 @@ async function show7000Check(vid, forceRecheck){
         const m=line.match(/^(\w+)\s*(?:→|->)+\s*(.+)$/);
         if(m) rootMap[m[1].toLowerCase()]=m[2].split(/[,，\s]+/).map(r=>r.trim().toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
       }
-      // Check main word
-      const lo=card.word.toLowerCase().replace(/[^a-z]/g,'');
-      const mainRoots=rootMap[lo]||[];
-      const mainMatch=mainRoots.find(r=>v7k.has(r));
-      const mainIn7k=v7k.has(lo)||!!mainMatch;
+      // Check main word — each part must be in 7000
+      const mainResults=mainParts.map(p=>{
+        if(v7k.has(p)) return {word:p, matched:p, in7k:true};
+        const roots=rootMap[p]||[];
+        const m=roots.find(r=>v7k.has(r));
+        return {word:p, matched:m||null, in7k:!!m};
+      });
+      const mainIn7k=mainResults.every(r=>r.in7k);
       const vi=vocab.findIndex(v=>v.id===vid);
       if(vi>=0) vocab[vi].in_7000=mainIn7k;
       sbPatch('vocabulary',`id=eq.${vid}`,{in_7000:mainIn7k}).catch(()=>{});
       const newBadge=mainIn7k
         ?`<span style="color:#2e7d32;font-weight:700">✓「${esc(card.word)}」在 7000 內</span>`
         :`<span style="color:#c62828;font-weight:700">✗「${esc(card.word)}」不在 7000 內</span>`;
-      const detailInfo=`<span style="color:#888;font-size:.75rem;margin-left:6px">(${mainMatch?lo+'→'+mainMatch:lo+(mainIn7k?' ✓ 直接匹配':' ✗')})</span>`;
+      const detailInfo=`<span style="color:#888;font-size:.75rem;margin-left:6px">(${mainResults.map(r=>r.in7k?(r.matched!==r.word?r.word+'→'+r.matched:r.word+' ✓'):r.word+' ✗').join(', ')})</span>`;
       // Re-classify context words with AI roots
       const newInList=[...inList];
       const newNotInList=[];
