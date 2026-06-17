@@ -2187,7 +2187,7 @@ async function sendAiMsgInternal(userText){
     // Build message history for Gemini (max last 20 messages to keep context)
     const history=_aiChatMessages.slice(-20);
     const geminiMsgs=history.map(m=>({role:m.role,content:m.content}));
-    const data=await callGemini(geminiMsgs,1024,'gemini-3.5-flash');
+    const data=await callGemini(geminiMsgs,4096,'gemini-3.5-flash');
     const reply=data.content?.[0]?.text||'（無回應）';
     _aiChatMessages.push({role:'assistant',content:reply});
     const u=data.usage||{};
