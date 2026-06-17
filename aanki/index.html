@@ -463,7 +463,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.7</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.8</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -632,6 +632,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
           <div class="cl-entry">
+            <div class="cl-ver">v1.8</div><div class="cl-date">2026-06-17</div>
+            <ul>
+              <li>AI 模型切換：老師可為每位學生設定模型權限（自選 / 限定 3.5-Flash / 限定 3.1-Lite / 停用）</li>
+              <li>學生有自選權限時，AI chat 頂部顯示模型切換按鈕，選擇記在本機</li>
+              <li>AI 輸出上限提升至 8192 tokens</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
             <div class="cl-ver">v1.7</div><div class="cl-date">2026-06-17</div>
             <ul>
               <li>Deck 系統：建立牌組、一張卡可屬於多個 Deck、複習時可依 Deck 篩選</li>
@@ -753,9 +761,16 @@ tr:hover td{background:rgba(124,58,237,.025)}
 <div class="ai-chat-overlay" id="ai-chat-overlay">
   <div class="ai-chat-modal">
     <div class="ai-chat-hdr">
-      <div>
+      <div style="flex:1">
         <div class="ai-chat-hdr-title">✦ AI 解釋</div>
         <div class="ai-chat-hdr-word" id="ai-chat-word-label"></div>
+      </div>
+      <div id="ai-model-picker" style="display:none;margin-right:10px">
+        <label style="font-size:.72rem;color:#999;display:block;margin-bottom:3px">模型</label>
+        <div style="display:flex;gap:4px">
+          <button id="ai-model-btn-flash" class="deck-btn" onclick="setAiModel('3.5flash')" style="font-size:.72rem;padding:2px 8px">3.5 Flash</button>
+          <button id="ai-model-btn-lite" class="deck-btn" onclick="setAiModel('lite')" style="font-size:.72rem;padding:2px 8px">3.1 Lite</button>
+        </div>
       </div>
       <button class="ai-chat-close" onclick="closeAiChat()">✕</button>
     </div>
@@ -1101,8 +1116,24 @@ let INTERVALS={...GLOBAL_INTERVALS};
 // ── Deck state ───────────────────────────────────────────────────────────────
 let decks=[], cardDeckMap={}, activeDeckFilter=null;
 // ── AI Chat state ────────────────────────────────────────────────────────────
-let studentAiChatEnabled=true;
+let studentAiChatPerm='all'; // 'all'|'3.5flash'|'lite'|'disabled'
+let studentAiChatEnabled=true; // derived: perm !== 'disabled'
 let _aiChatCardId=null, _aiChatMessages=[], _aiChatDbId=null, _aiChatSending=false;
+const AI_MODELS={
+  '3.5flash':{id:'gemini-3.5-flash',label:'3.5 Flash'},
+  'lite':{id:'gemini-3.1-flash-lite',label:'3.1 Flash Lite'}
+};
+function getAiChatModelId(){
+  if(studentAiChatPerm==='lite') return AI_MODELS.lite.id;
+  if(studentAiChatPerm==='3.5flash') return AI_MODELS['3.5flash'].id;
+  // perm='all': use student's local preference
+  const saved=localStorage.getItem('aanki_ai_model')||'3.5flash';
+  return AI_MODELS[saved]?.id||AI_MODELS['3.5flash'].id;
+}
+function getAiChatModelKey(){
+  const saved=localStorage.getItem('aanki_ai_model')||'3.5flash';
+  return saved;
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function loadingMsg(s){const el=document.getElementById('loading-detail');if(el)el.textContent=s;}
@@ -1144,12 +1175,13 @@ function showError(title,msg){document.getElementById('err-title').textContent=t
 async function loadStudentView(token){
   try{
     loadingMsg('查詢學生資料…');
-    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language,ai_chat_enabled`);
+    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language,ai_chat_enabled,ai_chat_model_perm`);
     if(!students.length){hide('loading-screen');showError('找不到學生','請確認你的連結是否正確。');return;}
     const student=students[0];
     studentId=student.id;
     studentLang=student.language||'en';
-    studentAiChatEnabled=student.ai_chat_enabled!==false;
+    studentAiChatPerm=student.ai_chat_model_perm||'all';
+    studentAiChatEnabled=studentAiChatPerm!=='disabled'&&student.ai_chat_enabled!==false;
     document.getElementById('student-badge').textContent=student.name+(studentLang==='ja'?' 🇯🇵':'');
     document.getElementById('student-badge').style.display='inline-block';
     document.title=`Aanki · ${student.name}`;
@@ -2102,13 +2134,35 @@ async function addCardToDeck(cardId,deckId){
 }
 
 // ── AI Chat ───────────────────────────────────────────────────────────────────
+function setAiModel(key){
+  localStorage.setItem('aanki_ai_model',key);
+  updateAiModelPickerUI();
+}
+function updateAiModelPickerUI(){
+  const picker=document.getElementById('ai-model-picker');
+  if(!picker) return;
+  if(studentAiChatPerm==='all'){
+    picker.style.display='block';
+    const cur=getAiChatModelKey();
+    const btnFlash=document.getElementById('ai-model-btn-flash');
+    const btnLite=document.getElementById('ai-model-btn-lite');
+    if(btnFlash) btnFlash.style.cssText=`font-size:.72rem;padding:2px 8px;${cur==='3.5flash'?'background:var(--acc);color:#fff;border-color:var(--acc)':''}`;
+    if(btnLite) btnLite.style.cssText=`font-size:.72rem;padding:2px 8px;${cur==='lite'?'background:var(--acc);color:#fff;border-color:var(--acc)':''}`;
+  } else {
+    picker.style.display='none';
+  }
+}
 async function openAiChat(cardId){
   _aiChatCardId=cardId;
   _aiChatSending=false;
   const card=vocab.find(v=>v.id===cardId);
   const overlay=document.getElementById('ai-chat-overlay');
   const wordLabel=document.getElementById('ai-chat-word-label');
-  if(wordLabel) wordLabel.textContent=card?card.word:'';
+  if(wordLabel){
+    const modelLabel=studentAiChatPerm==='all'?'':` · ${AI_MODELS[studentAiChatPerm]?.label||''}`;
+    wordLabel.textContent=(card?card.word:'')+modelLabel;
+  }
+  updateAiModelPickerUI();
   overlay.classList.add('open');
   document.getElementById('ai-chat-msgs').innerHTML='<div style="text-align:center;padding:20px;color:#bbb;font-size:.85rem">載入對話中…</div>';
   document.getElementById('ai-chat-send').disabled=true;
@@ -2187,7 +2241,7 @@ async function sendAiMsgInternal(userText){
     // Build message history for Gemini (max last 20 messages to keep context)
     const history=_aiChatMessages.slice(-20);
     const geminiMsgs=history.map(m=>({role:m.role,content:m.content}));
-    const data=await callGemini(geminiMsgs,4096,'gemini-3.5-flash');
+    const data=await callGemini(geminiMsgs,8192,getAiChatModelId());
     const reply=data.content?.[0]?.text||'（無回應）';
     _aiChatMessages.push({role:'assistant',content:reply});
     const u=data.usage||{};
@@ -2685,7 +2739,7 @@ async function loadTeacherView(){
     // 清理 90 天前的登入紀錄（fire and forget）
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
     const [students,allVocab,sessions,recentRevs,allCosts,refreshInfo]=await Promise.all([
-      sbGet('students','select=id,name,token,language,ai_chat_enabled&order=name'),
+      sbGet('students','select=id,name,token,language,ai_chat_enabled,ai_chat_model_perm&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
       sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
@@ -2753,9 +2807,23 @@ async function loadTeacherView(){
         <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
         <div style="font-size:.77rem;color:#888;margin:5px 0 2px">累計 AI 費用：<span style="color:#e65100;font-weight:600">${costLabel}</span></div>
-        <div style="font-size:.75rem;margin:4px 0 2px;display:flex;align-items:center;gap:6px">
-          <span style="color:#888">AI 解釋功能：</span>
-          <button class="sm" style="padding:2px 10px;font-size:.72rem;${s.ai_chat_enabled!==false?'background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32':'background:#ffebee;border-color:#ffcdd2;color:#c62828'}" onclick="event.stopPropagation();toggleStudentAiChat('${s.id}',${s.ai_chat_enabled!==false},this)">${s.ai_chat_enabled!==false?'✓ 已開啟':'✗ 已關閉'}</button>
+        <div style="font-size:.73rem;margin:6px 0 2px" onclick="event.stopPropagation()">
+          <span style="color:#888;font-weight:600">AI 模型權限：</span>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
+            ${[
+              {v:'all',    label:'自選（3.5 Flash + 3.1 Lite）'},
+              {v:'3.5flash',label:'限定 3.5 Flash（不可切換）'},
+              {v:'lite',    label:'限定 3.1 Lite（不可切換）'},
+              {v:'disabled',label:'停用 AI 功能'}
+            ].map(opt=>{
+              const cur=s.ai_chat_model_perm||'all';
+              const checked=cur===opt.v?'checked':'';
+              return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.72rem;color:${opt.v==='disabled'?'#c62828':'#333'}">
+                <input type="radio" name="aiperm-${s.id}" value="${opt.v}" ${checked} onchange="setStudentAiPerm('${s.id}',this.value)" style="cursor:pointer">
+                ${opt.label}
+              </label>`;
+            }).join('')}
+          </div>
         </div>
         <div class="sc-act-row">
           <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
@@ -2769,16 +2837,11 @@ async function loadTeacherView(){
   }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
 }
 
-async function toggleStudentAiChat(sid,currentEnabled,btn){
-  const newVal=!currentEnabled;
+async function setStudentAiPerm(sid,perm){
   try{
-    btn.textContent='…';btn.disabled=true;
-    await sbPatch('students',`id=eq.${sid}`,{ai_chat_enabled:newVal});
-    btn.style.cssText=`padding:2px 10px;font-size:.72rem;${newVal?'background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32':'background:#ffebee;border-color:#ffcdd2;color:#c62828'}`;
-    btn.textContent=newVal?'✓ 已開啟':'✗ 已關閉';
-    btn.disabled=false;
-    btn.onclick=e=>{e.stopPropagation();toggleStudentAiChat(sid,newVal,btn);};
-  }catch(e){btn.textContent='錯誤';btn.disabled=false;}
+    const enabled=perm!=='disabled';
+    await sbPatch('students',`id=eq.${sid}`,{ai_chat_model_perm:perm,ai_chat_enabled:enabled});
+  }catch(e){alert('更新失敗：'+e.message);}
 }
 function copyLink(link,btn){
   navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
