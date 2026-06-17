@@ -403,6 +403,56 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .sentence,.flash-card{font-family:'Plus Jakarta Sans',-apple-system,sans-serif}
 /* Title styling */
 .hdr h1{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-weight:800;font-size:.92rem}
+
+/* ── Deck tags ────────────────────────────────────────────────────────── */
+.deck-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:.71rem;font-weight:600;background:rgba(124,58,237,.1);color:var(--acc);border:1px solid rgba(124,58,237,.2);white-space:nowrap}
+.deck-tag-del{border:none;background:none;cursor:pointer;color:inherit;opacity:.5;padding:0;font-size:.8rem;line-height:1}
+.deck-tag-del:hover{opacity:1}
+.deck-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:14px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(124,58,237,.25);background:#fff;color:#555;transition:all .15s;white-space:nowrap}
+.deck-chip.active{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:#7c3aed;color:#fff;box-shadow:0 2px 10px rgba(124,58,237,.3)}
+.deck-chip:hover:not(.active){background:#f5f3ff;color:var(--acc)}
+.deck-panel{background:#fff;border-radius:16px;padding:20px 24px;box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.07);margin-bottom:18px}
+.deck-panel h3{font-size:.9rem;font-weight:700;color:#1e1b4b;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.deck-list-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f0}
+.deck-list-item:last-child{border-bottom:none}
+.deck-name{flex:1;font-size:.9rem;font-weight:600;color:#1e1b4b}
+.deck-meta{font-size:.75rem;color:#999}
+.deck-actions{display:flex;gap:5px}
+.deck-btn{padding:3px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:.74rem;color:#555;font-family:inherit}
+.deck-btn.danger{border-color:#ffcdd2;color:#c62828}
+.deck-btn.danger:hover{background:#ffebee}
+.deck-create-row{display:flex;gap:8px;margin-top:14px}
+.deck-create-row input{flex:1;padding:7px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit}
+.deck-create-row input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.deck-select{width:100%;padding:7px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit;background:#fff;cursor:pointer}
+.deck-select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+
+/* ── AI Chat Modal ────────────────────────────────────────────────────── */
+.ai-chat-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:flex-end;justify-content:center;padding:0}
+.ai-chat-overlay.open{display:flex}
+@media(min-width:640px){.ai-chat-overlay{align-items:center;padding:16px}}
+.ai-chat-modal{background:#fff;width:100%;max-width:680px;height:92vh;max-height:800px;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -4px 40px rgba(124,58,237,.18)}
+@media(min-width:640px){.ai-chat-modal{border-radius:20px;height:82vh}}
+.ai-chat-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(124,58,237,.1);flex-shrink:0;background:linear-gradient(135deg,#f5f3ff,#eff6ff)}
+.ai-chat-hdr-title{flex:1;font-size:.95rem;font-weight:700;color:#1e1b4b}
+.ai-chat-hdr-word{font-size:.8rem;color:var(--acc);font-weight:600}
+.ai-chat-close{background:none;border:none;cursor:pointer;font-size:1.3rem;color:#999;padding:0 4px;line-height:1}
+.ai-chat-close:hover{color:#333}
+.ai-chat-msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.ai-msg{max-width:88%;padding:10px 14px;border-radius:14px;font-size:.9rem;line-height:1.6;word-break:break-word}
+.ai-msg-ai{background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid rgba(124,58,237,.12);align-self:flex-start;border-bottom-left-radius:4px}
+.ai-msg-ai code{background:rgba(124,58,237,.08);padding:1px 5px;border-radius:4px;font-size:.85em}
+.ai-msg-user{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.ai-msg-loading{opacity:.6;font-style:italic}
+.ai-chat-footer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(124,58,237,.1);background:#fff;flex-shrink:0}
+.ai-chat-input{flex:1;padding:9px 13px;border:1px solid rgba(124,58,237,.2);border-radius:12px;font-size:.9rem;font-family:inherit;resize:none;min-height:40px;max-height:120px;overflow-y:auto}
+.ai-chat-input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.ai-chat-send{padding:9px 16px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:.88rem;font-weight:600;font-family:inherit;white-space:nowrap;transition:transform .1s}
+.ai-chat-send:hover{transform:translateY(-1px)}
+.ai-chat-send:disabled{opacity:.5;cursor:default;transform:none}
+.ai-chat-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;color:#fff;align-self:flex-start;margin-top:2px}
+.ai-msg-row{display:flex;gap:8px;align-items:flex-start}
+.ai-msg-row.user{flex-direction:row-reverse}
 </style>
 </head>
 <body>
@@ -413,7 +463,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.6</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.7</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -424,7 +474,8 @@ tr:hover td{background:rgba(124,58,237,.025)}
 
 <div class="nav" id="main-nav">
   <button class="active" data-panel="review" onclick="switchPanel(this)">複習</button>
-  <button data-panel="list" onclick="switchPanel(this)">單字列表</button>
+  <button data-panel="list" onclick="switchPanel(this)">卡片列表</button>
+  <button data-panel="decks" onclick="switchPanel(this)">Deck</button>
   <button data-panel="add" onclick="switchPanel(this)">新增</button>
   <button data-panel="sync" onclick="switchPanel(this)">匯入</button>
   <button data-panel="stats" onclick="switchPanel(this)">統計</button>
@@ -472,6 +523,10 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <button class="fb" onclick="setFilter('marked',this)">🔖 已標記</button>
           <button class="fb" onclick="setFilter('memo',this)">📝 有備忘</button>
         </div>
+        <div id="deck-filter-bar" style="display:none;margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:.75rem;color:#999;font-weight:600">Deck:</span>
+          <button class="deck-chip active" onclick="setDeckFilter(null,this)">全部</button>
+        </div>
       </div>
       <div class="tbl-wrap">
         <div id="list-pager-top" style="display:none"></div>
@@ -479,7 +534,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <thead><tr>
             <th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th>
             <th style="width:32px"></th>
-            <th class="srt" onclick="setSortCol('word')">單字<span class="si" id="si-word"></span></th>
+            <th class="srt" onclick="setSortCol('word')">卡片<span class="si" id="si-word"></span></th>
             <th>例句</th>
             <th class="srt" onclick="setSortCol('zh_meaning')">解釋<span class="si" id="si-zh_meaning"></span></th>
             <th class="srt" onclick="setSortCol('streak')">連對<span class="si" id="si-streak"></span></th>
@@ -497,14 +552,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <!-- Add -->
     <div id="panel-add" class="panel">
       <div class="form-sec">
-        <h2>新增單字</h2>
+        <h2>新增卡片</h2>
         <div class="stabs" id="add-tabs" style="margin-bottom:18px">
-          <button class="stab active" onclick="setAddTab('single',this)">單字</button>
+          <button class="stab active" onclick="setAddTab('single',this)">單張卡片</button>
           <button class="stab" onclick="setAddTab('bulk',this)">批量匯入</button>
         </div>
         <!-- Single -->
         <div id="add-single-area">
-          <div class="field"><label>單字</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
+          <div class="field"><label>卡片內容</label><input id="a-word" type="text" placeholder="e.g. vault"></div>
           <div class="field"><label>例句（可留空，生成時自動填入）</label><textarea id="a-ctx" placeholder="The vault was opened in 2008..."></textarea></div>
           <div class="field"><label>解釋（可留空，生成時自動填入）</label><textarea id="a-zh" rows="2" placeholder="（動詞）建立；設立"></textarea></div>
           <div class="gen-row">
@@ -513,13 +568,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
           </div>
           <div class="field"><label>上課日期</label><input id="a-date" type="date"></div>
           <div class="field"><label>第一次複習日期</label><input id="a-rev" type="date"></div>
+          <div class="field"><label>加入 Deck（選填）</label><select id="a-deck" class="deck-select"><option value="">— 不加入 Deck —</option></select></div>
           <button class="btn-pri" onclick="doAdd()">新增</button>
           <div id="add-msg"></div>
         </div>
         <!-- Bulk -->
         <div id="add-bulk-area" style="display:none">
           <div class="field">
-            <label>單字清單（每行一個）</label>
+            <label>卡片清單（每行一個）</label>
             <textarea id="bulk-words" rows="9" placeholder="apple&#10;banana&#10;peach&#10;..."></textarea>
           </div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -529,6 +585,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <p style="font-size:.72rem;color:#bbb;margin:0 0 12px">Pages 使用者請先輸出為 .docx</p>
           <div class="field"><label>上課日期</label><input id="bulk-date" type="date"></div>
           <div class="field"><label>第一次複習日期</label><input id="bulk-rev" type="date"></div>
+          <div class="field"><label>加入 Deck（選填）</label><select id="bulk-deck" class="deck-select"><option value="">— 不加入 Deck —</option></select></div>
           <button class="btn-pri" id="bulk-gen-btn" onclick="doBulkAdd()" style="width:100%">✨ 生成並新增全部</button>
           <div id="bulk-progress" style="display:none;margin-top:16px">
             <div class="rpb-wrap"><div class="rpb" id="bulk-rpb" style="width:0%"></div></div>
@@ -575,11 +632,21 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
           <div class="cl-entry">
+            <div class="cl-ver">v1.7</div><div class="cl-date">2026-06-17</div>
+            <ul>
+              <li>Deck 系統：建立牌組、一張卡可屬於多個 Deck、複習時可依 Deck 篩選</li>
+              <li>「單字」全面改稱「卡片」，Aanki 不再限於背單字</li>
+              <li>AI 解釋聊天室：每張卡片獨立對話、自動說明、可追問、對話永久儲存</li>
+              <li>老師可為每位學生個別開關 AI 功能</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
             <div class="cl-ver">v1.6</div><div class="cl-date">2026-06-17</div>
             <ul>
               <li>分頁列同時顯示於列表頂部和底部</li>
               <li>新增「更新日誌」頁面</li>
               <li>批量匯入自動跳過已存在單字，避免浪費 AI 費用</li>
+              <li>修復超過 1000 個單字只顯示 1000 個的問題（自動分頁載入）</li>
             </ul>
           </div>
           <div class="cl-entry">
@@ -626,7 +693,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <!-- Sync -->
     <div id="panel-sync" class="panel">
       <div class="form-sec">
-        <h2>匯入單字</h2>
+        <h2>匯入卡片</h2>
         <div class="stabs">
           <button class="stab active" onclick="setSyncTab('url',this)">Google Doc URL</button>
           <button class="stab" onclick="setSyncTab('file',this)">.docx 上傳</button>
@@ -646,6 +713,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <input type="checkbox" id="s-autoexplain" checked style="width:auto;margin:0">
           <label for="s-autoexplain" style="margin:0;font-weight:400;cursor:pointer">匯入後自動用 AI 生成詳細解釋</label>
         </div>
+        <div class="field"><label>加入 Deck（選填）</label><select id="sync-deck" class="deck-select"><option value="">— 不加入 Deck —</option></select></div>
         <button class="btn-pri" onclick="doSync()">匯入</button>
         <div class="sync-log" id="sync-log"></div>
         <div id="sync-msg"></div>
@@ -656,6 +724,46 @@ tr:hover td{background:rgba(124,58,237,.025)}
       </div>
     </div>
 
+    <!-- Decks -->
+    <div id="panel-decks" class="panel">
+      <div style="max-width:700px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="font-size:1rem;font-weight:700;color:#1e1b4b">我的 Deck</h2>
+          <button class="btn-pri" style="padding:7px 16px;font-size:.85rem" onclick="openCreateDeck()">＋ 新增 Deck</button>
+        </div>
+        <div id="decks-list-container"></div>
+        <!-- Create deck modal inline -->
+        <div id="create-deck-row" style="display:none;margin-top:12px" class="deck-panel">
+          <h3>新增 Deck</h3>
+          <div class="field"><label>名稱</label><input id="new-deck-name" type="text" placeholder="e.g. 第一單元" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+          <div class="field"><label>描述（選填）</label><input id="new-deck-desc" type="text" placeholder="說明這個 Deck 的內容" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn-pri" onclick="createDeck()">建立</button>
+            <button class="btn-sec" onclick="closeCreateDeck()">取消</button>
+          </div>
+          <div id="create-deck-msg" style="margin-top:8px;font-size:.84rem"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── AI Chat Modal ──────────────────────────────────────────────────────── -->
+<div class="ai-chat-overlay" id="ai-chat-overlay">
+  <div class="ai-chat-modal">
+    <div class="ai-chat-hdr">
+      <div>
+        <div class="ai-chat-hdr-title">✦ AI 解釋</div>
+        <div class="ai-chat-hdr-word" id="ai-chat-word-label"></div>
+      </div>
+      <button class="ai-chat-close" onclick="closeAiChat()">✕</button>
+    </div>
+    <div class="ai-chat-msgs" id="ai-chat-msgs"></div>
+    <div class="ai-chat-footer">
+      <textarea class="ai-chat-input" id="ai-chat-input" placeholder="繼續追問…" rows="1" onkeydown="aiChatKeydown(event)"></textarea>
+      <button class="ai-chat-send" id="ai-chat-send" onclick="sendAiMsg()">傳送</button>
+    </div>
   </div>
 </div>
 
@@ -990,6 +1098,11 @@ let reviewActive=false, teacherCurrentSid='', teacherCurrentName='', lastImportI
 const _overdueDelayMap={}; // id → days overdue before bump
 let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 let INTERVALS={...GLOBAL_INTERVALS};
+// ── Deck state ───────────────────────────────────────────────────────────────
+let decks=[], cardDeckMap={}, activeDeckFilter=null;
+// ── AI Chat state ────────────────────────────────────────────────────────────
+let studentAiChatEnabled=true;
+let _aiChatCardId=null, _aiChatMessages=[], _aiChatDbId=null, _aiChatSending=false;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function loadingMsg(s){const el=document.getElementById('loading-detail');if(el)el.textContent=s;}
@@ -1031,11 +1144,12 @@ function showError(title,msg){document.getElementById('err-title').textContent=t
 async function loadStudentView(token){
   try{
     loadingMsg('查詢學生資料…');
-    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language`);
+    const students=await sbGet('students',`token=eq.${encodeURIComponent(token)}&select=id,name,language,ai_chat_enabled`);
     if(!students.length){hide('loading-screen');showError('找不到學生','請確認你的連結是否正確。');return;}
     const student=students[0];
     studentId=student.id;
     studentLang=student.language||'en';
+    studentAiChatEnabled=student.ai_chat_enabled!==false;
     document.getElementById('student-badge').textContent=student.name+(studentLang==='ja'?' 🇯🇵':'');
     document.getElementById('student-badge').style.display='inline-block';
     document.title=`Aanki · ${student.name}`;
@@ -1045,8 +1159,8 @@ async function loadStudentView(token){
     document.getElementById('bulk-reset-date').value=t;
     document.getElementById('a-date').addEventListener('change',e=>{document.getElementById('a-rev').value=plusDays(e.target.value,7);});
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
-    loadingMsg('載入單字與複習紀錄…');
-    await Promise.all([loadStudentIntervals(student.id), refreshVocab()]);
+    loadingMsg('載入卡片與複習紀錄…');
+    await Promise.all([loadStudentIntervals(student.id), refreshVocab(), loadDecks()]);
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -1065,7 +1179,7 @@ async function loadStudentView(token){
 
 async function refreshVocab(){
   const rows=await sbGet('vocabulary',`student_id=eq.${studentId}&select=id,word,context,zh_meaning,context_zh,mastered,next_review,first_seen,memo,marked,sm_stability,sm_difficulty,sm_reps,in_7000,reading,jlpt_level,pitch_accent&order=word`);
-  if(!rows.length){vocab=[];return;}
+  if(!rows.length){vocab=[];cardDeckMap={};return;}
   const ids=rows.map(r=>r.id);
   // Batch reviews query to avoid URL length limit (500 IDs per batch)
   const BATCH=500;
@@ -1078,6 +1192,15 @@ async function refreshVocab(){
   const revMap={};
   for(const r of allRevs){if(!revMap[r.vocab_id])revMap[r.vocab_id]=[];revMap[r.vocab_id].push(r);}
   vocab=rows.map(r=>({...r,reviews:revMap[r.id]||[],streak:consecutiveCorrect(revMap[r.id]||[])}));
+  // Load card-deck associations
+  await refreshCardDecks();
+}
+async function refreshCardDecks(){
+  if(!decks.length) return;
+  const deckIds=decks.map(d=>d.id);
+  const cdRows=await sbGet('card_decks',`deck_id=in.(${deckIds.join(',')})&select=card_id,deck_id`);
+  cardDeckMap={};
+  for(const r of cdRows){if(!cardDeckMap[r.card_id])cardDeckMap[r.card_id]=[];cardDeckMap[r.card_id].push(r.deck_id);}
 }
 
 async function syncVocab(){
@@ -1108,6 +1231,7 @@ function switchPanel(btn){
   if(panel==='review') initReview();
   if(panel==='list') updateList();
   if(panel==='stats') renderStats();
+  if(panel==='decks') renderDecksPanel();
 }
 
 // ── Review ────────────────────────────────────────────────────────────────────
@@ -1244,6 +1368,7 @@ function renderCard(){
           <button class="${markCls}" id="mark-btn" onclick="cardMark('${e.id}','${esc(e.word)}')">🔖 ${e.marked?'已標記':'標記'}</button>
           <button class="act-btn" onclick="show7000Check('${e.id}')">${isJa?(e.jlpt_level||'📖 JLPT'):(e.in_7000===true?'✅':e.in_7000===false?'❌':'📖')+' 7000'}</button>
           ${e.context?`<button class="act-btn" onclick="ttsSpeak(\`${esc(e.context).replace(/`/g,"'")}\`,'${studentLang}')">🔊 朗讀例句</button>`:''}
+          ${studentAiChatEnabled?`<button class="act-btn" style="border-color:#e9d5ff;color:#7c3aed" onclick="openAiChat('${e.id}')">✦ AI 解釋</button>`:''}
         </div>
         <div id="v7k-result" style="display:none;margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:.82rem;line-height:1.7"></div>
         <div class="memo-area">
@@ -1742,12 +1867,21 @@ function sortedVocab(rows){
 }
 function filteredVocab(){
   const t=today();
-  if(listFilter==='due')      return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
-  if(listFilter==='upcoming') return vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
-  if(listFilter==='mastered') return vocab.filter(e=>e.mastered);
-  if(listFilter==='marked')   return vocab.filter(e=>e.marked);
-  if(listFilter==='memo')     return vocab.filter(e=>e.memo&&e.memo.trim());
-  return vocab;
+  let base=vocab;
+  if(activeDeckFilter) base=base.filter(e=>(cardDeckMap[e.id]||[]).includes(activeDeckFilter));
+  if(listFilter==='due')      return base.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+  if(listFilter==='upcoming') return base.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
+  if(listFilter==='mastered') return base.filter(e=>e.mastered);
+  if(listFilter==='marked')   return base.filter(e=>e.marked);
+  if(listFilter==='memo')     return base.filter(e=>e.memo&&e.memo.trim());
+  return base;
+}
+function setDeckFilter(deckId,btn){
+  activeDeckFilter=deckId;
+  document.querySelectorAll('#deck-filter-bar .deck-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  listPage=0;
+  updateList();
 }
 
 function updateList(){
@@ -1757,7 +1891,7 @@ function updateList(){
   const pager=document.getElementById('list-pager');
   const pagerTop=document.getElementById('list-pager-top');
   if(!allRows.length){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的單字</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的卡片</td></tr>';
     document.getElementById('chk-all').checked=false;
     pager.style.display='none';pagerTop.style.display='none';
     return;
@@ -1769,7 +1903,7 @@ function updateList(){
   const rows=allRows.slice(start,start+PAGE_SIZE);
   // Render pagination
   if(totalPages>1){
-    let ph='<span class="pg-info">共 '+allRows.length+' 字</span>';
+    let ph='<span class="pg-info">共 '+allRows.length+' 張</span>';
     if(listPage>0) ph+='<button onclick="goPage(0)">首頁</button><button onclick="goPage('+(listPage-1)+')">‹ 上一頁</button>';
     const maxBtns=7,half=Math.floor(maxBtns/2);
     let ps=Math.max(0,listPage-half),pe=Math.min(totalPages-1,ps+maxBtns-1);
@@ -1807,6 +1941,7 @@ function updateList(){
       <td>${badge}</td>
       <td>
         ${mode==='teacher'?`<button class="sm" title="AI 生成解釋" id="aibtn-${wid}" onclick="generateExplanation('${wid}')">✨</button>`:''}
+        ${studentAiChatEnabled?`<button class="sm" style="border-color:#e9d5ff;color:#7c3aed" title="AI 解釋" onclick="openAiChat('${wid}')">✦</button>`:''}
         <button class="sm" data-id="${wid}" onclick="showReset('${wid}')">重置</button>
         <button class="sm sdel" data-id="${wid}" onclick="doDelete('${wid}','${wword}')">刪除</button>
       </td>
@@ -1866,6 +2001,217 @@ async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'
   const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
   const u=json.usageMetadata||{};
   return {content:[{text}],usage:{input_tokens:u.promptTokenCount||0,output_tokens:u.candidatesTokenCount||0}};
+}
+
+// ── Deck functions ────────────────────────────────────────────────────────────
+async function loadDecks(){
+  if(!studentId) return;
+  try{
+    decks=await sbGet('decks',`student_id=eq.${studentId}&select=id,name,description&order=created_at.asc`);
+    updateDeckSelectors();
+    renderDeckFilterBar();
+  }catch(e){}
+}
+function updateDeckSelectors(){
+  const opts=decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  ['a-deck','bulk-deck','sync-deck'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">— 不加入 Deck —</option>'+opts;
+  });
+}
+function renderDeckFilterBar(){
+  const bar=document.getElementById('deck-filter-bar');
+  if(!bar) return;
+  if(!decks.length){bar.style.display='none';return;}
+  bar.style.display='flex';
+  const chips=decks.map(d=>{
+    const active=activeDeckFilter===d.id?'active':'';
+    return `<button class="deck-chip ${active}" onclick="setDeckFilter('${esc(d.id)}',this)">${esc(d.name)}</button>`;
+  }).join('');
+  bar.innerHTML='<span style="font-size:.75rem;color:#999;font-weight:600">Deck:</span>'
+    +'<button class="deck-chip'+(activeDeckFilter===null?' active':'')+'" onclick="setDeckFilter(null,this)">全部</button>'
+    +chips;
+}
+function renderDecksPanel(){
+  const container=document.getElementById('decks-list-container');
+  if(!decks.length){
+    container.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">還沒有任何 Deck<br><span style="font-size:.82rem">點擊「新增 Deck」開始建立</span></div>';
+    return;
+  }
+  container.innerHTML=decks.map(d=>{
+    const cardCount=Object.values(cardDeckMap).filter(ids=>ids.includes(d.id)).length;
+    return `<div class="deck-panel deck-list-item">
+      <div style="flex:1">
+        <div class="deck-name">${esc(d.name)}</div>
+        <div class="deck-meta">${cardCount} 張卡片${d.description?' · '+esc(d.description):''}</div>
+      </div>
+      <div class="deck-actions">
+        <button class="deck-btn" onclick="reviewDeck('${esc(d.id)}','${esc(d.name)}')">▶ 複習</button>
+        <button class="deck-btn danger" onclick="deleteDeck('${esc(d.id)}','${esc(d.name)}')">刪除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openCreateDeck(){document.getElementById('create-deck-row').style.display='block';document.getElementById('new-deck-name').focus();}
+function closeCreateDeck(){document.getElementById('create-deck-row').style.display='none';document.getElementById('new-deck-name').value='';document.getElementById('new-deck-desc').value='';}
+async function createDeck(){
+  const name=document.getElementById('new-deck-name').value.trim();
+  if(!name){document.getElementById('create-deck-msg').innerHTML='<span style="color:#c62828">請輸入名稱</span>';return;}
+  const msg=document.getElementById('create-deck-msg');
+  msg.textContent='建立中…';
+  try{
+    const row=await sbPost('decks',{student_id:studentId,name,description:document.getElementById('new-deck-desc').value.trim()});
+    decks.push(row[0]||{id:row.id,name,description:''});
+    await loadDecks();
+    renderDecksPanel();
+    closeCreateDeck();
+    msg.textContent='';
+  }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
+}
+async function deleteDeck(deckId,name){
+  if(!confirm(`確定刪除 Deck「${name}」？\n（卡片本身不會被刪除）`)) return;
+  await sbDelete('decks',`id=eq.${deckId}`);
+  decks=decks.filter(d=>d.id!==deckId);
+  for(const id in cardDeckMap) cardDeckMap[id]=(cardDeckMap[id]||[]).filter(i=>i!==deckId);
+  if(activeDeckFilter===deckId) activeDeckFilter=null;
+  updateDeckSelectors();
+  renderDeckFilterBar();
+  renderDecksPanel();
+}
+function reviewDeck(deckId,name){
+  // Switch to review panel, filter by this deck
+  activeDeckFilter=deckId;
+  const q=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId)&&!e.mastered&&e.next_review&&e.next_review<=today());
+  if(!q.length){alert(`Deck「${name}」今日沒有待複習的卡片`);return;}
+  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
+  dueQueue=q;revIdx=0;reviewMode='normal';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const reviewBtn=document.querySelector('.nav button[data-panel="review"]');
+  if(reviewBtn) reviewBtn.classList.add('active');
+  document.getElementById('panel-review').classList.add('active');
+  renderCard();
+}
+async function addCardToDeck(cardId,deckId){
+  if(!deckId) return;
+  try{
+    await sbPost('card_decks',{card_id:cardId,deck_id:deckId});
+    if(!cardDeckMap[cardId]) cardDeckMap[cardId]=[];
+    if(!cardDeckMap[cardId].includes(deckId)) cardDeckMap[cardId].push(deckId);
+  }catch(e){} // ignore duplicate key errors
+}
+
+// ── AI Chat ───────────────────────────────────────────────────────────────────
+async function openAiChat(cardId){
+  _aiChatCardId=cardId;
+  _aiChatSending=false;
+  const card=vocab.find(v=>v.id===cardId);
+  const overlay=document.getElementById('ai-chat-overlay');
+  const wordLabel=document.getElementById('ai-chat-word-label');
+  if(wordLabel) wordLabel.textContent=card?card.word:'';
+  overlay.classList.add('open');
+  document.getElementById('ai-chat-msgs').innerHTML='<div style="text-align:center;padding:20px;color:#bbb;font-size:.85rem">載入對話中…</div>';
+  document.getElementById('ai-chat-send').disabled=true;
+  // Load existing chat from DB
+  try{
+    const rows=await sbGet('card_ai_chats',`card_id=eq.${cardId}&student_id=eq.${studentId}&select=id,messages&limit=1`);
+    if(rows.length&&rows[0].messages&&rows[0].messages.length){
+      _aiChatDbId=rows[0].id;
+      _aiChatMessages=[...rows[0].messages];
+      renderAiChatMsgs();
+    } else {
+      _aiChatDbId=rows.length?rows[0].id:null;
+      _aiChatMessages=[];
+      renderAiChatMsgs();
+      // Auto-send initial explanation
+      if(card) await sendAiMsgInternal(buildAiInitialPrompt(card));
+    }
+  }catch(e){
+    document.getElementById('ai-chat-msgs').innerHTML='<div style="color:#c62828;padding:12px">載入失敗：'+esc(e.message)+'</div>';
+  }
+  document.getElementById('ai-chat-send').disabled=false;
+  document.getElementById('ai-chat-input').focus();
+}
+function buildAiInitialPrompt(card){
+  const isJa=studentLang==='ja';
+  if(isJa) return `請用繁體中文詳細解釋這個日文單字：「${card.word}」\n${card.context?`例句：${card.context}\n`:''}${card.zh_meaning?`已有解釋：${card.zh_meaning}\n`:''}請包含：詳細意思、用法、例句分析、記憶小技巧。`;
+  return `請用繁體中文詳細解釋這個英文單字：「${card.word}」\n${card.context?`例句：${card.context}\n`:''}${card.zh_meaning?`已有解釋：${card.zh_meaning}\n`:''}請包含：詳細意思和所有詞性用法、例句分析、常見搭配、記憶小技巧。`;
+}
+function closeAiChat(){
+  document.getElementById('ai-chat-overlay').classList.remove('open');
+  _aiChatCardId=null;
+}
+function renderAiChatMsgs(){
+  const container=document.getElementById('ai-chat-msgs');
+  if(!_aiChatMessages.length){container.innerHTML='';return;}
+  container.innerHTML=_aiChatMessages.map(m=>{
+    const isUser=m.role==='user';
+    return isUser
+      ?`<div class="ai-msg-row user"><div class="ai-msg ai-msg-user">${esc(m.content)}</div></div>`
+      :`<div class="ai-msg-row"><div class="ai-chat-avatar">✦</div><div class="ai-msg ai-msg-ai">${markdownToHtml(m.content)}</div></div>`;
+  }).join('');
+  container.scrollTop=container.scrollHeight;
+}
+function markdownToHtml(text){
+  // Basic markdown: bold, code, newlines
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\n/g,'<br>');
+}
+function aiChatKeydown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAiMsg();}
+}
+async function sendAiMsg(){
+  const input=document.getElementById('ai-chat-input');
+  const text=(input.value||'').trim();
+  if(!text||_aiChatSending) return;
+  input.value='';
+  await sendAiMsgInternal(text);
+}
+async function sendAiMsgInternal(userText){
+  _aiChatSending=true;
+  const sendBtn=document.getElementById('ai-chat-send');
+  if(sendBtn) sendBtn.disabled=true;
+  // Add user message
+  _aiChatMessages.push({role:'user',content:userText});
+  renderAiChatMsgs();
+  // Add loading placeholder
+  const container=document.getElementById('ai-chat-msgs');
+  const loadEl=document.createElement('div');
+  loadEl.className='ai-msg-row';
+  loadEl.innerHTML='<div class="ai-chat-avatar">✦</div><div class="ai-msg ai-msg-ai ai-msg-loading">思考中…</div>';
+  container.appendChild(loadEl);
+  container.scrollTop=container.scrollHeight;
+  try{
+    // Build message history for Gemini (max last 20 messages to keep context)
+    const history=_aiChatMessages.slice(-20);
+    const geminiMsgs=history.map(m=>({role:m.role,content:m.content}));
+    const data=await callGemini(geminiMsgs,1024,'gemini-3.5-flash');
+    const reply=data.content?.[0]?.text||'（無回應）';
+    _aiChatMessages.push({role:'assistant',content:reply});
+    const u=data.usage||{};
+    const cost=((u.input_tokens||0)*0.075+(u.output_tokens||0)*0.30)/1e6;
+    logAiCost(cost,'ai_chat');
+  }catch(e){
+    _aiChatMessages.push({role:'assistant',content:'⚠️ 錯誤：'+e.message});
+  }
+  renderAiChatMsgs();
+  _aiChatSending=false;
+  if(sendBtn) sendBtn.disabled=false;
+  document.getElementById('ai-chat-input')?.focus();
+  // Save to DB in background
+  saveAiChat().catch(()=>{});
+}
+async function saveAiChat(){
+  if(!_aiChatCardId||!studentId||!_aiChatMessages.length) return;
+  const body={card_id:_aiChatCardId,student_id:studentId,messages:_aiChatMessages,updated_at:new Date().toISOString()};
+  if(_aiChatDbId){
+    await sbPatch('card_ai_chats',`id=eq.${_aiChatDbId}`,{messages:_aiChatMessages,updated_at:new Date().toISOString()});
+  } else {
+    const rows=await sbPost('card_ai_chats',body);
+    if(rows&&rows[0]) _aiChatDbId=rows[0].id;
+  }
 }
 
 // ── TTS (Google Cloud WaveNet) ────────────────────────────────────────────────
@@ -2107,7 +2453,7 @@ async function doDelete(vid,word){
 let _addCtxZh='';
 async function doAdd(){
   const w=document.getElementById('a-word').value.trim();
-  if(!w){showFormMsg('add-msg','請輸入單字',false);return;}
+  if(!w){showFormMsg('add-msg','請輸入卡片內容',false);return;}
   try{
     const addPayload={
       student_id:studentId,word:w,
@@ -2118,7 +2464,9 @@ async function doAdd(){
       next_review:document.getElementById('a-rev').value
     };
     if(window._addJaExtra){Object.assign(addPayload,window._addJaExtra);window._addJaExtra=null;}
-    await sbPost('vocabulary',addPayload);
+    const rows=await sbPost('vocabulary',addPayload);
+    const deckId=document.getElementById('a-deck')?.value;
+    if(deckId&&rows&&rows[0]) await addCardToDeck(rows[0].id,deckId).catch(()=>{});
     showFormMsg('add-msg',`已新增「${w}」`,true);
     document.getElementById('a-word').value='';
     document.getElementById('a-ctx').value='';
@@ -2274,10 +2622,14 @@ async function doSync(){
   const newWords=extracted.filter(w=>!existingWords.includes(w.word.toLowerCase()));
   appendSyncLog(`其中 ${newWords.length} 個是新單字，開始匯入…`);
   let added=0; lastImportIds=[];
+  const syncDeckId=document.getElementById('sync-deck')?.value;
   for(const w of newWords){
     try{
       const rows=await sbPost('vocabulary',{student_id:studentId,word:w.word,zh_meaning:w.zh_meaning||'',context:w.context||'',context_zh:w.context_zh||'',first_seen:cd,next_review:fr});
-      if(rows&&rows[0]&&rows[0].id) lastImportIds.push(rows[0].id);
+      if(rows&&rows[0]&&rows[0].id){
+        lastImportIds.push(rows[0].id);
+        if(syncDeckId) await addCardToDeck(rows[0].id,syncDeckId).catch(()=>{});
+      }
       added++;
     }catch(e){appendSyncLog(`  略過「${w.word}」`);}
   }
@@ -2332,7 +2684,7 @@ async function loadTeacherView(){
     // 清理 90 天前的登入紀錄（fire and forget）
     sbFetch(`/rest/v1/student_sessions?logged_in_at=lt.${plusDays(t,-90)}`,{method:'DELETE'}).catch(()=>{});
     const [students,allVocab,sessions,recentRevs,allCosts,refreshInfo]=await Promise.all([
-      sbGet('students','select=id,name,token,language&order=name'),
+      sbGet('students','select=id,name,token,language,ai_chat_enabled&order=name'),
       sbGet('vocabulary','select=id,student_id,mastered,next_review'),
       sbGet('student_sessions',`select=student_id,logged_in_at&logged_in_at=gte.${ago30}&order=logged_in_at.desc`),
       sbGet('reviews',`select=vocab_id,result,reviewed_at&reviewed_at=gte.${ago30}&order=reviewed_at.desc`),
@@ -2400,6 +2752,10 @@ async function loadTeacherView(){
         <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
         <div style="font-size:.77rem;color:#888;margin:5px 0 2px">累計 AI 費用：<span style="color:#e65100;font-weight:600">${costLabel}</span></div>
+        <div style="font-size:.75rem;margin:4px 0 2px;display:flex;align-items:center;gap:6px">
+          <span style="color:#888">AI 解釋功能：</span>
+          <button class="sm" style="padding:2px 10px;font-size:.72rem;${s.ai_chat_enabled!==false?'background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32':'background:#ffebee;border-color:#ffcdd2;color:#c62828'}" onclick="event.stopPropagation();toggleStudentAiChat('${s.id}',${s.ai_chat_enabled!==false},this)">${s.ai_chat_enabled!==false?'✓ 已開啟':'✗ 已關閉'}</button>
+        </div>
         <div class="sc-act-row">
           <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
           <button class="sm" style="flex-shrink:0" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
@@ -2412,6 +2768,17 @@ async function loadTeacherView(){
   }catch(e){hide('loading-screen');showError('Teacher 載入失敗',e.message);}
 }
 
+async function toggleStudentAiChat(sid,currentEnabled,btn){
+  const newVal=!currentEnabled;
+  try{
+    btn.textContent='…';btn.disabled=true;
+    await sbPatch('students',`id=eq.${sid}`,{ai_chat_enabled:newVal});
+    btn.style.cssText=`padding:2px 10px;font-size:.72rem;${newVal?'background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32':'background:#ffebee;border-color:#ffcdd2;color:#c62828'}`;
+    btn.textContent=newVal?'✓ 已開啟':'✗ 已關閉';
+    btn.disabled=false;
+    btn.onclick=e=>{e.stopPropagation();toggleStudentAiChat(sid,newVal,btn);};
+  }catch(e){btn.textContent='錯誤';btn.disabled=false;}
+}
 function copyLink(link,btn){
   navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
 }
@@ -3017,7 +3384,9 @@ async function doBulkAdd(){
         }
         if(!zh) throw new Error('解析失敗：'+text.slice(0,80));
         const fullCtxZh=ctxZh+(use?'\n用法：'+use:'');
-        await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
+        const rows2=await sbPost('vocabulary',{student_id:studentId,word,context:sent,zh_meaning:zh,context_zh:fullCtxZh,first_seen:date,next_review:rev});
+        const deckId2=document.getElementById('bulk-deck')?.value;
+        if(deckId2&&rows2&&rows2[0]) await addCardToDeck(rows2[0].id,deckId2).catch(()=>{});
         const u=data.usage||{};
         return ((u.input_tokens||0)*0.25+(u.output_tokens||0)*1.5)/1e6;
       }catch(e){
@@ -3057,7 +3426,7 @@ async function doBulkAdd(){
   const skipStr=skipped>0?`，跳過 ${skipped} 個已存在`:'';
   const failStr=failed.length?`，失敗 ${failed.length} 個：${failed.join('、')}`:'';
   const errStr=firstError?`\n錯誤：${firstError}`:'';
-  showFormMsg('bulk-msg',`完成！新增 ${added} 個單字${skipStr}${failStr}${costStr}${errStr}`,failed.length===0);
+  showFormMsg('bulk-msg',`完成！新增 ${added} 張卡片${skipStr}${failStr}${costStr}${errStr}`,failed.length===0);
   if(added>0){ await refreshVocab(); updateStats(); }
 }
 
