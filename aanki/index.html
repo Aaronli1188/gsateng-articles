@@ -406,8 +406,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
 
 /* ── Anki-style Review Overview ──────────────────────────────────────── */
 .anki-overview{max-width:780px;margin:0 auto}
-.anki-overview-hdr{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(124,58,237,.1)}
-.anki-deck-row{display:grid;grid-template-columns:28px 1fr auto auto auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(124,58,237,.06);border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.anki-overview-hdr{display:grid;grid-template-columns:28px 1fr auto auto auto 28px;gap:10px;align-items:center;padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(124,58,237,.1)}
 .anki-deck-row:hover{background:rgba(124,58,237,.04)}
 .anki-deck-row.selected{background:rgba(124,58,237,.07)}
 .anki-deck-name{font-size:.95rem;font-weight:600;color:#1e1b4b}
@@ -440,6 +439,39 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .filter-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;background:rgba(124,58,237,.1);color:var(--acc);border:1px solid rgba(124,58,237,.2)}
 .filter-tag-x{border:none;background:none;cursor:pointer;color:inherit;font-size:.85rem;padding:0;line-height:1;opacity:.6}
 .filter-tag-x:hover{opacity:1}
+/* ── Deck row options button ─────────────────────────────────────────── */
+.anki-deck-row{display:grid;grid-template-columns:28px 1fr auto auto auto auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(124,58,237,.06);border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.deck-opt-btn{background:none;border:1px solid transparent;color:#aaa;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .12s;flex-shrink:0}
+.deck-opt-btn:hover{border-color:#ddd;color:#555;background:#f5f5f5}
+/* ── Deck options modal ──────────────────────────────────────────────── */
+.deck-opts-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:600;display:none;align-items:center;justify-content:center}
+.deck-opts-overlay.open{display:flex}
+.deck-opts-modal{background:#fff;border-radius:16px;padding:20px 22px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.deck-opts-modal h3{font-size:.92rem;font-weight:700;margin-bottom:6px;color:#1e1b4b}
+.deck-opts-subtitle{font-size:.78rem;color:#999;margin-bottom:16px}
+.deck-opt-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .1s;border:none;background:none;width:100%;font-family:inherit;font-size:.88rem;text-align:left}
+.deck-opt-item:hover{background:#f5f3ff}
+.deck-opt-item.danger{color:#dc2626}
+.deck-opt-item.danger:hover{background:#fff5f5}
+.deck-opt-icon{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+/* ── Filter modal ────────────────────────────────────────────────────── */
+.filter-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center}
+.filter-modal-overlay.open{display:flex}
+.filter-modal{background:#fff;border-radius:16px;padding:22px 24px;width:480px;max-width:94vw;max-height:86vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.filter-modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.filter-modal-hdr h3{font-size:1rem;font-weight:700;color:#1e1b4b;margin:0}
+.filter-modal-close{background:none;border:none;cursor:pointer;font-size:1.3rem;color:#aaa;padding:0 2px}
+.filter-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(124,58,237,.06)}
+.filter-row:last-of-type{border-bottom:none}
+.filter-row input[type=checkbox]{accent-color:var(--acc);width:16px;height:16px;flex-shrink:0;cursor:pointer}
+.filter-row-label{font-size:.82rem;font-weight:600;color:#555;min-width:90px;flex-shrink:0}
+.filter-row-input{flex:1;padding:5px 9px;border:1px solid rgba(124,58,237,.18);border-radius:7px;font-size:.82rem;font-family:inherit;background:#fff;transition:opacity .15s}
+.filter-row-input:disabled{opacity:.35;background:#f9f9f9;cursor:not-allowed}
+.filter-row-input:focus{outline:none;border-color:var(--acc)}
+/* ── Copy-deck modal ─────────────────────────────────────────────────── */
+.copy-deck-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;display:none;align-items:center;justify-content:center}
+.copy-deck-overlay.open{display:flex}
+.copy-deck-modal{background:#fff;border-radius:16px;padding:24px 28px;width:400px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 /* ── Move-to-deck modal ──────────────────────────────────────────────── */
 .deck-move-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:center;justify-content:center}
 .deck-move-overlay.open{display:flex}
@@ -504,7 +536,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.9</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.10</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -541,34 +573,19 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <div class="anki-overview">
             <div class="anki-overview-hdr">
               <span></span>
+              <span></span>
               <span>到期</span>
               <span>精熟</span>
               <span>總計</span>
+              <span></span>
             </div>
             <div id="anki-deck-list"></div>
             <div class="anki-overview-footer">
               <button class="btn-pri" style="padding:9px 20px;font-size:.88rem" onclick="startSelectedDecks()">▶ 複習已選 Deck</button>
-              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('date')">📅 選擇日期測驗</button>
+              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('date')">📅 日期測驗</button>
               <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('filter')">⚙ 條件測驗</button>
-              <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()" style="margin-left:auto">⌨</button>
-            </div>
-            <!-- Deck Management (collapsible) -->
-            <div class="anki-manage">
-              <div class="anki-manage-hdr" onclick="toggleDeckManage()"><span id="deck-manage-arrow">▸</span> 管理 Deck</div>
-              <div id="deck-manage-body" style="display:none">
-                <button class="btn-pri" style="padding:7px 16px;font-size:.85rem;margin-bottom:12px" onclick="openCreateDeck()">＋ 新增 Deck</button>
-                <div id="decks-list-container"></div>
-                <div id="create-deck-row" style="display:none;margin-top:12px" class="deck-panel">
-                  <h3>新增 Deck</h3>
-                  <div class="field"><label>名稱</label><input id="new-deck-name" type="text" placeholder="e.g. 第一單元" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
-                  <div class="field"><label>描述（選填）</label><input id="new-deck-desc" type="text" placeholder="說明這個 Deck 的內容" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
-                  <div style="display:flex;gap:8px;margin-top:4px">
-                    <button class="btn-pri" onclick="createDeck()">建立</button>
-                    <button class="btn-sec" onclick="closeCreateDeck()">取消</button>
-                  </div>
-                  <div id="create-deck-msg" style="margin-top:8px;font-size:.84rem"></div>
-                </div>
-              </div>
+              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem;margin-left:auto" onclick="openCreateDeck()">＋ 新增 Deck</button>
+              <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()">⌨</button>
             </div>
           </div>
         </div>
@@ -624,28 +641,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
             <button class="adv-filter-toggle active" id="scope-btn-front" onclick="setListSearchScope('front',this)">正面</button>
             <button class="adv-filter-toggle" id="scope-btn-all" onclick="setListSearchScope('all',this)">全部</button>
           </div>
-          <button class="adv-filter-toggle" id="adv-filter-toggle-btn" onclick="toggleAdvFilter()">篩選 ▾</button>
-        </div>
-        <!-- Advanced filter panel -->
-        <div class="adv-filter-panel" id="adv-filter-panel">
-          <div class="adv-filter-grid">
-            <div class="adv-field"><label>狀態</label>
-              <select id="af-status"><option value="">全部</option><option value="due">今日到期</option><option value="upcoming">未來</option><option value="mastered">精熟</option><option value="marked">已標記</option><option value="memo">有備忘</option></select></div>
-            <div class="adv-field"><label>Deck</label>
-              <select id="af-deck"><option value="">全部 Deck</option></select></div>
-            <div class="adv-field"><label>連對次數 ≥</label>
-              <input id="af-streak-min" type="number" min="0" placeholder="0"></div>
-            <div class="adv-field"><label>加入日（從）</label>
-              <input id="af-date-from" type="date"></div>
-            <div class="adv-field"><label>加入日（至）</label>
-              <input id="af-date-to" type="date"></div>
-            <div class="adv-field"><label>下次複習（從）</label>
-              <input id="af-next-from" type="date"></div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button class="btn-pri" style="padding:7px 18px;font-size:.84rem" onclick="applyAdvFilter()">套用</button>
-            <button class="btn-sec" style="padding:7px 14px;font-size:.84rem" onclick="clearAdvFilter()">清除</button>
-          </div>
+          <button class="adv-filter-toggle" id="adv-filter-toggle-btn" onclick="openFilterModal()">篩選 ▾</button>
         </div>
         <!-- Active filter tags -->
         <div id="active-filter-tags" style="display:none;margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
@@ -763,6 +759,17 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.10</div><div class="cl-date">2026-06-18</div>
+            <ul>
+              <li>進階篩選改為彈窗，每個條件獨立勾選啟用</li>
+              <li>複習主畫面整理：每個 Deck 新增 ⚙ 按鈕可重命名或刪除</li>
+              <li>刪除 Deck 改為軟刪除（放入垃圾桶 7 天後才真正刪除）</li>
+              <li>預設 Deck 名稱由「未分類」改為「預設」</li>
+              <li>修復複習主畫面有時無法正確顯示卡片數的問題</li>
+              <li>老師介面新增「複製牌組」：可將某學生的牌組複製至另一學生帳號</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.9</div><div class="cl-date">2026-06-17</div>
             <ul>
@@ -923,6 +930,126 @@ tr:hover td{background:rgba(124,58,237,.025)}
   </div>
 </div>
 
+<!-- ── Filter modal ─────────────────────────────────────────────────────── -->
+<div class="filter-modal-overlay" id="filter-modal-overlay" onclick="if(event.target===this)closeFilterModal()">
+  <div class="filter-modal">
+    <div class="filter-modal-hdr">
+      <h3>進階篩選</h3>
+      <button class="filter-modal-close" onclick="closeFilterModal()">✕</button>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-status-chk" onchange="syncFilterRow('fc-status-chk','af-status')">
+      <span class="filter-row-label">狀態</span>
+      <select id="af-status" class="filter-row-input" disabled>
+        <option value="">全部</option><option value="due">今日到期</option><option value="upcoming">未來</option><option value="mastered">精熟</option><option value="marked">已標記</option><option value="memo">有備忘</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-deck-chk" onchange="syncFilterRow('fc-deck-chk','af-deck')">
+      <span class="filter-row-label">Deck</span>
+      <select id="af-deck" class="filter-row-input" disabled>
+        <option value="">全部 Deck</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-streak-chk" onchange="syncFilterRow('fc-streak-chk','af-streak-min')">
+      <span class="filter-row-label">連對 ≥</span>
+      <input id="af-streak-min" type="number" min="0" class="filter-row-input" placeholder="0" disabled>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-datefrom-chk" onchange="syncFilterRow('fc-datefrom-chk','af-date-from')">
+      <span class="filter-row-label">加入日 ≥</span>
+      <input id="af-date-from" type="date" class="filter-row-input" disabled>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-dateto-chk" onchange="syncFilterRow('fc-dateto-chk','af-date-to')">
+      <span class="filter-row-label">加入日 ≤</span>
+      <input id="af-date-to" type="date" class="filter-row-input" disabled>
+    </div>
+    <div class="filter-row">
+      <input type="checkbox" id="fc-nextfrom-chk" onchange="syncFilterRow('fc-nextfrom-chk','af-next-from')">
+      <span class="filter-row-label">下次複習 ≥</span>
+      <input id="af-next-from" type="date" class="filter-row-input" disabled>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn-pri" style="flex:1;padding:9px;font-size:.86rem" onclick="applyAdvFilter();closeFilterModal()">套用篩選</button>
+      <button class="btn-sec" style="padding:9px 16px;font-size:.86rem" onclick="clearAdvFilter();closeFilterModal()">清除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Deck options modal ─────────────────────────────────────────────────── -->
+<div class="deck-opts-overlay" id="deck-opts-overlay" onclick="if(event.target===this)closeDeckOpts()">
+  <div class="deck-opts-modal">
+    <h3 id="deck-opts-name">Deck 名稱</h3>
+    <div class="deck-opts-subtitle" id="deck-opts-sub"></div>
+    <button class="deck-opt-item" onclick="openRenameDeckModal()">
+      <span class="deck-opt-icon">✏️</span> 重新命名
+    </button>
+    <button class="deck-opt-item danger" onclick="confirmDeleteDeck()">
+      <span class="deck-opt-icon">🗑</span> 刪除（放入垃圾桶 7 天）
+    </button>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee">
+      <button class="btn-sec" style="width:100%;padding:8px;font-size:.84rem" onclick="closeDeckOpts()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Rename deck modal ─────────────────────────────────────────────────── -->
+<div class="deck-opts-overlay" id="rename-deck-overlay" onclick="if(event.target===this)closeRenameDeck()">
+  <div class="deck-opts-modal">
+    <h3 style="margin-bottom:12px">重新命名 Deck</h3>
+    <input id="rename-deck-input" type="text" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid rgba(124,58,237,.2);border-radius:9px;font-size:.9rem;font-family:inherit;margin-bottom:12px">
+    <div style="display:flex;gap:8px">
+      <button class="btn-pri" style="flex:1;padding:9px" onclick="doRenameDeck()">確認</button>
+      <button class="btn-sec" style="padding:9px 14px" onclick="closeRenameDeck()">取消</button>
+    </div>
+    <div id="rename-deck-msg" style="margin-top:8px;font-size:.82rem"></div>
+  </div>
+</div>
+
+<!-- ── New deck modal ────────────────────────────────────────────────────── -->
+<div class="deck-opts-overlay" id="new-deck-overlay" onclick="if(event.target===this)closeCreateDeck()">
+  <div class="deck-opts-modal">
+    <h3 style="margin-bottom:12px">新增 Deck</h3>
+    <div class="field"><label>名稱</label><input id="new-deck-name" type="text" placeholder="e.g. 第一單元" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+    <div class="field"><label>描述（選填）</label><input id="new-deck-desc" type="text" placeholder="說明這個 Deck 的內容" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-pri" style="flex:1;padding:9px" onclick="createDeck()">建立</button>
+      <button class="btn-sec" style="padding:9px 14px" onclick="closeCreateDeck()">取消</button>
+    </div>
+    <div id="create-deck-msg" style="margin-top:8px;font-size:.84rem"></div>
+  </div>
+</div>
+
+<!-- ── Copy deck to student modal (teacher only) ─────────────────────────── -->
+<div class="copy-deck-overlay" id="copy-deck-overlay" onclick="if(event.target===this)closeCopyDeck()">
+  <div class="copy-deck-modal">
+    <h3 style="margin-bottom:4px">複製牌組至學生</h3>
+    <p style="font-size:.8rem;color:#888;margin-bottom:16px">選擇來源學生與 Deck，再選目標學生</p>
+    <div class="field"><label>來源學生</label>
+      <select id="copy-src-student" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.86rem;font-family:inherit" onchange="loadCopySrcDecks()">
+        <option value="">— 選擇學生 —</option>
+      </select>
+    </div>
+    <div class="field"><label>來源 Deck</label>
+      <select id="copy-src-deck" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.86rem;font-family:inherit">
+        <option value="">— 選擇 Deck —</option>
+      </select>
+    </div>
+    <div class="field"><label>目標學生</label>
+      <select id="copy-tgt-student" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.86rem;font-family:inherit">
+        <option value="">— 選擇學生 —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-pri" style="flex:1;padding:9px;font-size:.86rem" onclick="doCopyDeckToStudent()">複製</button>
+      <button class="btn-sec" style="padding:9px 14px" onclick="closeCopyDeck()">取消</button>
+    </div>
+    <div id="copy-deck-msg" style="margin-top:10px;font-size:.82rem"></div>
+  </div>
+</div>
+
 <!-- ── Teacher view ──────────────────────────────────────────────────────── -->
 <div id="teacher-view">
   <div class="main">
@@ -933,6 +1060,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <div style="display:flex;gap:8px">
           <button class="btn-outline" onclick="manualRefreshSentences()">🔄 換例句</button>
           <button class="btn-outline" onclick="openIntervals()">⚙ 複習間隔</button>
+          <button class="btn-outline" onclick="openCopyDeckModal()">📂 複製牌組</button>
           <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
           <button class="btn-outline" onclick="document.getElementById('restore-input').click()">回復備份</button>
           <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
@@ -1245,6 +1373,7 @@ async function fsrsMigrateOldCards(){
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let mode=''; // 'student' | 'teacher'
+let teacherStudents=[]; // cached student list for teacher features
 let studentId='', studentLang='en', vocab=[], dueQueue=[], revIdx=0;
 let reviewMode='normal', listFilter='all', syncTab='url';
 let selectedIds=new Set(), quizDates=new Set(), lastCheckedId=null;
@@ -1338,7 +1467,8 @@ async function loadStudentView(token){
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
     loadingMsg('載入卡片與複習紀錄…');
     await Promise.all([loadStudentIntervals(student.id), refreshVocab(), loadDecks()]);
-    assignOrphanCards(); // background: assign cards without deck to 未分類
+    await refreshCardDecks(); // ensure cardDeckMap is built after both vocab+decks loaded
+    assignOrphanCards(); // background: assign cards without deck to 預設
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -2169,25 +2299,18 @@ function setListSearchScope(scope, btn){
   updateList();
 }
 function toggleAdvFilter(){
-  advFilterOpen=!advFilterOpen;
-  const panel=document.getElementById('adv-filter-panel');
-  const btn=document.getElementById('adv-filter-toggle-btn');
-  if(panel) panel.classList.toggle('open',advFilterOpen);
-  if(btn) btn.classList.toggle('active',advFilterOpen);
-  // populate deck select
-  if(advFilterOpen){
-    const sel=document.getElementById('af-deck');
-    if(sel) sel.innerHTML='<option value="">全部 Deck</option>'+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
-  }
+  openFilterModal();
 }
 function applyAdvFilter(){
+  const chk=id=>document.getElementById(id)?.checked;
+  const val=id=>document.getElementById(id)?.value||'';
   advFilters={
-    status: document.getElementById('af-status')?.value||'',
-    deck: document.getElementById('af-deck')?.value||'',
-    streakMin: document.getElementById('af-streak-min')?.value,
-    dateFrom: document.getElementById('af-date-from')?.value||'',
-    dateTo: document.getElementById('af-date-to')?.value||'',
-    nextFrom: document.getElementById('af-next-from')?.value||''
+    status: chk('fc-status-chk')?val('af-status'):'',
+    deck:   chk('fc-deck-chk')?val('af-deck'):'',
+    streakMin: chk('fc-streak-chk')?val('af-streak-min'):'',
+    dateFrom: chk('fc-datefrom-chk')?val('af-date-from'):'',
+    dateTo:   chk('fc-dateto-chk')?val('af-date-to'):'',
+    nextFrom: chk('fc-nextfrom-chk')?val('af-next-from'):''
   };
   listPage=0;
   updateList();
@@ -2197,7 +2320,11 @@ function clearAdvFilter(){
   advFilters={};
   ['af-status','af-deck','af-streak-min','af-date-from','af-date-to','af-next-from'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el) el.value='';
+    if(el){el.value='';el.disabled=true;}
+  });
+  ['fc-status-chk','fc-deck-chk','fc-streak-chk','fc-datefrom-chk','fc-dateto-chk','fc-nextfrom-chk'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.checked=false;
   });
   listPage=0;
   updateList();
@@ -2216,6 +2343,8 @@ function renderActiveFilterTags(){
   }
   el.style.display=tags.length?'flex':'none';
   el.innerHTML=tags.join('');
+  const btn=document.getElementById('adv-filter-toggle-btn');
+  if(btn) btn.classList.toggle('active',tags.length>0);
 }
 function removeFilterTag(key){
   delete advFilters[key];
@@ -2305,7 +2434,11 @@ async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'
 async function loadDecks(){
   if(!studentId) return;
   try{
-    decks=await sbGet('decks',`student_id=eq.${studentId}&select=id,name,description&order=created_at.asc`);
+    // Purge expired trash (deleted > 7 days ago) silently
+    const cutoff=new Date(Date.now()-7*86400000).toISOString();
+    sbDelete('decks',`student_id=eq.${studentId}&deleted_at=not.is.null&deleted_at=lt.${cutoff}`).catch(()=>{});
+    // Load only non-deleted decks
+    decks=await sbGet('decks',`student_id=eq.${studentId}&deleted_at=is.null&select=id,name,description&order=created_at.asc`);
     await ensureDefaultDeck();
     updateDeckSelectors();
     renderDeckFilterBar();
@@ -2313,11 +2446,16 @@ async function loadDecks(){
 }
 async function ensureDefaultDeck(){
   if(!studentId) return;
-  let def=decks.find(d=>d.name==='未分類');
+  // Migrate old "未分類" → "預設"
+  const old=decks.find(d=>d.name==='未分類');
+  if(old){
+    try{await sbPatch('decks',`id=eq.${old.id}`,{name:'預設'});old.name='預設';}catch(e){}
+  }
+  let def=decks.find(d=>d.name==='預設');
   if(!def){
     try{
-      const rows=await sbPost('decks',{student_id:studentId,name:'未分類',description:'預設牌組'});
-      def=rows[0]||{id:null,name:'未分類',description:'預設牌組'};
+      const rows=await sbPost('decks',{student_id:studentId,name:'預設',description:'預設牌組'});
+      def=rows[0]||{id:null,name:'預設',description:'預設牌組'};
       if(def.id) decks.unshift(def);
     }catch(e){}
   }
@@ -2354,7 +2492,7 @@ function renderDeckOverview(){
     const masteredCount=cards.filter(e=>e.mastered).length;
     const total=cards.length;
     const isSel=selectedDeckIds.has(d.id)?'selected':'';
-    const isDefault=d.name==='未分類';
+    const isDefault=d.name==='預設';
     const dueCls=dueCount>0?'anki-cnt due':'anki-cnt';
     return `<div class="anki-deck-row ${isSel}" onclick="toggleDeckSelect('${esc(d.id)}',this)">
       <input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleDeckSelect('${esc(d.id)}',this.parentElement)" style="cursor:pointer;accent-color:var(--acc)">
@@ -2362,23 +2500,96 @@ function renderDeckOverview(){
       <span class="${dueCls}">${dueCount}</span>
       <span class="anki-cnt mastered">${masteredCount}</span>
       <span class="anki-cnt total">${total}</span>
+      <button class="deck-opt-btn" title="選項" onclick="event.stopPropagation();openDeckOpts('${esc(d.id)}')">⚙</button>
     </div>`;
   }).join('');
-  // Update manage panel if visible
-  renderDecksPanel();
 }
 function toggleDeckSelect(deckId, rowEl){
   if(selectedDeckIds.has(deckId)) selectedDeckIds.delete(deckId);
   else selectedDeckIds.add(deckId);
   renderDeckOverview();
 }
-function toggleDeckManage(){
-  const body=document.getElementById('deck-manage-body');
-  const arrow=document.getElementById('deck-manage-arrow');
-  if(!body) return;
-  const open=body.style.display!=='none';
-  body.style.display=open?'none':'';
-  if(arrow) arrow.textContent=open?'▸':'▾';
+// ── Deck Options (per-deck ⚙ button) ───────────────────────────────────
+let _deckOptsId=null;
+function openDeckOpts(deckId){
+  _deckOptsId=deckId;
+  const d=decks.find(x=>x.id===deckId);
+  if(!d) return;
+  const cards=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId));
+  document.getElementById('deck-opts-name').textContent=d.name;
+  document.getElementById('deck-opts-sub').textContent=`${cards.length} 張卡片${d.description?' · '+d.description:''}`;
+  document.getElementById('deck-opts-overlay').classList.add('open');
+}
+function closeDeckOpts(){document.getElementById('deck-opts-overlay').classList.remove('open');}
+function openRenameDeckModal(){
+  const d=decks.find(x=>x.id===_deckOptsId);
+  if(!d) return;
+  closeDeckOpts();
+  document.getElementById('rename-deck-input').value=d.name;
+  document.getElementById('rename-deck-msg').textContent='';
+  document.getElementById('rename-deck-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('rename-deck-input').focus(),80);
+}
+function closeRenameDeck(){document.getElementById('rename-deck-overlay').classList.remove('open');}
+async function doRenameDeck(){
+  const name=document.getElementById('rename-deck-input').value.trim();
+  const msg=document.getElementById('rename-deck-msg');
+  if(!name){msg.innerHTML='<span style="color:#c62828">請輸入名稱</span>';return;}
+  if(!_deckOptsId) return;
+  try{
+    await sbPatch('decks',`id=eq.${_deckOptsId}`,{name});
+    const d=decks.find(x=>x.id===_deckOptsId);
+    if(d) d.name=name;
+    closeRenameDeck();
+    updateDeckSelectors();
+    renderDeckFilterBar();
+    renderDeckOverview();
+  }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
+}
+async function confirmDeleteDeck(){
+  const d=decks.find(x=>x.id===_deckOptsId);
+  if(!d) return;
+  if(!confirm(`刪除 Deck「${d.name}」？\n卡片本身不會被刪除，7 天後真正移除。`)) return;
+  closeDeckOpts();
+  await softDeleteDeck(_deckOptsId);
+}
+async function softDeleteDeck(deckId){
+  try{
+    await sbPatch('decks',`id=eq.${deckId}`,{deleted_at:new Date().toISOString()});
+    decks=decks.filter(d=>d.id!==deckId);
+    for(const id in cardDeckMap) cardDeckMap[id]=(cardDeckMap[id]||[]).filter(i=>i!==deckId);
+    if(defaultDeckId===deckId) defaultDeckId=null;
+    selectedDeckIds.delete(deckId);
+    updateDeckSelectors();
+    renderDeckFilterBar();
+    renderDeckOverview();
+    showToast('🗑 Deck 已移至垃圾桶，7 天後刪除');
+  }catch(e){alert('刪除失敗：'+e.message);}
+}
+
+// ── Filter modal ───────────────────────────────────────────────────────
+function openFilterModal(){
+  // Populate deck dropdown
+  const sel=document.getElementById('af-deck');
+  if(sel) sel.innerHTML='<option value="">全部 Deck</option>'+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  // Restore current advFilters state into checkboxes
+  const map={status:['fc-status-chk','af-status'],deck:['fc-deck-chk','af-deck'],streakMin:['fc-streak-chk','af-streak-min'],dateFrom:['fc-datefrom-chk','af-date-from'],dateTo:['fc-dateto-chk','af-date-to'],nextFrom:['fc-nextfrom-chk','af-next-from']};
+  for(const [key,[chkId,inputId]] of Object.entries(map)){
+    const chk=document.getElementById(chkId);
+    const inp=document.getElementById(inputId);
+    const hasVal=advFilters[key]!=null&&advFilters[key]!=='';
+    if(chk){chk.checked=hasVal;}
+    if(inp){inp.disabled=!hasVal;if(hasVal)inp.value=advFilters[key];}
+  }
+  document.getElementById('filter-modal-overlay').classList.add('open');
+}
+function closeFilterModal(){document.getElementById('filter-modal-overlay').classList.remove('open');}
+function syncFilterRow(chkId, inputId){
+  const chk=document.getElementById(chkId);
+  const inp=document.getElementById(inputId);
+  if(!chk||!inp) return;
+  inp.disabled=!chk.checked;
+  if(!chk.checked) inp.value='';
 }
 function startSelectedDecks(){
   const t=today();
@@ -2478,6 +2689,7 @@ function renderDeckFilterBar(){
 }
 function renderDecksPanel(){
   const container=document.getElementById('decks-list-container');
+  if(!container) return;
   if(!decks.length){
     container.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">還沒有任何 Deck<br><span style="font-size:.82rem">點擊「新增 Deck」開始建立</span></div>';
     return;
@@ -2496,8 +2708,14 @@ function renderDecksPanel(){
     </div>`;
   }).join('');
 }
-function openCreateDeck(){document.getElementById('create-deck-row').style.display='block';document.getElementById('new-deck-name').focus();}
-function closeCreateDeck(){document.getElementById('create-deck-row').style.display='none';document.getElementById('new-deck-name').value='';document.getElementById('new-deck-desc').value='';}
+function openCreateDeck(){
+  document.getElementById('new-deck-name').value='';
+  document.getElementById('new-deck-desc').value='';
+  document.getElementById('create-deck-msg').textContent='';
+  document.getElementById('new-deck-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('new-deck-name').focus(),80);
+}
+function closeCreateDeck(){document.getElementById('new-deck-overlay').classList.remove('open');}
 async function createDeck(){
   const name=document.getElementById('new-deck-name').value.trim();
   if(!name){document.getElementById('create-deck-msg').innerHTML='<span style="color:#c62828">請輸入名稱</span>';return;}
@@ -2513,18 +2731,73 @@ async function createDeck(){
   }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
 }
 async function deleteDeck(deckId,name){
-  if(!confirm(`確定刪除 Deck「${name}」？\n（卡片本身不會被刪除）`)) return;
-  await sbDelete('decks',`id=eq.${deckId}`);
-  decks=decks.filter(d=>d.id!==deckId);
-  for(const id in cardDeckMap) cardDeckMap[id]=(cardDeckMap[id]||[]).filter(i=>i!==deckId);
-  if(activeDeckFilter===deckId) activeDeckFilter=null;
-  updateDeckSelectors();
-  renderDeckFilterBar();
-  renderDeckOverview();
+  // Now delegates to softDeleteDeck (called from renderDecksPanel buttons)
+  _deckOptsId=deckId;
+  await confirmDeleteDeck();
 }
 function reviewDeck(deckId,name){
   startSingleDeck(deckId);
 }
+// ── Teacher: Copy Deck to Another Student ─────────────────────────────
+async function openCopyDeckModal(){
+  const srcSel=document.getElementById('copy-src-student');
+  const tgtSel=document.getElementById('copy-tgt-student');
+  const opts=teacherStudents.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+  if(srcSel) srcSel.innerHTML='<option value="">— 選擇來源學生 —</option>'+opts;
+  if(tgtSel) tgtSel.innerHTML='<option value="">— 選擇目標學生 —</option>'+opts;
+  document.getElementById('copy-src-deck').innerHTML='<option value="">— 先選來源學生 —</option>';
+  document.getElementById('copy-deck-msg').textContent='';
+  document.getElementById('copy-deck-overlay').classList.add('open');
+}
+function closeCopyDeck(){document.getElementById('copy-deck-overlay').classList.remove('open');}
+async function loadCopySrcDecks(){
+  const sid=document.getElementById('copy-src-student')?.value;
+  const sel=document.getElementById('copy-src-deck');
+  if(!sid||!sel){return;}
+  sel.innerHTML='<option value="">載入中…</option>';
+  try{
+    const srcDecks=await sbGet('decks',`student_id=eq.${sid}&deleted_at=is.null&select=id,name&order=name`);
+    sel.innerHTML='<option value="">— 選擇 Deck —</option>'+srcDecks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  }catch(e){sel.innerHTML='<option value="">讀取失敗</option>';}
+}
+async function doCopyDeckToStudent(){
+  const srcDeckId=document.getElementById('copy-src-deck')?.value;
+  const srcStudentId=document.getElementById('copy-src-student')?.value;
+  const tgtStudentId=document.getElementById('copy-tgt-student')?.value;
+  const msg=document.getElementById('copy-deck-msg');
+  if(!srcDeckId||!tgtStudentId){msg.innerHTML='<span style="color:#c62828">請選擇來源 Deck 和目標學生</span>';return;}
+  if(srcStudentId===tgtStudentId){msg.innerHTML='<span style="color:#c62828">來源和目標不能相同</span>';return;}
+  msg.textContent='複製中…';
+  try{
+    // Get source deck info
+    const srcDecks=await sbGet('decks',`id=eq.${srcDeckId}&select=id,name,description`);
+    if(!srcDecks.length){msg.innerHTML='<span style="color:#c62828">找不到來源 Deck</span>';return;}
+    const srcDeck=srcDecks[0];
+    // Get cards in source deck (via card_decks → vocabulary → word)
+    const cdRows=await sbGet('card_decks',`deck_id=eq.${srcDeckId}&select=card_id`);
+    const cardIds=cdRows.map(r=>r.card_id);
+    // Get words of those cards
+    let srcWords=[];
+    if(cardIds.length){
+      const vocabRows=await sbGet('vocabulary',`id=in.(${cardIds.join(',')})&select=word`);
+      srcWords=vocabRows.map(r=>r.word);
+    }
+    // Create new deck for target student
+    const newDeckRows=await sbPost('decks',{student_id:tgtStudentId,name:srcDeck.name,description:srcDeck.description||''});
+    const newDeck=newDeckRows[0];
+    if(!newDeck?.id){msg.innerHTML='<span style="color:#c62828">建立 Deck 失敗</span>';return;}
+    // Find target student's vocab that matches those words
+    let linked=0;
+    if(srcWords.length){
+      const tgtVocab=await sbGet('vocabulary',`student_id=eq.${tgtStudentId}&word=in.(${srcWords.map(w=>`"${w.replace(/"/g,'')}"`)})&select=id,word`);
+      for(const v of tgtVocab){
+        try{await sbPost('card_decks',{card_id:v.id,deck_id:newDeck.id});linked++;}catch(e){}
+      }
+    }
+    msg.innerHTML=`<span style="color:#059669">✅ 成功複製「${esc(srcDeck.name)}」至目標學生，連結 ${linked}/${srcWords.length} 張卡片</span>`;
+  }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
+}
+
 async function addCardToDeck(cardId,deckId){
   if(!deckId) return;
   try{
@@ -3153,6 +3426,7 @@ async function loadTeacherView(){
       sbGet('ai_usage','select=student_id,cost_usd,created_at,action&order=created_at.desc&limit=10000'),
       sbGet('app_config','key=eq.last_sentence_refresh&select=value').catch(()=>[])
     ]);
+    teacherStudents=students;
     // Show refresh banner
     const rb=document.getElementById('refresh-banner');
     if(refreshInfo.length){
