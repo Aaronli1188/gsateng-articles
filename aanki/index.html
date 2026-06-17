@@ -74,7 +74,8 @@ body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI'
 .zh-context{font-size:.9rem;color:#666;font-style:italic}
 .btn-reveal{display:block;width:60%;max-width:260px;padding:16px 0;margin:24px auto 0;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.02em;text-align:center}
 .btn-reveal:hover{background:#333}
-.sc-btn{width:42px;border:none;border-left:1px solid #ddd;background:#fff;cursor:pointer;font-size:1rem;color:#999;flex-shrink:0}
+.sc-btn{border:1px solid rgba(124,58,237,.2);border-radius:10px;background:#fff;cursor:pointer;font-size:1.2rem;color:#888;flex-shrink:0;padding:6px 10px;transition:all .15s}
+.sc-btn:hover{background:#f5f3ff;border-color:var(--acc);color:var(--acc)}
 .sc-btn:hover{background:#f5f5f5;color:#333}
 .sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
 .sc-modal{background:#fff;border-radius:12px;padding:28px 24px;min-width:300px;max-width:400px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.2)}
@@ -406,12 +407,12 @@ tr:hover td{background:rgba(124,58,237,.025)}
 
 /* ── Anki-style Review Overview ──────────────────────────────────────── */
 .anki-overview{max-width:780px;margin:0 auto}
-.anki-overview-hdr{display:grid;grid-template-columns:28px 1fr auto auto auto 28px;gap:10px;align-items:center;padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(124,58,237,.1)}
+.anki-overview-hdr{display:grid;grid-template-columns:28px 1fr 40px 40px 40px 32px;gap:10px;align-items:center;padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(124,58,237,.1)}
 .anki-deck-row:hover{background:rgba(124,58,237,.04)}
 .anki-deck-row.selected{background:rgba(124,58,237,.07)}
 .anki-deck-name{font-size:.95rem;font-weight:600;color:#1e1b4b}
-.anki-deck-name.default{color:#888;font-style:italic}
-.anki-cnt{font-size:.88rem;font-weight:700;min-width:36px;text-align:right}
+.anki-deck-name.default{color:#1e1b4b;font-style:normal}
+.anki-cnt{font-size:.88rem;font-weight:700;min-width:40px;text-align:right}
 .anki-cnt.due{color:#dc2626}
 .anki-cnt.mastered{color:#059669}
 .anki-cnt.total{color:#888}
@@ -440,8 +441,8 @@ tr:hover td{background:rgba(124,58,237,.025)}
 .filter-tag-x{border:none;background:none;cursor:pointer;color:inherit;font-size:.85rem;padding:0;line-height:1;opacity:.6}
 .filter-tag-x:hover{opacity:1}
 /* ── Deck row options button ─────────────────────────────────────────── */
-.anki-deck-row{display:grid;grid-template-columns:28px 1fr auto auto auto auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(124,58,237,.06);border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:2px}
-.deck-opt-btn{background:none;border:1px solid transparent;color:#aaa;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .12s;flex-shrink:0}
+.anki-deck-row{display:grid;grid-template-columns:28px 1fr 40px 40px 40px 32px;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(124,58,237,.06);border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.deck-opt-btn{background:none;border:1px solid transparent;color:#888;border-radius:6px;padding:3px 6px;cursor:pointer;font-size:1.15rem;font-family:inherit;transition:all .12s;flex-shrink:0;line-height:1}
 .deck-opt-btn:hover{border-color:#ddd;color:#555;background:#f5f5f5}
 /* ── Deck options modal ──────────────────────────────────────────────── */
 .deck-opts-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:600;display:none;align-items:center;justify-content:center}
@@ -574,9 +575,9 @@ tr:hover td{background:rgba(124,58,237,.025)}
             <div class="anki-overview-hdr">
               <span></span>
               <span></span>
-              <span>到期</span>
-              <span>精熟</span>
-              <span>總計</span>
+              <span style="text-align:right">到期</span>
+              <span style="text-align:right">精熟</span>
+              <span style="text-align:right">總計</span>
               <span></span>
             </div>
             <div id="anki-deck-list"></div>
