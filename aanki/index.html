@@ -2193,6 +2193,7 @@ async function sendAiMsgInternal(userText){
     const u=data.usage||{};
     const cost=((u.input_tokens||0)*0.075+(u.output_tokens||0)*0.30)/1e6;
     logAiCost(cost,'ai_chat');
+    if(cost>0) showCostToast('AI chat NT$'+(cost*32).toFixed(4));
   }catch(e){
     _aiChatMessages.push({role:'assistant',content:'⚠️ 錯誤：'+e.message});
   }
