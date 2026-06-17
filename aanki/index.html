@@ -404,6 +404,47 @@ tr:hover td{background:rgba(124,58,237,.025)}
 /* Title styling */
 .hdr h1{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-weight:800;font-size:.92rem}
 
+/* ── Anki-style Review Overview ──────────────────────────────────────── */
+.anki-overview{max-width:780px;margin:0 auto}
+.anki-overview-hdr{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(124,58,237,.1)}
+.anki-deck-row{display:grid;grid-template-columns:28px 1fr auto auto auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(124,58,237,.06);border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.anki-deck-row:hover{background:rgba(124,58,237,.04)}
+.anki-deck-row.selected{background:rgba(124,58,237,.07)}
+.anki-deck-name{font-size:.95rem;font-weight:600;color:#1e1b4b}
+.anki-deck-name.default{color:#888;font-style:italic}
+.anki-cnt{font-size:.88rem;font-weight:700;min-width:36px;text-align:right}
+.anki-cnt.due{color:#dc2626}
+.anki-cnt.mastered{color:#059669}
+.anki-cnt.total{color:#888}
+.anki-overview-footer{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 0 0}
+.anki-manage{border-top:1px solid rgba(124,58,237,.1);margin-top:16px;padding-top:14px}
+.anki-manage-hdr{font-size:.78rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+/* ── Search & Filter ─────────────────────────────────────────────────── */
+.search-wrap{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.search-input{flex:1;padding:8px 13px;border:1px solid rgba(124,58,237,.2);border-radius:10px;font-size:.88rem;font-family:inherit;background:#fff}
+.search-input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.search-scope{display:flex;gap:4px}
+.search-scope-btn{padding:4px 10px;border:1px solid rgba(124,58,237,.2);border-radius:8px;background:#fff;cursor:pointer;font-size:.75rem;color:#666;font-family:inherit;white-space:nowrap}
+.search-scope-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.adv-filter-toggle{padding:7px 14px;border:1px solid rgba(124,58,237,.2);border-radius:10px;background:#fff;cursor:pointer;font-size:.82rem;color:#666;font-family:inherit;white-space:nowrap;transition:all .15s}
+.adv-filter-toggle.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.adv-filter-panel{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:var(--card-sh);border:1px solid rgba(124,58,237,.08);margin-bottom:12px;display:none}
+.adv-filter-panel.open{display:block}
+.adv-filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.adv-field{display:flex;flex-direction:column;gap:4px}
+.adv-field label{font-size:.71rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em}
+.adv-field input,.adv-field select{padding:5px 9px;border:1px solid rgba(124,58,237,.15);border-radius:7px;font-size:.82rem;font-family:inherit;background:#fff}
+.adv-field input:focus,.adv-field select:focus{outline:none;border-color:var(--acc)}
+.adv-filter-actions{display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap}
+.active-filter-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:24px}
+.filter-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;background:rgba(124,58,237,.1);color:var(--acc);border:1px solid rgba(124,58,237,.2)}
+.filter-tag-x{border:none;background:none;cursor:pointer;color:inherit;font-size:.85rem;padding:0;line-height:1;opacity:.6}
+.filter-tag-x:hover{opacity:1}
+/* ── Move-to-deck modal ──────────────────────────────────────────────── */
+.deck-move-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:center;justify-content:center}
+.deck-move-overlay.open{display:flex}
+.deck-move-modal{background:#fff;border-radius:14px;padding:24px 28px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.deck-move-modal h3{font-size:.95rem;font-weight:700;margin-bottom:14px}
 /* ── Deck tags ────────────────────────────────────────────────────────── */
 .deck-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:.71rem;font-weight:600;background:rgba(124,58,237,.1);color:var(--acc);border:1px solid rgba(124,58,237,.2);white-space:nowrap}
 .deck-tag-del{border:none;background:none;cursor:pointer;color:inherit;opacity:.5;padding:0;font-size:.8rem;line-height:1}
@@ -463,7 +504,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.8</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.9</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -475,7 +516,6 @@ tr:hover td{background:rgba(124,58,237,.025)}
 <div class="nav" id="main-nav">
   <button class="active" data-panel="review" onclick="switchPanel(this)">複習</button>
   <button data-panel="list" onclick="switchPanel(this)">卡片列表</button>
-  <button data-panel="decks" onclick="switchPanel(this)">Deck</button>
   <button data-panel="add" onclick="switchPanel(this)">新增</button>
   <button data-panel="sync" onclick="switchPanel(this)">匯入</button>
   <button data-panel="stats" onclick="switchPanel(this)">統計</button>
@@ -495,26 +535,121 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <!-- Review -->
     <div id="panel-review" class="panel active">
       <div class="rev-outer">
-        <div class="mode-bar">
-          <button class="rev-mode-btn active" onclick="setRevMode('normal',this)">今日複習</button>
-          <button class="rev-mode-btn" onclick="setRevMode('incognito',this)">無痕練習</button>
-          <button class="rev-mode-btn" onclick="setRevMode('quiz',this)">選擇日期測驗</button>
-          <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()">⌨</button>
-        </div>
-        <div id="quiz-picker" style="display:none">
-          <div class="quiz-dates">
-            <h4>選擇上課日期</h4>
-            <div class="quiz-date-list" id="quiz-date-list"></div>
-            <button class="quiz-start" id="quiz-start-btn" onclick="startQuiz()" disabled>開始測驗</button>
+
+        <!-- Deck Overview -->
+        <div id="rev-deck-overview">
+          <div class="anki-overview">
+            <div class="anki-overview-hdr">
+              <span></span>
+              <span>到期</span>
+              <span>精熟</span>
+              <span>總計</span>
+            </div>
+            <div id="anki-deck-list"></div>
+            <div class="anki-overview-footer">
+              <button class="btn-pri" style="padding:9px 20px;font-size:.88rem" onclick="startSelectedDecks()">▶ 複習已選 Deck</button>
+              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('date')">📅 選擇日期測驗</button>
+              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('filter')">⚙ 條件測驗</button>
+              <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()" style="margin-left:auto">⌨</button>
+            </div>
+            <!-- Deck Management (collapsible) -->
+            <div class="anki-manage">
+              <div class="anki-manage-hdr" onclick="toggleDeckManage()"><span id="deck-manage-arrow">▸</span> 管理 Deck</div>
+              <div id="deck-manage-body" style="display:none">
+                <button class="btn-pri" style="padding:7px 16px;font-size:.85rem;margin-bottom:12px" onclick="openCreateDeck()">＋ 新增 Deck</button>
+                <div id="decks-list-container"></div>
+                <div id="create-deck-row" style="display:none;margin-top:12px" class="deck-panel">
+                  <h3>新增 Deck</h3>
+                  <div class="field"><label>名稱</label><input id="new-deck-name" type="text" placeholder="e.g. 第一單元" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+                  <div class="field"><label>描述（選填）</label><input id="new-deck-desc" type="text" placeholder="說明這個 Deck 的內容" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
+                  <div style="display:flex;gap:8px;margin-top:4px">
+                    <button class="btn-pri" onclick="createDeck()">建立</button>
+                    <button class="btn-sec" onclick="closeCreateDeck()">取消</button>
+                  </div>
+                  <div id="create-deck-msg" style="margin-top:8px;font-size:.84rem"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div id="rev-wrap"></div>
+
+        <!-- Picker (date / filter condition) -->
+        <div id="rev-picker" style="display:none">
+          <div style="margin-bottom:14px"><button class="btn-sec" style="padding:6px 14px;font-size:.84rem" onclick="backToDeckOverview()">← 返回</button></div>
+          <div id="rev-picker-date" style="display:none">
+            <div class="quiz-dates">
+              <h4>選擇上課日期</h4>
+              <div class="quiz-date-list" id="quiz-date-list"></div>
+              <button class="quiz-start" id="quiz-start-btn" onclick="startQuiz()" disabled>開始測驗</button>
+            </div>
+          </div>
+          <div id="rev-picker-filter" style="display:none">
+            <h4 style="margin-bottom:14px;color:#1e1b4b">條件測驗</h4>
+            <div class="adv-filter-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:16px">
+              <div class="adv-field"><label>狀態</label>
+                <select id="rf-status"><option value="">全部</option><option value="due">今日到期</option><option value="upcoming">未來</option><option value="mastered">精熟</option></select></div>
+              <div class="adv-field"><label>Deck</label>
+                <select id="rf-deck"><option value="">全部 Deck</option></select></div>
+              <div class="adv-field"><label>連對次數 ≥</label>
+                <input id="rf-streak-min" type="number" min="0" placeholder="0"></div>
+              <div class="adv-field"><label>加入日（從）</label>
+                <input id="rf-date-from" type="date"></div>
+              <div class="adv-field"><label>加入日（至）</label>
+                <input id="rf-date-to" type="date"></div>
+              <div class="adv-field"><label>關鍵字</label>
+                <input id="rf-keyword" type="text" placeholder="卡片/例句/解釋"></div>
+            </div>
+            <button class="btn-pri" onclick="startFilterReview()" style="padding:9px 24px">▶ 開始條件測驗</button>
+          </div>
+        </div>
+
+        <!-- Active review -->
+        <div id="rev-active" style="display:none">
+          <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+            <button class="btn-sec" style="padding:6px 14px;font-size:.84rem" onclick="backToDeckOverview()">← 返回主畫面</button>
+          </div>
+          <div id="rev-wrap"></div>
+        </div>
+
       </div>
     </div>
 
     <!-- List -->
     <div id="panel-list" class="panel">
       <div class="list-toolbar">
+        <!-- Search bar -->
+        <div class="search-wrap">
+          <input class="search-input" id="list-search-input" type="text" placeholder="搜尋卡片…" oninput="onListSearch(this.value)">
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="adv-filter-toggle active" id="scope-btn-front" onclick="setListSearchScope('front',this)">正面</button>
+            <button class="adv-filter-toggle" id="scope-btn-all" onclick="setListSearchScope('all',this)">全部</button>
+          </div>
+          <button class="adv-filter-toggle" id="adv-filter-toggle-btn" onclick="toggleAdvFilter()">篩選 ▾</button>
+        </div>
+        <!-- Advanced filter panel -->
+        <div class="adv-filter-panel" id="adv-filter-panel">
+          <div class="adv-filter-grid">
+            <div class="adv-field"><label>狀態</label>
+              <select id="af-status"><option value="">全部</option><option value="due">今日到期</option><option value="upcoming">未來</option><option value="mastered">精熟</option><option value="marked">已標記</option><option value="memo">有備忘</option></select></div>
+            <div class="adv-field"><label>Deck</label>
+              <select id="af-deck"><option value="">全部 Deck</option></select></div>
+            <div class="adv-field"><label>連對次數 ≥</label>
+              <input id="af-streak-min" type="number" min="0" placeholder="0"></div>
+            <div class="adv-field"><label>加入日（從）</label>
+              <input id="af-date-from" type="date"></div>
+            <div class="adv-field"><label>加入日（至）</label>
+              <input id="af-date-to" type="date"></div>
+            <div class="adv-field"><label>下次複習（從）</label>
+              <input id="af-next-from" type="date"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn-pri" style="padding:7px 18px;font-size:.84rem" onclick="applyAdvFilter()">套用</button>
+            <button class="btn-sec" style="padding:7px 14px;font-size:.84rem" onclick="clearAdvFilter()">清除</button>
+          </div>
+        </div>
+        <!-- Active filter tags -->
+        <div id="active-filter-tags" style="display:none;margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+        <!-- Quick filter buttons -->
         <div class="filter-bar">
           <button class="fb active" onclick="setFilter('all',this)">全部</button>
           <button class="fb" onclick="setFilter('due',this)">今日到期</button>
@@ -522,10 +657,6 @@ tr:hover td{background:rgba(124,58,237,.025)}
           <button class="fb" onclick="setFilter('mastered',this)">已精熟</button>
           <button class="fb" onclick="setFilter('marked',this)">🔖 已標記</button>
           <button class="fb" onclick="setFilter('memo',this)">📝 有備忘</button>
-        </div>
-        <div id="deck-filter-bar" style="display:none;margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:.75rem;color:#999;font-weight:600">Deck:</span>
-          <button class="deck-chip active" onclick="setDeckFilter(null,this)">全部</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -541,6 +672,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
             <th class="srt" onclick="setSortCol('next_review')">下次複習<span class="si" id="si-next_review"></span></th>
             <th class="srt" onclick="setSortCol('first_seen')">加入日<span class="si" id="si-first_seen"></span></th>
             <th class="srt" onclick="setSortCol('mastered')">狀態<span class="si" id="si-mastered"></span></th>
+            <th>Deck</th>
             <th>操作</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
@@ -631,6 +763,18 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.9</div><div class="cl-date">2026-06-17</div>
+            <ul>
+              <li>複習頁面全新 Anki 主畫面風格：顯示各 Deck 到期/精熟/總計數，可勾選多個 Deck 混合複習</li>
+              <li>所有卡片強制歸屬 Deck，無分配的自動放入「未分類」預設 Deck</li>
+              <li>批量移動卡片至指定 Deck（可加入或取代）</li>
+              <li>卡片列表新增搜尋欄（正面 / 全部欄位）及多條件進階篩選</li>
+              <li>卡片列表新增 Deck 欄位顯示，Deck 頁籤整合進複習主畫面</li>
+              <li>複習支援「條件測驗」：依狀態、Deck、連對、日期等篩選後複習</li>
+              <li>移除無痕練習模式</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.8</div><div class="cl-date">2026-06-17</div>
             <ul>
@@ -732,27 +876,6 @@ tr:hover td{background:rgba(124,58,237,.025)}
       </div>
     </div>
 
-    <!-- Decks -->
-    <div id="panel-decks" class="panel">
-      <div style="max-width:700px;margin:0 auto">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-size:1rem;font-weight:700;color:#1e1b4b">我的 Deck</h2>
-          <button class="btn-pri" style="padding:7px 16px;font-size:.85rem" onclick="openCreateDeck()">＋ 新增 Deck</button>
-        </div>
-        <div id="decks-list-container"></div>
-        <!-- Create deck modal inline -->
-        <div id="create-deck-row" style="display:none;margin-top:12px" class="deck-panel">
-          <h3>新增 Deck</h3>
-          <div class="field"><label>名稱</label><input id="new-deck-name" type="text" placeholder="e.g. 第一單元" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
-          <div class="field"><label>描述（選填）</label><input id="new-deck-desc" type="text" placeholder="說明這個 Deck 的內容" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit"></div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="btn-pri" onclick="createDeck()">建立</button>
-            <button class="btn-sec" onclick="closeCreateDeck()">取消</button>
-          </div>
-          <div id="create-deck-msg" style="margin-top:8px;font-size:.84rem"></div>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>
@@ -779,6 +902,24 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <textarea class="ai-chat-input" id="ai-chat-input" placeholder="繼續追問…" rows="1" onkeydown="aiChatKeydown(event)"></textarea>
       <button class="ai-chat-send" id="ai-chat-send" onclick="sendAiMsg()">傳送</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Move-to-deck modal ────────────────────────────────────────────────── -->
+<div class="deck-move-overlay" id="deck-move-overlay">
+  <div class="deck-move-modal">
+    <h3>移至 Deck</h3>
+    <div class="field" style="margin-bottom:14px">
+      <label style="font-size:.8rem;color:#666;display:block;margin-bottom:6px">選擇目標 Deck</label>
+      <select id="move-deck-select" style="width:100%;padding:8px 11px;border:1px solid rgba(124,58,237,.2);border-radius:8px;font-size:.88rem;font-family:inherit">
+        <option value="">— 選擇 Deck —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn-pri" style="flex:1;font-size:.84rem" onclick="doBulkMoveToDeck(document.getElementById('move-deck-select').value, false)">加入（保留原 Deck）</button>
+      <button class="btn-sec" style="flex:1;font-size:.84rem" onclick="doBulkMoveToDeck(document.getElementById('move-deck-select').value, true)">移至（取代原 Deck）</button>
+    </div>
+    <button class="btn-sec" style="width:100%;font-size:.84rem" onclick="document.getElementById('deck-move-overlay').classList.remove('open')">取消</button>
   </div>
 </div>
 
@@ -849,6 +990,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
   <span class="bulk-count" id="bulk-count">已選 0 個</span>
   <button class="bulk-btn" onclick="doBulkExplain()">✨ 加入意思</button>
   <button class="bulk-btn" onclick="doBulk7000()" id="bulk-7000-btn">📖 批量 7000</button>
+  <button class="bulk-btn" onclick="openMoveToDeckModal()">📂 移至 Deck</button>
   <button class="bulk-btn" onclick="openBulkReset()">批量重置</button>
   <button class="bulk-btn bulk-btn-del" onclick="doBulkDelete()">批量刪除</button>
   <button class="bulk-btn bulk-btn-cancel" onclick="clearSelection()">取消選取</button>
@@ -1115,6 +1257,9 @@ let GLOBAL_INTERVALS={s0:7,s1:14,s2:28,s3:56,master_at:4,too_easy:30};
 let INTERVALS={...GLOBAL_INTERVALS};
 // ── Deck state ───────────────────────────────────────────────────────────────
 let decks=[], cardDeckMap={}, activeDeckFilter=null;
+let selectedDeckIds=new Set(), defaultDeckId=null;
+// ── List search & filter state ───────────────────────────────────────────────
+let listSearch='', listSearchScope='front', advFilters={}, advFilterOpen=false;
 // ── AI Chat state ────────────────────────────────────────────────────────────
 let studentAiChatPerm='all'; // 'all'|'3.5flash'|'lite'|'disabled'
 let studentAiChatEnabled=true; // derived: perm !== 'disabled'
@@ -1193,6 +1338,7 @@ async function loadStudentView(token){
     document.getElementById('s-date').addEventListener('change',e=>{document.getElementById('s-rev').value=plusDays(e.target.value,7);});
     loadingMsg('載入卡片與複習紀錄…');
     await Promise.all([loadStudentIntervals(student.id), refreshVocab(), loadDecks()]);
+    assignOrphanCards(); // background: assign cards without deck to 未分類
     hide('loading-screen');
     show('student-view');
     show('main-nav','flex');
@@ -1240,6 +1386,7 @@ async function syncVocab(){
   await refreshVocab();
   updateStats();
   if(document.getElementById('panel-list').classList.contains('active')) updateList();
+  if(document.getElementById('panel-review').classList.contains('active')&&document.getElementById('rev-deck-overview').style.display!=='none') renderDeckOverview();
 }
 
 function updateStats(){
@@ -1263,7 +1410,6 @@ function switchPanel(btn){
   if(panel==='review') initReview();
   if(panel==='list') updateList();
   if(panel==='stats') renderStats();
-  if(panel==='decks') renderDecksPanel();
 }
 
 // ── Review ────────────────────────────────────────────────────────────────────
@@ -1297,32 +1443,24 @@ function startQuiz(){
   const pool=vocab.filter(e=>quizDates.has(e.first_seen));
   const q=[...pool];
   for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
-  dueQueue=q; revIdx=0;
-  document.getElementById('quiz-picker').style.display='none';
-  renderCard();
+  dueQueue=q; revIdx=0; reviewMode='quiz';
+  showRevActive();
 }
 
 function initReview(){
   reviewActive=false;
-  const isQuiz=reviewMode==='quiz';
-  if(isQuiz){renderQuizPicker();return;}
-  const t=today();
-  const pool=reviewMode==='incognito'?[...vocab]:vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
-  const q=[...pool];
-  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
-  dueQueue=q; revIdx=0; renderCard();
+  renderDeckOverview();
 }
 
 function renderCard(){
   const wrap=document.getElementById('rev-wrap');
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
+  const incognito=reviewMode==='quiz';
+  const backBtn='<button class="btn-sec" style="padding:6px 14px;font-size:.84rem;margin-top:14px" onclick="backToDeckOverview()">← 返回主畫面</button>';
   if(!dueQueue.length){
     reviewActive=false;
-    const isQuiz=reviewMode==='quiz';
-    if(isQuiz){wrap.innerHTML='<div class="done"><h2>沒有符合的單字</h2><p>選取的日期沒有任何單字。</p></div>';return;}
-    if(incognito){wrap.innerHTML='<div class="done"><h2>沒有任何單字</h2><p>請先匯入單字。</p></div>';return;}
+    if(reviewMode==='quiz'){wrap.innerHTML=`<div class="done"><h2>沒有符合的卡片</h2><p>選取條件沒有任何卡片。</p>${backBtn}</div>`;return;}
     const nxt=vocab.filter(e=>!e.mastered&&e.next_review).map(e=>e.next_review).sort()[0];
-    wrap.innerHTML=`<div class="done"><h2>今日沒有待複習的單字</h2><p>${nxt?'下次複習日期：'+nxt:'所有單字已精熟！'}</p></div>`;
+    wrap.innerHTML=`<div class="done"><h2>今日沒有待複習的卡片</h2><p>${nxt?'下次複習日期：'+nxt:'所有卡片已精熟！'}</p>${backBtn}</div>`;
     return;
   }
   if(revIdx>=dueQueue.length){
@@ -1331,7 +1469,7 @@ function renderCard(){
     const easy=dueQueue.filter(e=>e._r==='easy').length;
     const n=dueQueue.length-y-easy;
     const note=incognito?'<p style="color:#7b1fa2;font-size:.82rem;margin-top:8px">進度未寫入</p>':'';
-    wrap.innerHTML=`<div class="done"><h2>${reviewMode==='quiz'?'測驗完成':incognito?'練習完成（無痕）':'複習完成'}</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p>${note}</div>`;
+    wrap.innerHTML=`<div class="done"><h2>${reviewMode==='quiz'?'測驗完成':'複習完成'}</h2><p>認識 ${y} · 太簡單 ${easy} · 不認識 ${n}</p>${note}${backBtn}</div>`;
     return;
   }
   reviewActive=true;
@@ -1367,7 +1505,7 @@ function renderCard(){
       ?e.context.replace(new RegExp('\\b'+escRe(e.word)+'\\b','gi'),m=>`<span class="whi">${esc(m)}</span>`)
       :`<span class="whi">${esc(e.word)}</span>（無例句）`;
   }
-  const modeLabel=reviewMode==='quiz'?'選擇日期測驗':incognito?'無痕':'';
+  const modeLabel=reviewMode==='quiz'?'測驗':'';
   const badge=modeLabel?`<span class="incognito-badge">${modeLabel}</span>`:'';
   const markCls=e.marked?'act-btn act-mark marked':'act-btn act-mark';
   // Japanese extra info block
@@ -1426,7 +1564,7 @@ async function doReview(result){
   const by=document.getElementById('by'),bn=document.getElementById('bn');
   if(by) by.disabled=true; if(bn) bn.disabled=true;
   const e=dueQueue[revIdx]; e._r=result;
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
+  const incognito=reviewMode==='quiz';
   const fb=document.getElementById('fb');
   if(!incognito){
     try{
@@ -1468,7 +1606,7 @@ async function cardDelete(vid,word){
 }
 
 async function cardTooEasy(vid,word){
-  const incognito=reviewMode==='incognito'||reviewMode==='quiz';
+  const incognito=reviewMode==='quiz';
   const e=dueQueue[revIdx]; if(e) e._r='easy';
   const fb=document.getElementById('fb');
   if(fb){fb.textContent=incognito?'⚡ 跳過（不計入進度）':'⚡ 已設為 30 天後複習';fb.style.color='#2e7d32';}
@@ -1900,12 +2038,36 @@ function sortedVocab(rows){
 function filteredVocab(){
   const t=today();
   let base=vocab;
-  if(activeDeckFilter) base=base.filter(e=>(cardDeckMap[e.id]||[]).includes(activeDeckFilter));
-  if(listFilter==='due')      return base.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
-  if(listFilter==='upcoming') return base.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
-  if(listFilter==='mastered') return base.filter(e=>e.mastered);
-  if(listFilter==='marked')   return base.filter(e=>e.marked);
-  if(listFilter==='memo')     return base.filter(e=>e.memo&&e.memo.trim());
+  // Search
+  if(listSearch){
+    const q=listSearch.toLowerCase();
+    base=base.filter(e=>{
+      if(listSearchScope==='front') return (e.word||'').toLowerCase().includes(q);
+      return (e.word||'').toLowerCase().includes(q)||(e.context||'').toLowerCase().includes(q)||(e.zh_meaning||'').toLowerCase().includes(q)||(e.context_zh||'').toLowerCase().includes(q);
+    });
+  }
+  // Advanced filters (AND logic)
+  if(advFilters.deck) base=base.filter(e=>(cardDeckMap[e.id]||[]).includes(advFilters.deck));
+  else if(activeDeckFilter) base=base.filter(e=>(cardDeckMap[e.id]||[]).includes(activeDeckFilter));
+  if(advFilters.streakMin!=null&&advFilters.streakMin!=='') base=base.filter(e=>(e.streak??0)>=Number(advFilters.streakMin));
+  if(advFilters.dateFrom) base=base.filter(e=>e.first_seen&&e.first_seen>=advFilters.dateFrom);
+  if(advFilters.dateTo)   base=base.filter(e=>e.first_seen&&e.first_seen<=advFilters.dateTo);
+  if(advFilters.nextFrom) base=base.filter(e=>e.next_review&&e.next_review>=advFilters.nextFrom);
+  if(advFilters.status){
+    const s=advFilters.status;
+    if(s==='due')      base=base.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+    if(s==='upcoming') base=base.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
+    if(s==='mastered') base=base.filter(e=>e.mastered);
+    if(s==='marked')   base=base.filter(e=>e.marked);
+    if(s==='memo')     base=base.filter(e=>e.memo&&e.memo.trim());
+  } else {
+    // Quick filter buttons
+    if(listFilter==='due')      return base.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+    if(listFilter==='upcoming') return base.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
+    if(listFilter==='mastered') return base.filter(e=>e.mastered);
+    if(listFilter==='marked')   return base.filter(e=>e.marked);
+    if(listFilter==='memo')     return base.filter(e=>e.memo&&e.memo.trim());
+  }
   return base;
 }
 function setDeckFilter(deckId,btn){
@@ -1923,7 +2085,7 @@ function updateList(){
   const pager=document.getElementById('list-pager');
   const pagerTop=document.getElementById('list-pager-top');
   if(!allRows.length){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#bbb">沒有符合的卡片</td></tr>';
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:24px;color:#bbb">沒有符合的卡片</td></tr>';
     document.getElementById('chk-all').checked=false;
     pager.style.display='none';pagerTop.style.display='none';
     return;
@@ -1961,6 +2123,7 @@ function updateList(){
     const exHtml=exShort
       ?`<span class="exp-cell" data-short="${esc(exShort)}" data-full="${esc(exFull)}" data-ctx="${esc(exCtx)}" onclick="toggleExp(this)" title="點擊展開">${esc(exShort)}</span>`
       :`<span style="color:#ccc">—</span>`;
+    const deckNames=(cardDeckMap[e.id]||[]).map(did=>{const d=decks.find(x=>x.id===did);return d?`<span class="deck-tag">${esc(d.name)}</span>`:''}).filter(Boolean).join('');
     return `<tr class="${selCls}" id="row-${wid}">
       <td><input type="checkbox" ${checked} data-id="${wid}" onclick="toggleWord(event,this)"></td>
       <td><span class="${markCls}" title="${e.marked?'移除標記':'加上標記'}" data-id="${wid}" onclick="listToggleMark('${wid}',this)">🔖</span></td>
@@ -1971,6 +2134,7 @@ function updateList(){
       <td>${e.next_review?(e.next_review<t?`<span style="color:#c62828;font-weight:600">今日</span>`:e.next_review===t?`<span style="color:#e65100;font-weight:600">今日</span>`:e.next_review):'—'}</td>
       <td>${e.first_seen||'—'}</td>
       <td>${badge}</td>
+      <td style="font-size:.78rem">${deckNames||'<span style="color:#ccc">—</span>'}</td>
       <td>
         ${mode==='teacher'?`<button class="sm" title="AI 生成解釋" id="aibtn-${wid}" onclick="generateExplanation('${wid}')">✨</button>`:''}
         ${studentAiChatEnabled?`<button class="sm" style="border-color:#e9d5ff;color:#7c3aed" title="AI 解釋" onclick="openAiChat('${wid}')">✦</button>`:''}
@@ -1978,7 +2142,7 @@ function updateList(){
         <button class="sm sdel" data-id="${wid}" onclick="doDelete('${wid}','${wword}')">刪除</button>
       </td>
     </tr>
-    <tr id="rr-${wid}" style="display:none"><td colspan="10" style="background:#fffde7;padding:8px 13px">
+    <tr id="rr-${wid}" style="display:none"><td colspan="11" style="background:#fffde7;padding:8px 13px">
       <div class="rform"><span style="font-size:.82rem;color:#666">新的複習日期：</span>
         <input type="date" id="rd-${wid}" value="${today()}">
         <button class="rc" onclick="doReset('${wid}')">確認重置</button>
@@ -1990,6 +2154,108 @@ function updateList(){
 }
 
 function goPage(p){listPage=p;updateList();document.querySelector('#panel-list .tbl-wrap')?.scrollTo(0,0);}
+
+// ── Search & advanced filter ───────────────────────────────────────────────
+function onListSearch(val){
+  listSearch=val;
+  listPage=0;
+  updateList();
+}
+function setListSearchScope(scope, btn){
+  listSearchScope=scope;
+  document.querySelectorAll('.search-wrap .adv-filter-toggle').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  listPage=0;
+  updateList();
+}
+function toggleAdvFilter(){
+  advFilterOpen=!advFilterOpen;
+  const panel=document.getElementById('adv-filter-panel');
+  const btn=document.getElementById('adv-filter-toggle-btn');
+  if(panel) panel.classList.toggle('open',advFilterOpen);
+  if(btn) btn.classList.toggle('active',advFilterOpen);
+  // populate deck select
+  if(advFilterOpen){
+    const sel=document.getElementById('af-deck');
+    if(sel) sel.innerHTML='<option value="">全部 Deck</option>'+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  }
+}
+function applyAdvFilter(){
+  advFilters={
+    status: document.getElementById('af-status')?.value||'',
+    deck: document.getElementById('af-deck')?.value||'',
+    streakMin: document.getElementById('af-streak-min')?.value,
+    dateFrom: document.getElementById('af-date-from')?.value||'',
+    dateTo: document.getElementById('af-date-to')?.value||'',
+    nextFrom: document.getElementById('af-next-from')?.value||''
+  };
+  listPage=0;
+  updateList();
+  renderActiveFilterTags();
+}
+function clearAdvFilter(){
+  advFilters={};
+  ['af-status','af-deck','af-streak-min','af-date-from','af-date-to','af-next-from'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  listPage=0;
+  updateList();
+  renderActiveFilterTags();
+}
+function renderActiveFilterTags(){
+  const el=document.getElementById('active-filter-tags');
+  if(!el) return;
+  const tags=[];
+  const labels={status:'狀態',deck:'Deck',streakMin:'連對≥',dateFrom:'加入日≥',dateTo:'加入日≤',nextFrom:'下次複習≥'};
+  for(const [k,v] of Object.entries(advFilters)){
+    if(v==null||v==='') continue;
+    let displayVal=v;
+    if(k==='deck'){const d=decks.find(x=>x.id===v);displayVal=d?d.name:v;}
+    tags.push(`<span class="filter-tag">${labels[k]||k}: ${esc(String(displayVal))} <button class="filter-tag-x" onclick="removeFilterTag('${k}')">×</button></span>`);
+  }
+  el.style.display=tags.length?'flex':'none';
+  el.innerHTML=tags.join('');
+}
+function removeFilterTag(key){
+  delete advFilters[key];
+  const idMap={status:'af-status',deck:'af-deck',streakMin:'af-streak-min',dateFrom:'af-date-from',dateTo:'af-date-to',nextFrom:'af-next-from'};
+  const el=document.getElementById(idMap[key]);
+  if(el) el.value='';
+  listPage=0;
+  updateList();
+  renderActiveFilterTags();
+}
+
+// ── Move-to-deck modal ────────────────────────────────────────────────────
+function openMoveToDeckModal(){
+  if(!selectedIds.size){alert('請先選取卡片');return;}
+  const sel=document.getElementById('move-deck-select');
+  if(sel) sel.innerHTML='<option value="">— 選擇 Deck —</option>'+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  document.getElementById('deck-move-overlay').classList.add('open');
+}
+async function doBulkMoveToDeck(deckId, replace){
+  if(!deckId){alert('請選擇目標 Deck');return;}
+  const ids=[...selectedIds];
+  document.getElementById('deck-move-overlay').classList.remove('open');
+  let ok=0;
+  for(const cardId of ids){
+    try{
+      if(replace){
+        // Remove from all decks first
+        await sbDelete('card_decks',`card_id=eq.${cardId}`);
+        cardDeckMap[cardId]=[];
+      }
+      await sbPost('card_decks',{card_id:cardId,deck_id:deckId});
+      if(!cardDeckMap[cardId]) cardDeckMap[cardId]=[];
+      if(!cardDeckMap[cardId].includes(deckId)) cardDeckMap[cardId].push(deckId);
+      ok++;
+    }catch(e){}
+  }
+  showToast(`✅ ${ok} 張卡片已${replace?'移至':'加入'} Deck`);
+  updateList();
+  renderDeckOverview();
+}
 
 function toggleExp(span){
   const isExpanded=span.dataset.expanded==='1';
@@ -2040,10 +2306,156 @@ async function loadDecks(){
   if(!studentId) return;
   try{
     decks=await sbGet('decks',`student_id=eq.${studentId}&select=id,name,description&order=created_at.asc`);
+    await ensureDefaultDeck();
     updateDeckSelectors();
     renderDeckFilterBar();
   }catch(e){}
 }
+async function ensureDefaultDeck(){
+  if(!studentId) return;
+  let def=decks.find(d=>d.name==='未分類');
+  if(!def){
+    try{
+      const rows=await sbPost('decks',{student_id:studentId,name:'未分類',description:'預設牌組'});
+      def=rows[0]||{id:null,name:'未分類',description:'預設牌組'};
+      if(def.id) decks.unshift(def);
+    }catch(e){}
+  }
+  defaultDeckId=def?def.id:null;
+}
+async function assignOrphanCards(){
+  if(!defaultDeckId||!vocab.length) return;
+  const orphans=vocab.filter(e=>!(cardDeckMap[e.id]||[]).length);
+  for(const e of orphans){
+    try{
+      await sbPost('card_decks',{card_id:e.id,deck_id:defaultDeckId});
+      if(!cardDeckMap[e.id]) cardDeckMap[e.id]=[];
+      cardDeckMap[e.id].push(defaultDeckId);
+    }catch(err){} // ignore duplicate
+  }
+  if(orphans.length) renderDeckOverview(); // refresh counts
+}
+
+// ── Deck Overview (Anki-style main screen) ─────────────────────────────────
+function renderDeckOverview(){
+  document.getElementById('rev-deck-overview').style.display='';
+  document.getElementById('rev-picker').style.display='none';
+  document.getElementById('rev-active').style.display='none';
+  const t=today();
+  const container=document.getElementById('anki-deck-list');
+  if(!container) return;
+  if(!decks.length){
+    container.innerHTML='<div style="text-align:center;padding:30px;color:#bbb">還沒有任何 Deck，請先建立</div>';
+    return;
+  }
+  container.innerHTML=decks.map(d=>{
+    const cards=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(d.id));
+    const dueCount=cards.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t).length;
+    const masteredCount=cards.filter(e=>e.mastered).length;
+    const total=cards.length;
+    const isSel=selectedDeckIds.has(d.id)?'selected':'';
+    const isDefault=d.name==='未分類';
+    const dueCls=dueCount>0?'anki-cnt due':'anki-cnt';
+    return `<div class="anki-deck-row ${isSel}" onclick="toggleDeckSelect('${esc(d.id)}',this)">
+      <input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleDeckSelect('${esc(d.id)}',this.parentElement)" style="cursor:pointer;accent-color:var(--acc)">
+      <span class="anki-deck-name${isDefault?' default':''}">${esc(d.name)}</span>
+      <span class="${dueCls}">${dueCount}</span>
+      <span class="anki-cnt mastered">${masteredCount}</span>
+      <span class="anki-cnt total">${total}</span>
+    </div>`;
+  }).join('');
+  // Update manage panel if visible
+  renderDecksPanel();
+}
+function toggleDeckSelect(deckId, rowEl){
+  if(selectedDeckIds.has(deckId)) selectedDeckIds.delete(deckId);
+  else selectedDeckIds.add(deckId);
+  renderDeckOverview();
+}
+function toggleDeckManage(){
+  const body=document.getElementById('deck-manage-body');
+  const arrow=document.getElementById('deck-manage-arrow');
+  if(!body) return;
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'';
+  if(arrow) arrow.textContent=open?'▸':'▾';
+}
+function startSelectedDecks(){
+  const t=today();
+  let pool;
+  if(selectedDeckIds.size===0){
+    // No selection → all due cards
+    pool=vocab.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+  } else {
+    pool=vocab.filter(e=>{
+      const ds=cardDeckMap[e.id]||[];
+      return [...selectedDeckIds].some(did=>ds.includes(did))&&!e.mastered&&e.next_review&&e.next_review<=t;
+    });
+  }
+  if(!pool.length){alert('所選 Deck 今日沒有待複習的卡片');return;}
+  const q=[...pool];
+  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
+  dueQueue=q; revIdx=0; reviewMode='normal';
+  showRevActive();
+}
+function startSingleDeck(deckId){
+  const t=today();
+  const q=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId)&&!e.mastered&&e.next_review&&e.next_review<=t);
+  if(!q.length){alert('此 Deck 今日沒有待複習的卡片');return;}
+  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
+  dueQueue=q; revIdx=0; reviewMode='normal';
+  showRevActive();
+}
+function showRevActive(){
+  document.getElementById('rev-deck-overview').style.display='none';
+  document.getElementById('rev-picker').style.display='none';
+  document.getElementById('rev-active').style.display='';
+  renderCard();
+}
+function showRevPicker(type){
+  document.getElementById('rev-deck-overview').style.display='none';
+  document.getElementById('rev-picker').style.display='';
+  document.getElementById('rev-active').style.display='none';
+  const dateDiv=document.getElementById('rev-picker-date');
+  const filterDiv=document.getElementById('rev-picker-filter');
+  if(type==='date'){
+    dateDiv.style.display=''; filterDiv.style.display='none';
+    renderQuizPicker();
+  } else {
+    dateDiv.style.display='none'; filterDiv.style.display='';
+    // populate deck select
+    const sel=document.getElementById('rf-deck');
+    if(sel) sel.innerHTML='<option value="">全部 Deck</option>'+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+  }
+}
+function backToDeckOverview(){
+  reviewMode='normal';
+  renderDeckOverview();
+}
+function startFilterReview(){
+  const t=today();
+  const status=document.getElementById('rf-status')?.value||'';
+  const deckId=document.getElementById('rf-deck')?.value||'';
+  const streakMin=document.getElementById('rf-streak-min')?.value;
+  const dateFrom=document.getElementById('rf-date-from')?.value||'';
+  const dateTo=document.getElementById('rf-date-to')?.value||'';
+  const keyword=document.getElementById('rf-keyword')?.value?.toLowerCase()||'';
+  let pool=vocab;
+  if(deckId) pool=pool.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId));
+  if(streakMin!==''&&streakMin!=null) pool=pool.filter(e=>(e.streak??0)>=Number(streakMin));
+  if(dateFrom) pool=pool.filter(e=>e.first_seen&&e.first_seen>=dateFrom);
+  if(dateTo)   pool=pool.filter(e=>e.first_seen&&e.first_seen<=dateTo);
+  if(keyword)  pool=pool.filter(e=>(e.word||'').toLowerCase().includes(keyword)||(e.context||'').toLowerCase().includes(keyword)||(e.zh_meaning||'').toLowerCase().includes(keyword));
+  if(status==='due')      pool=pool.filter(e=>!e.mastered&&e.next_review&&e.next_review<=t);
+  else if(status==='upcoming') pool=pool.filter(e=>!e.mastered&&e.next_review&&e.next_review>t);
+  else if(status==='mastered') pool=pool.filter(e=>e.mastered);
+  if(!pool.length){alert('沒有符合條件的卡片');return;}
+  const q=[...pool];
+  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
+  dueQueue=q; revIdx=0; reviewMode='quiz';
+  showRevActive();
+}
+
 function updateDeckSelectors(){
   const opts=decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
   ['a-deck','bulk-deck','sync-deck'].forEach(id=>{
@@ -2078,7 +2490,7 @@ function renderDecksPanel(){
         <div class="deck-meta">${cardCount} 張卡片${d.description?' · '+esc(d.description):''}</div>
       </div>
       <div class="deck-actions">
-        <button class="deck-btn" onclick="reviewDeck('${esc(d.id)}','${esc(d.name)}')">▶ 複習</button>
+        <button class="deck-btn" onclick="startSingleDeck('${esc(d.id)}')">▶ 複習</button>
         <button class="deck-btn danger" onclick="deleteDeck('${esc(d.id)}','${esc(d.name)}')">刪除</button>
       </div>
     </div>`;
@@ -2095,7 +2507,7 @@ async function createDeck(){
     const row=await sbPost('decks',{student_id:studentId,name,description:document.getElementById('new-deck-desc').value.trim()});
     decks.push(row[0]||{id:row.id,name,description:''});
     await loadDecks();
-    renderDecksPanel();
+    renderDeckOverview();
     closeCreateDeck();
     msg.textContent='';
   }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
@@ -2108,21 +2520,10 @@ async function deleteDeck(deckId,name){
   if(activeDeckFilter===deckId) activeDeckFilter=null;
   updateDeckSelectors();
   renderDeckFilterBar();
-  renderDecksPanel();
+  renderDeckOverview();
 }
 function reviewDeck(deckId,name){
-  // Switch to review panel, filter by this deck
-  activeDeckFilter=deckId;
-  const q=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId)&&!e.mastered&&e.next_review&&e.next_review<=today());
-  if(!q.length){alert(`Deck「${name}」今日沒有待複習的卡片`);return;}
-  for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}
-  dueQueue=q;revIdx=0;reviewMode='normal';
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-  const reviewBtn=document.querySelector('.nav button[data-panel="review"]');
-  if(reviewBtn) reviewBtn.classList.add('active');
-  document.getElementById('panel-review').classList.add('active');
-  renderCard();
+  startSingleDeck(deckId);
 }
 async function addCardToDeck(cardId,deckId){
   if(!deckId) return;
@@ -2314,6 +2715,12 @@ function logAiCost(costUsd,action){
   if(!studentId||!costUsd) return;
   sbPost('ai_usage',{student_id:studentId,cost_usd:costUsd,action}).catch(()=>{});
 }
+function showToast(msg,duration=2500){
+  let t=document.getElementById('gen-toast');
+  if(!t){t=document.createElement('div');t.id='gen-toast';t.style.cssText='position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},duration);
+}
 function showCostToast(msg){
   let t=document.getElementById('cost-toast');
   if(!t){t=document.createElement('div');t.id='cost-toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:8px 16px;border-radius:8px;font-size:.82rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none';document.body.appendChild(t);}
@@ -2424,7 +2831,7 @@ function toggleWord(evt,chk){
 
 function updateBulkBar(){
   const bar=document.getElementById('bulk-bar'), n=selectedIds.size;
-  if(n>0){bar.classList.add('visible');document.getElementById('bulk-count').textContent=`已選取 ${n} 個單字`;}
+  if(n>0){bar.classList.add('visible');document.getElementById('bulk-count').textContent=`已選取 ${n} 張卡片`;}
   else bar.classList.remove('visible');
 }
 
