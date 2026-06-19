@@ -77,6 +77,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI'
 .sc-btn{border:1px solid rgba(124,58,237,.2);border-radius:10px;background:#fff;cursor:pointer;font-size:1.2rem;color:#888;flex-shrink:0;padding:6px 10px;transition:all .15s}
 .sc-btn:hover{background:#f5f3ff;border-color:var(--acc);color:var(--acc)}
 .sc-btn:hover{background:#f5f5f5;color:#333}
+.teacher-mode .rev-start-btn{display:none!important}
 .sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
 .sc-modal{background:#fff;border-radius:12px;padding:28px 24px;min-width:300px;max-width:400px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.2)}
 .sc-modal h3{font-size:1rem;font-weight:700;margin:0 0 16px;color:#1a1a1a}
@@ -537,7 +538,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.10</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.11</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -582,9 +583,9 @@ tr:hover td{background:rgba(124,58,237,.025)}
             </div>
             <div id="anki-deck-list"></div>
             <div class="anki-overview-footer">
-              <button class="btn-pri" style="padding:9px 20px;font-size:.88rem" onclick="startSelectedDecks()">▶ 複習已選 Deck</button>
-              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('date')">📅 日期測驗</button>
-              <button class="btn-sec" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('filter')">⚙ 條件測驗</button>
+              <button class="btn-pri rev-start-btn" style="padding:9px 20px;font-size:.88rem" onclick="startSelectedDecks()">▶ 複習已選 Deck</button>
+              <button class="btn-sec rev-start-btn" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('date')">📅 日期測驗</button>
+              <button class="btn-sec rev-start-btn" style="padding:9px 14px;font-size:.85rem" onclick="showRevPicker('filter')">⚙ 條件測驗</button>
               <button class="btn-sec" style="padding:9px 14px;font-size:.85rem;margin-left:auto" onclick="openCreateDeck()">＋ 新增 Deck</button>
               <button class="sc-btn" title="自訂快捷鍵" onclick="openShortcutModal()">⌨</button>
             </div>
@@ -760,6 +761,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.11</div><div class="cl-date">2026-06-19</div>
+            <ul>
+              <li>老師查看學生時，新增「複習」頁籤，可瀏覽該學生的 Deck 總覽（含到期/精熟/總計）</li>
+              <li>老師模式下隱藏「▶ 複習」「📅 日期測驗」「⚙ 條件測驗」等按鈕，避免誤觸影響學生複習進度</li>
+              <li>老師仍可在學生 Deck 總覽中新增、改名、刪除 Deck</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.10</div><div class="cl-date">2026-06-18</div>
             <ul>
@@ -3663,11 +3672,12 @@ async function showStudentDetail(sid,name){
   document.getElementById('student-badge').textContent=name;
   document.getElementById('student-badge').style.display='inline-block';
   show('rename-student-btn');
-  // Hide 複習 and 統計 tabs for teacher
+  // Hide 統計 tab for teacher; 複習 tab shows deck overview (read-only)
   document.querySelectorAll('.nav button').forEach(btn=>{
-    if(btn.dataset.panel==='review'||btn.dataset.panel==='stats') btn.style.display='none';
+    if(btn.dataset.panel==='stats') btn.style.display='none';
     else btn.style.display='';
   });
+  document.body.classList.add('teacher-mode');
   // Set dates
   const t=today();
   ['a-date','s-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=t;});
@@ -3680,6 +3690,7 @@ async function showStudentDetail(sid,name){
   // Load student-specific intervals then data
   await loadStudentIntervals(sid);
   await refreshVocab();
+  await loadDecks();
   updateStats();
   updateList();
 }
@@ -3776,6 +3787,7 @@ function showStudentActivity(sid,name){
   document.getElementById('act-modal-overlay').style.display='flex';
 }
 function showTeacherOverview(){
+  document.body.classList.remove('teacher-mode');
   hide('student-view');
   hide('main-nav');
   hide('back-to-teacher');
