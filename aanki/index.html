@@ -538,7 +538,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.13</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.14</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -761,6 +761,13 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.14</div><div class="cl-date">2026-06-24</div>
+            <ul>
+              <li>老師儀表板新增「🤖 AI 權限」統一管理：一頁設定所有學生的 AI 模型權限，支援一鍵批量套用</li>
+              <li>學生卡片移除個別 radio 選項，改為顯示目前權限 badge</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.13</div><div class="cl-date">2026-06-24</div>
             <ul>
@@ -1052,6 +1059,30 @@ tr:hover td{background:rgba(124,58,237,.025)}
   </div>
 </div>
 
+<!-- ── AI Permission Management modal (teacher only) ────────────────────── -->
+<div class="copy-deck-overlay" id="ai-perm-overlay" onclick="if(event.target===this)closeAiPermModal()">
+  <div class="copy-deck-modal" style="width:480px;max-height:80vh;display:flex;flex-direction:column">
+    <h3 style="margin-bottom:4px">AI 模型權限管理</h3>
+    <p style="font-size:.8rem;color:#888;margin-bottom:12px">統一設定所有學生的 AI 功能權限</p>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eee">
+      <span style="font-size:.82rem;color:#555;white-space:nowrap;font-weight:600">全部設為</span>
+      <select id="ai-perm-bulk" style="flex:1;padding:6px 10px;border:1px solid rgba(124,58,237,.2);border-radius:7px;font-size:.83rem;font-family:inherit">
+        <option value="all">自選（3.5 Flash + 3.1 Lite）</option>
+        <option value="3.5flash">限定 3.5 Flash</option>
+        <option value="lite">限定 3.1 Lite</option>
+        <option value="disabled">停用 AI 功能</option>
+      </select>
+      <button class="btn-sec" style="padding:6px 14px;font-size:.82rem;white-space:nowrap" onclick="applyBulkAiPerm()">套用</button>
+    </div>
+    <div id="ai-perm-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn-pri" style="flex:1;padding:9px;font-size:.86rem" onclick="saveAllAiPerms()">儲存</button>
+      <button class="btn-sec" style="padding:9px 14px" onclick="closeAiPermModal()">取消</button>
+    </div>
+    <div id="ai-perm-msg" style="margin-top:8px;font-size:.82rem"></div>
+  </div>
+</div>
+
 <!-- ── Copy deck to student modal (teacher only) ─────────────────────────── -->
 <div class="copy-deck-overlay" id="copy-deck-overlay" onclick="if(event.target===this)closeCopyDeck()">
   <div class="copy-deck-modal">
@@ -1090,6 +1121,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
         <div style="display:flex;gap:8px">
           <button class="btn-outline" onclick="manualRefreshSentences()">🔄 換例句</button>
           <button class="btn-outline" onclick="openIntervals()">⚙ 複習間隔</button>
+          <button class="btn-outline" onclick="openAiPermModal()">🤖 AI 權限</button>
           <button class="btn-outline" onclick="openCopyDeckModal()">📂 複製牌組</button>
           <button class="btn-outline" onclick="exportBackup()">備份匯出</button>
           <button class="btn-outline" onclick="document.getElementById('restore-input').click()">回復備份</button>
@@ -3562,24 +3594,7 @@ async function loadTeacherView(){
         <div class="sc-status"><span class="sc-dot ${dotCls}"></span><span>${activeLabel}</span><span style="margin-left:auto;color:#888">本週 ${weekRevs} 次</span></div>
         <div class="sc-stats"><span class="due">今日 ${due}</span><span class="mastered">精熟 ${mastered}</span><span>總 ${total}</span></div>
         <div style="font-size:.77rem;color:#888;margin:5px 0 2px">累計 AI 費用：<span style="color:#e65100;font-weight:600">${costLabel}</span></div>
-        <div style="font-size:.73rem;margin:6px 0 2px" onclick="event.stopPropagation()">
-          <span style="color:#888;font-weight:600">AI 模型權限：</span>
-          <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
-            ${[
-              {v:'all',    label:'自選（3.5 Flash + 3.1 Lite）'},
-              {v:'3.5flash',label:'限定 3.5 Flash（不可切換）'},
-              {v:'lite',    label:'限定 3.1 Lite（不可切換）'},
-              {v:'disabled',label:'停用 AI 功能'}
-            ].map(opt=>{
-              const cur=s.ai_chat_model_perm||'all';
-              const checked=cur===opt.v?'checked':'';
-              return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.72rem;color:${opt.v==='disabled'?'#c62828':'#333'}">
-                <input type="radio" name="aiperm-${s.id}" value="${opt.v}" ${checked} onchange="setStudentAiPerm('${s.id}',this.value)" style="cursor:pointer">
-                ${opt.label}
-              </label>`;
-            }).join('')}
-          </div>
-        </div>
+        <div style="font-size:.72rem;color:#888;margin:4px 0 2px">AI 權限：<span style="color:${(s.ai_chat_model_perm||'all')==='disabled'?'#c62828':'#7c3aed'};font-weight:600">${{'all':'自選','3.5flash':'3.5 Flash','lite':'3.1 Lite','disabled':'停用'}[s.ai_chat_model_perm||'all']}</span></div>
         <div class="sc-act-row">
           <a href="${link}" target="_blank" onclick="event.stopPropagation()" style="color:#1a0dab;font-size:.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</a>
           <button class="sm" style="flex-shrink:0" onclick="event.stopPropagation();copyLink('${link}',this)">複製</button>
@@ -3597,6 +3612,47 @@ async function setStudentAiPerm(sid,perm){
     const enabled=perm!=='disabled';
     await sbPatch('students',`id=eq.${sid}`,{ai_chat_model_perm:perm,ai_chat_enabled:enabled});
   }catch(e){alert('更新失敗：'+e.message);}
+}
+// ── AI Permission Modal ────────────────────────────────────────────────────
+const _PERM_OPTS=[
+  {v:'all',    label:'自選（3.5 Flash + 3.1 Lite）'},
+  {v:'3.5flash',label:'限定 3.5 Flash'},
+  {v:'lite',    label:'限定 3.1 Lite'},
+  {v:'disabled',label:'停用 AI 功能'},
+];
+function openAiPermModal(){
+  document.getElementById('ai-perm-msg').textContent='';
+  document.getElementById('ai-perm-list').innerHTML=teacherStudents.map(s=>{
+    const cur=s.ai_chat_model_perm||'all';
+    const opts=_PERM_OPTS.map(o=>`<option value="${o.v}"${cur===o.v?' selected':''}>${esc(o.label)}</option>`).join('');
+    return `<div style="display:flex;align-items:center;gap:10px">
+      <span style="flex:1;font-size:.86rem;font-weight:600">${esc(s.name)}</span>
+      <select data-sid="${esc(s.id)}" style="padding:5px 9px;border:1px solid rgba(124,58,237,.2);border-radius:7px;font-size:.82rem;font-family:inherit">${opts}</select>
+    </div>`;
+  }).join('');
+  document.getElementById('ai-perm-overlay').classList.add('open');
+}
+function closeAiPermModal(){document.getElementById('ai-perm-overlay').classList.remove('open');}
+function applyBulkAiPerm(){
+  const val=document.getElementById('ai-perm-bulk').value;
+  document.querySelectorAll('#ai-perm-list select').forEach(sel=>{sel.value=val;});
+}
+async function saveAllAiPerms(){
+  const msg=document.getElementById('ai-perm-msg');
+  msg.textContent='儲存中…';
+  try{
+    const sels=[...document.querySelectorAll('#ai-perm-list select')];
+    for(const sel of sels){
+      const sid=sel.dataset.sid;
+      const perm=sel.value;
+      await sbPatch('students',`id=eq.${sid}`,{ai_chat_model_perm:perm,ai_chat_enabled:perm!=='disabled'});
+      const s=teacherStudents.find(s=>s.id===sid);
+      if(s){s.ai_chat_model_perm=perm;s.ai_chat_enabled=perm!=='disabled';}
+    }
+    msg.innerHTML='<span style="color:#059669">✅ 已儲存</span>';
+    await loadTeacherView();
+    setTimeout(closeAiPermModal,800);
+  }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
 }
 function copyLink(link,btn){
   navigator.clipboard.writeText(link).then(()=>{const orig=btn.textContent;btn.textContent='已複製！';setTimeout(()=>btn.textContent=orig,1500);});
