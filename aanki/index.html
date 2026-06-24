@@ -538,7 +538,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.14</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.15</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -761,6 +761,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.15</div><div class="cl-date">2026-06-24</div>
+            <ul>
+              <li>每個 Deck 可獨立開關「置換例句」：在 Deck ⚙ 選單切換，關閉的 Deck 卡片不會被每日換句</li>
+              <li>卡片同時存在多個 Deck，只要其中一個 Deck 開啟，就會置換例句</li>
+              <li>Deck 列表顯示 🚫🔄 提示已關閉置換</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.14</div><div class="cl-date">2026-06-24</div>
             <ul>
@@ -1022,6 +1030,10 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <div class="deck-opts-subtitle" id="deck-opts-sub"></div>
     <button class="deck-opt-item" onclick="openRenameDeckModal()">
       <span class="deck-opt-icon">✏️</span> 重新命名
+    </button>
+    <button class="deck-opt-item" id="deck-refresh-toggle-btn" onclick="toggleDeckRefresh()">
+      <span class="deck-opt-icon" id="deck-refresh-toggle-icon">🔄</span>
+      <span id="deck-refresh-toggle-label">置換例句：開啟</span>
     </button>
     <button class="deck-opt-item danger" onclick="confirmDeleteDeck()">
       <span class="deck-opt-icon">🗑</span> 刪除（放入垃圾桶 7 天）
@@ -2510,7 +2522,7 @@ async function loadDecks(){
     const cutoff=new Date(Date.now()-7*86400000).toISOString();
     sbDelete('decks',`student_id=eq.${studentId}&deleted_at=not.is.null&deleted_at=lt.${cutoff}`).catch(()=>{});
     // Load only non-deleted decks
-    decks=await sbGet('decks',`student_id=eq.${studentId}&deleted_at=is.null&select=id,name,description&order=created_at.asc`);
+    decks=await sbGet('decks',`student_id=eq.${studentId}&deleted_at=is.null&select=id,name,description,refresh_sentences&order=created_at.asc`);
     await ensureDefaultDeck();
     updateDeckSelectors();
     renderDeckFilterBar();
@@ -2568,7 +2580,7 @@ function renderDeckOverview(){
     const dueCls=dueCount>0?'anki-cnt due':'anki-cnt';
     return `<div class="anki-deck-row ${isSel}" onclick="toggleDeckSelect('${esc(d.id)}',this)">
       <input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleDeckSelect('${esc(d.id)}',this.parentElement)" style="cursor:pointer;accent-color:var(--acc)">
-      <span class="anki-deck-name${isDefault?' default':''}">${esc(d.name)}</span>
+      <span class="anki-deck-name${isDefault?' default':''}">${esc(d.name)}${d.refresh_sentences===false?' <span title="不置換例句" style="font-size:.7rem;color:#aaa">🚫🔄</span>':''}</span>
       <span class="${dueCls}">${dueCount}</span>
       <span class="anki-cnt mastered">${masteredCount}</span>
       <span class="anki-cnt total">${total}</span>
@@ -2590,9 +2602,24 @@ function openDeckOpts(deckId){
   const cards=vocab.filter(e=>(cardDeckMap[e.id]||[]).includes(deckId));
   document.getElementById('deck-opts-name').textContent=d.name;
   document.getElementById('deck-opts-sub').textContent=`${cards.length} 張卡片${d.description?' · '+d.description:''}`;
+  const on=d.refresh_sentences!==false;
+  document.getElementById('deck-refresh-toggle-icon').textContent=on?'🔄':'🚫';
+  document.getElementById('deck-refresh-toggle-label').textContent=`置換例句：${on?'開啟':'關閉'}`;
   document.getElementById('deck-opts-overlay').classList.add('open');
 }
 function closeDeckOpts(){document.getElementById('deck-opts-overlay').classList.remove('open');}
+async function toggleDeckRefresh(){
+  const d=decks.find(x=>x.id===_deckOptsId);
+  if(!d) return;
+  const newVal=d.refresh_sentences===false?true:false;
+  try{
+    await sbPatch('decks',`id=eq.${d.id}`,{refresh_sentences:newVal});
+    d.refresh_sentences=newVal;
+    document.getElementById('deck-refresh-toggle-icon').textContent=newVal?'🔄':'🚫';
+    document.getElementById('deck-refresh-toggle-label').textContent=`置換例句：${newVal?'開啟':'關閉'}`;
+    renderDeckOverview();
+  }catch(e){alert('更新失敗：'+e.message);}
+}
 function openRenameDeckModal(){
   const d=decks.find(x=>x.id===_deckOptsId);
   if(!d) return;

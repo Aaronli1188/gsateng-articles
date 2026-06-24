@@ -88,13 +88,32 @@ serve(async (req) => {
   console.log(`[refresh-sentences] Starting for date: ${t}`);
 
   try {
+    // Find all enabled decks (refresh_sentences=true or null, not deleted)
+    const enabledDecks = await sbQuery(
+      `decks?deleted_at=is.null&refresh_sentences=neq.false&select=id`
+    );
+    const enabledDeckIds: string[] = enabledDecks.map((d: any) => d.id);
+
+    // Get card IDs in enabled decks (chunked to avoid URL limit)
+    const eligibleIds = new Set<string>();
+    const DCHUNK = 100;
+    for (let i = 0; i < enabledDeckIds.length; i += DCHUNK) {
+      const ids = enabledDeckIds.slice(i, i + DCHUNK);
+      const rows = await sbQuery(`card_decks?deck_id=in.(${ids.join(",")})&select=card_id`);
+      rows.forEach((r: any) => eligibleIds.add(r.card_id));
+    }
+
     // Find all non-mastered vocabulary due today that has been reviewed at least once
-    const vocab = await sbQuery(
+    const allDue = await sbQuery(
       `vocabulary?next_review=eq.${t}&mastered=eq.false&select=id,word,student_id,context&sm_reps=gt.0`
     );
+    // Keep only cards that are in at least one enabled deck
+    const vocab = eligibleIds.size > 0
+      ? allDue.filter((v: any) => eligibleIds.has(v.id))
+      : [];
 
     if (!vocab.length) {
-      console.log("[refresh-sentences] No cards due today with prior reviews.");
+      console.log("[refresh-sentences] No eligible cards due today.");
       return new Response(JSON.stringify({ date: t, refreshed: 0, cost_usd: 0 }), {
         headers: { "Content-Type": "application/json" },
       });
