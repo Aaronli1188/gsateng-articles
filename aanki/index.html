@@ -538,7 +538,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.11</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.12</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -761,6 +761,12 @@ tr:hover td{background:rgba(124,58,237,.025)}
       <div style="max-width:700px;margin:0 auto">
         <h2 style="margin-bottom:18px">更新日誌</h2>
         <div class="changelog">
+          <div class="cl-entry">
+            <div class="cl-ver">v1.12</div><div class="cl-date">2026-06-24</div>
+            <ul>
+              <li>修復「複製牌組」功能：改用分批查詢與 JS 比對，解決單字含特殊字元或牌組過大時 Failed to fetch 的問題</li>
+            </ul>
+          </div>
           <div class="cl-entry">
             <div class="cl-ver">v1.11</div><div class="cl-date">2026-06-19</div>
             <ul>
@@ -2409,6 +2415,13 @@ function toggleExp(span){
   }
 }
 
+const _MONITOR='https://aaronlinux.taile0f22e.ts.net:10000/api/report';
+function _reportUsage(model,provider,inputTokens,outputTokens){
+  fetch(_MONITOR,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({project:'aanki',provider,model,inputTokens:inputTokens|0,outputTokens:outputTokens|0})
+  }).catch(()=>{});
+}
+
 async function callAnthropic(messages, maxTokens=256){
   const key=SB_KEY||DEFAULT_SB_KEY;
   const base=(SB_URL||DEFAULT_SB_URL).replace(/\/+$/,'');
@@ -2419,7 +2432,9 @@ async function callAnthropic(messages, maxTokens=256){
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages})
   });
   if(!res.ok){const t=await res.text();throw new Error('AI proxy '+res.status+': '+t.slice(0,200));}
-  return res.json();
+  const data=await res.json();
+  _reportUsage('claude-haiku-4-5-20251001','anthropic',data.usage?.input_tokens||0,data.usage?.output_tokens||0);
+  return data;
 }
 
 async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'){
@@ -2437,6 +2452,7 @@ async function callGemini(messages, maxTokens=256, model='gemini-3.1-flash-lite'
   // Return Anthropic-compatible shape so callers need no changes
   const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
   const u=json.usageMetadata||{};
+  _reportUsage(model,'gemini',u.promptTokenCount||0,u.candidatesTokenCount||0);
   return {content:[{text}],usage:{input_tokens:u.promptTokenCount||0,output_tokens:u.candidatesTokenCount||0}};
 }
 
@@ -2779,29 +2795,35 @@ async function doCopyDeckToStudent(){
   if(srcStudentId===tgtStudentId){msg.innerHTML='<span style="color:#c62828">來源和目標不能相同</span>';return;}
   msg.textContent='複製中…';
   try{
-    // Get source deck info
-    const srcDecks=await sbGet('decks',`id=eq.${srcDeckId}&select=id,name,description`);
+    // Get source deck info (limit=1 skips auto-paginate)
+    const srcDecks=await sbGet('decks',`id=eq.${srcDeckId}&select=id,name,description&limit=1`);
     if(!srcDecks.length){msg.innerHTML='<span style="color:#c62828">找不到來源 Deck</span>';return;}
     const srcDeck=srcDecks[0];
-    // Get cards in source deck (via card_decks → vocabulary → word)
+    // Get cards in source deck
     const cdRows=await sbGet('card_decks',`deck_id=eq.${srcDeckId}&select=card_id`);
     const cardIds=cdRows.map(r=>r.card_id);
-    // Get words of those cards
+    // Get words of source cards — chunked 50 at a time to avoid URL length limit
     let srcWords=[];
     if(cardIds.length){
-      const vocabRows=await sbGet('vocabulary',`id=in.(${cardIds.join(',')})&select=word`);
-      srcWords=vocabRows.map(r=>r.word);
+      const CHUNK=50;
+      for(let i=0;i<cardIds.length;i+=CHUNK){
+        const ids=cardIds.slice(i,i+CHUNK);
+        const rows=await sbGet('vocabulary',`id=in.(${ids.join(',')})&select=word&limit=${CHUNK}`);
+        srcWords.push(...rows.map(r=>r.word));
+      }
     }
     // Create new deck for target student
     const newDeckRows=await sbPost('decks',{student_id:tgtStudentId,name:srcDeck.name,description:srcDeck.description||''});
     const newDeck=newDeckRows[0];
     if(!newDeck?.id){msg.innerHTML='<span style="color:#c62828">建立 Deck 失敗</span>';return;}
-    // Find target student's vocab that matches those words
+    // Load ALL target student vocab then match in JS — avoids word=in.(...) URL issues
     let linked=0;
     if(srcWords.length){
-      const tgtVocab=await sbGet('vocabulary',`student_id=eq.${tgtStudentId}&word=in.(${srcWords.map(w=>`"${w.replace(/"/g,'')}"`)})&select=id,word`);
-      for(const v of tgtVocab){
-        try{await sbPost('card_decks',{card_id:v.id,deck_id:newDeck.id});linked++;}catch(e){}
+      const allTgtVocab=await sbGet('vocabulary',`student_id=eq.${tgtStudentId}&select=id,word`);
+      const tgtByWord=Object.fromEntries(allTgtVocab.map(v=>[v.word,v.id]));
+      for(const word of srcWords){
+        const tgtId=tgtByWord[word];
+        if(tgtId){try{await sbPost('card_decks',{card_id:tgtId,deck_id:newDeck.id});linked++;}catch(e){}}
       }
     }
     msg.innerHTML=`<span style="color:#059669">✅ 成功複製「${esc(srcDeck.name)}」至目標學生，連結 ${linked}/${srcWords.length} 張卡片</span>`;
@@ -2985,6 +3007,7 @@ async function ttsSpeak(text,lang){
     const blob=new Blob([buf],{type:'audio/mpeg'});
     const cost=text.length*4/1e6; // WaveNet $4/1M chars
     logAiCost(cost,'tts');
+    _reportUsage('google-tts-wavenet','google-tts',text.length,0);
     _ttsAudio=new Audio(URL.createObjectURL(blob));
     _ttsAudio.play();
   }catch(e){console.error('[TTS]',e);
