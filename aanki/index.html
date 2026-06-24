@@ -538,7 +538,7 @@ tr:hover td{background:rgba(124,58,237,.025)}
     <rect width="36" height="36" rx="9" fill="url(#ig)"/>
     <path d="M21 5L9 20h8l-3 11 13-16h-8L21 5z" fill="white"/>
   </svg>
-  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.12</span></h1>
+  <h1>Aanki <span style="font-size:.45em;font-weight:400;color:#888;vertical-align:middle">v1.13</span></h1>
   <button id="back-to-teacher" onclick="showTeacherOverview()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">← 所有學生</button>
   <button id="teacher-iv-btn" onclick="openIntervals()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">⚙ 複習間隔</button>
   <button id="rename-student-btn" onclick="renameStudent()" style="display:none;background:none;border:1px solid #555;color:#aaa;border-radius:5px;padding:3px 10px;font-size:.76rem;cursor:pointer;white-space:nowrap;font-family:inherit">✏️ 改名</button>
@@ -765,6 +765,14 @@ tr:hover td{background:rgba(124,58,237,.025)}
             <div class="cl-ver">v1.13</div><div class="cl-date">2026-06-24</div>
             <ul>
               <li>整合 AI 用量監控：每次呼叫 Claude、Gemini 或 Google TTS 後自動回報 token 用量與費用至儀表板</li>
+            </ul>
+          </div>
+          <div class="cl-entry">
+            <div class="cl-ver">v1.13</div><div class="cl-date">2026-06-24</div>
+            <ul>
+              <li>「複製牌組」完整實作：目標學生沒有的單字自動新建，已有的沿用原有紀錄，全部連結至新 Deck</li>
+              <li>新建卡片複習進度從零開始（mastered=false、next_review=null）</li>
+              <li>批次寫入（100筆一批），支援大型牌組（2000+張）</li>
             </ul>
           </div>
           <div class="cl-entry">
@@ -2799,40 +2807,67 @@ async function doCopyDeckToStudent(){
   const msg=document.getElementById('copy-deck-msg');
   if(!srcDeckId||!tgtStudentId){msg.innerHTML='<span style="color:#c62828">請選擇來源 Deck 和目標學生</span>';return;}
   if(srcStudentId===tgtStudentId){msg.innerHTML='<span style="color:#c62828">來源和目標不能相同</span>';return;}
-  msg.textContent='複製中…';
+  msg.textContent='複製中…(1/4) 取得來源牌組資料';
   try{
-    // Get source deck info (limit=1 skips auto-paginate)
+    // 1. Source deck info
     const srcDecks=await sbGet('decks',`id=eq.${srcDeckId}&select=id,name,description&limit=1`);
     if(!srcDecks.length){msg.innerHTML='<span style="color:#c62828">找不到來源 Deck</span>';return;}
     const srcDeck=srcDecks[0];
-    // Get cards in source deck
+    // 2. Card IDs in source deck
     const cdRows=await sbGet('card_decks',`deck_id=eq.${srcDeckId}&select=card_id`);
     const cardIds=cdRows.map(r=>r.card_id);
-    // Get words of source cards — chunked 50 at a time to avoid URL length limit
-    let srcWords=[];
+    // 3. Full vocab data for source cards — chunked 50 at a time
+    msg.textContent=`複製中…(2/4) 讀取 ${cardIds.length} 張卡片`;
+    let srcVocab=[];
     if(cardIds.length){
       const CHUNK=50;
       for(let i=0;i<cardIds.length;i+=CHUNK){
         const ids=cardIds.slice(i,i+CHUNK);
-        const rows=await sbGet('vocabulary',`id=in.(${ids.join(',')})&select=word&limit=${CHUNK}`);
-        srcWords.push(...rows.map(r=>r.word));
+        const rows=await sbGet('vocabulary',`id=in.(${ids.join(',')})&select=word,context,zh_meaning,context_zh,memo,in_7000,reading,jlpt_level,pitch_accent&limit=${CHUNK}`);
+        srcVocab.push(...rows);
       }
     }
-    // Create new deck for target student
+    // 4. Target student's existing vocab (word → id map)
+    msg.textContent='複製中…(3/4) 檢查目標學生字庫';
+    const tgtExisting=await sbGet('vocabulary',`student_id=eq.${tgtStudentId}&select=id,word`);
+    const tgtByWord=Object.fromEntries(tgtExisting.map(v=>[v.word,v.id]));
+    // 5. Create new deck for target student
     const newDeckRows=await sbPost('decks',{student_id:tgtStudentId,name:srcDeck.name,description:srcDeck.description||''});
     const newDeck=newDeckRows[0];
     if(!newDeck?.id){msg.innerHTML='<span style="color:#c62828">建立 Deck 失敗</span>';return;}
-    // Load ALL target student vocab then match in JS — avoids word=in.(...) URL issues
-    let linked=0;
-    if(srcWords.length){
-      const allTgtVocab=await sbGet('vocabulary',`student_id=eq.${tgtStudentId}&select=id,word`);
-      const tgtByWord=Object.fromEntries(allTgtVocab.map(v=>[v.word,v.id]));
-      for(const word of srcWords){
-        const tgtId=tgtByWord[word];
-        if(tgtId){try{await sbPost('card_decks',{card_id:tgtId,deck_id:newDeck.id});linked++;}catch(e){}}
-      }
+    // 6. Split: words B already has vs. words to create
+    const now=new Date().toISOString();
+    const toCreate=srcVocab.filter(v=>!tgtByWord[v.word]);
+    const toReuse=srcVocab.filter(v=>!!tgtByWord[v.word]);
+    // 7. Bulk insert new vocab entries for target student (batch 100)
+    msg.textContent=`複製中…(4/4) 建立 ${toCreate.length} 張新卡片`;
+    const BATCH=100;
+    for(let i=0;i<toCreate.length;i+=BATCH){
+      const batch=toCreate.slice(i,i+BATCH).map(v=>({
+        student_id:tgtStudentId,
+        word:v.word,
+        context:v.context||null,
+        zh_meaning:v.zh_meaning||null,
+        context_zh:v.context_zh||null,
+        memo:v.memo||null,
+        in_7000:v.in_7000||false,
+        reading:v.reading||null,
+        jlpt_level:v.jlpt_level||null,
+        pitch_accent:v.pitch_accent||null,
+        first_seen:now,
+        mastered:false,
+        marked:false,
+      }));
+      const newRows=await sbPost('vocabulary',batch);
+      for(const r of newRows){tgtByWord[r.word]=r.id;}
     }
-    msg.innerHTML=`<span style="color:#059669">✅ 成功複製「${esc(srcDeck.name)}」至目標學生，連結 ${linked}/${srcWords.length} 張卡片</span>`;
+    // 8. Bulk link ALL cards to new deck (batch 100, ignore duplicate errors)
+    const allIds=srcVocab.map(v=>tgtByWord[v.word]).filter(Boolean);
+    for(let i=0;i<allIds.length;i+=BATCH){
+      const batch=allIds.slice(i,i+BATCH).map(id=>({card_id:id,deck_id:newDeck.id}));
+      try{await sbPost('card_decks',batch);}catch(e){}
+    }
+    msg.innerHTML=`<span style="color:#059669">✅ 成功複製「${esc(srcDeck.name)}」至目標學生<br>新建 ${toCreate.length} 張、沿用 ${toReuse.length} 張已有卡片，共 ${allIds.length} 張</span>`;
   }catch(e){msg.innerHTML=`<span style="color:#c62828">錯誤：${esc(e.message)}</span>`;}
 }
 
